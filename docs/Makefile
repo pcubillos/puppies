@@ -6,7 +6,17 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = ../../sphinxdoc-puppies
-PDFBILDDIR    = ./latex/tmp
+PDFBUILDDIR   = ./latex/tmp
+
+# Mute compilation
+Q =
+O =
+ifdef MUTE
+	ifeq ("$(origin MUTE)", "command line")
+		Q = @
+		O = > /dev/null
+	endif
+endif
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -137,11 +147,12 @@ latex:
 
 .PHONY: latexpdf
 latexpdf:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(PDFBUILDDIR)/latex
+	$(Q) $(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(PDFBUILDDIR) $(O)
 	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(PDFBUILDDIR)/latex all-pdf
-	cp $(PDFBUILDDIR)/latex/*.pdf ./latex/
-	@echo "pdflatex finished; the PDF files are in ./latex/"
+	$(Q) $(MAKE) -C $(PDFBUILDDIR) all-pdf $(O)
+	$(Q) mv $(PDFBUILDDIR)/puppies.pdf $(PDFBUILDDIR)/../ $(O)
+	$(Q) rm -fr $(PDFBUILDDIR) $(O)
+	@echo "pdflatex finished; the PDF files are in ./latex/puppies.pdf"
 
 .PHONY: latexpdfja
 latexpdfja:
