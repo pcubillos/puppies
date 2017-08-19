@@ -1,0 +1,79 @@
+*****  Sun May 28 23:48:48 CEST 2017  *****
+
+Calling sequence:
+  ./pup.py pup.cfg
+
+This seems to be anough.  All required info can be contained into the
+pup.cfg file, including what steps to run, and over which folders.
+
+Main steps:
++ load
++ badpixel
+- centering
+- photometry
+- modeling
+- mcmc
+
+
+centering:
+- run_centering
+    driver: load files, launch runs (series)
+- centering
+    main: 
+- do_center
+    low level centering
+- centerdriver
+
+TBD centering:
+- read in data, mask, uncert
+
+
+*****  Sat Aug 19 20:19:37 CEST 2017  *****
+
+Let's make puppies work.
+puppies must work from the command line or from an interactive session:
+
+## Interactive:
+import puppies as p
+
+# New puppy:
+pup = p.init("cfile.cfg")
+
+# New step:
+pup.badpix()
+pup.center()
+
+# Load:
+pup = p.io.load(path + "wa043b.p")
+
+## Command line:
+  TBD
+
+On now puppy, take the location of the config file as the root where
+to place the outputs.
+
+*****
+
+repository structure (so far):
+puppies
+|--puppies
+|  |--tools
+|  |--stats
+|  |--lib
+|  |--image
+|  `--io
+|--examples
+|--inputs
+|--src_c
+|--modules
+`--docs
+
+*****
+
+Got a basic package import working, and interactive init() running.
+Added required files.
+Need to find a solution for all_spitzer.vec (file too large),
+download during 'make'?
+
+*****
+
