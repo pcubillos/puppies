@@ -10,17 +10,6 @@ from . import tools as pt
 def init(cfile):
   """
   Parse variables from a configuration file into a dictionary.
-
-import configparser, imp
-import spitzer as s
-import loadsave as ls
-import pup_badpix as pbp
-
-pup = ls.load("/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/run00/wa043b/wa043b.p")
-pbp.badpix(pup)
-
-cfg = driver.parse("/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/run00/wa043b/badpix/")
-pup = ls.load("/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/run00/wa043b/badpix/wa043b.p")
   """
   args = parse(cfile)
 
@@ -38,9 +27,6 @@ pup = ls.load("/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/run00/w
 def parse(cfile):
   """
   Parse variables from a configuration file into a dictionary.
-
-cfile='/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/run00/pup.cfg'
-args = parse(cfile)
   """
   config = configparser.ConfigParser()
   config.optionxform=str

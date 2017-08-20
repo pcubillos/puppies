@@ -1,14 +1,16 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['init', 'badpix', 'stats', 'tools', 'io']
+from .medstddev import *
+from .sigrej    import *
 
-# Import sub-packages:
-#from . import plots
-from . import tools
+from .medstddev import __all__
+stats_all = __all__
+from .sigrej    import __all__
+stats_all += __all__
 
-from .driver import init
-from .pup_badpix import badpix
+__all__ = stats_all
+
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
