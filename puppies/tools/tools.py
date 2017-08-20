@@ -3,7 +3,9 @@ import traceback
 import textwrap
 import numpy as np
 
-__all__ = ["parray", "msg", "warning", "error"]
+import astropy.units  as u
+
+__all__ = ["parray", "msg", "warning", "error", "getpar"]
 
 # Warning/error banner:
 sep = 70*":"
@@ -139,3 +141,40 @@ def error(message, file=None, lev=-2):
     file.close()
   sys.exit(0)
 
+
+def getpar(par, units=u.dimensionless_unscaled, dtype=float):
+  """
+  Extract value, uncertainty, and units from input string.
+  Apply dtype and unit casting as requested.
+
+  Parameters
+  ----------
+  par: String
+     A string with one to three blank-separated items: "value [[uncert] unit]"
+  units: CompositeUnit
+     An astropy's unit object.
+  dtype: dtype
+     The data type of the inputs.
+
+  Returns
+  -------
+  value: Quantity
+     The input value, casted to dtype, returned as the specified unit.
+  error: Quantity
+     The value's uncertainty (zero if there's no input error value).
+  """
+  val = par.split()
+
+  # If input has more than one item, the last is the units:
+  if len(val) > 1:
+    units = u.Unit(val[-1])
+
+  value = dtype(val[0]) * units
+
+  # If input has three items, then the second is the uncertainty:
+  if len(val) == 3:
+    error = dtype(val[1]) * units
+  else:
+    error = 0 * units
+
+  return value, error

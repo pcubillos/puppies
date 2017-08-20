@@ -75,5 +75,10 @@ Added required files.
 Need to find a solution for all_spitzer.vec (file too large),
 download during 'make'?
 
+
+*****  Sun Aug 20 22:26:40 CEST 2017  *****
+
+Moved getpar() from spitzer.py to tools.
+
 *****
 

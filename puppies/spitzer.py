@@ -16,25 +16,6 @@ from . import tools as pt
 from . import io    as io
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../")
-print(topdir)
-
-
-def getpar(par, units=u.dimensionless_unscaled, dtype=float):
-  """
-  DOC ME!
-  """
-  val = par.split()
-
-  if len(val) > 1:
-    units = u.Unit(val[-1])
-
-  value = dtype(val[0]) * units
-  
-  if len(val) == 3:
-    error = dtype(val[1]) * units
-  else:
-    error = 0 * units
-  return value, error
 
 
 class Pup():
@@ -78,16 +59,17 @@ class Pup():
     self.ra  = coord.Angle(ra[0],  unit=u.Unit(ra[1]))
     self.dec = coord.Angle(dec[0], unit=u.Unit(dec[1]))
 
-    self.rstar,   self.urstar   = getpar(args["rstar"])
-    self.Zstar,   self.Zstar    = getpar(args["Zstar"])
-    self.tstar,   self.utstar   = getpar(args["tstar"])
-    self.logg,    self.ulogg    = getpar(args["logg"])
-    self.rplanet, self.urplanet = getpar(args["rplanet"])
-    self.smaxis,  self.usmaxis  = getpar(args["smaxis"])
-    self.incl,    self.uincl    = getpar(args["incl"])
-    self.ephtime, self.uephtime = getpar(args["ephtime"])
-    self.period,  self.uperiod  = getpar(args["period"])
-    self.T14,     self.uT14     = getpar(args["T14"])
+    # Parameter   uncertainty:
+    self.rstar,   self.urstar   = pt.getpar(args["rstar"])
+    self.Zstar,   self.uZstar   = pt.getpar(args["Zstar"])
+    self.tstar,   self.utstar   = pt.getpar(args["tstar"])
+    self.logg,    self.ulogg    = pt.getpar(args["logg"])
+    self.rplanet, self.urplanet = pt.getpar(args["rplanet"])
+    self.smaxis,  self.usmaxis  = pt.getpar(args["smaxis"])
+    self.incl,    self.uincl    = pt.getpar(args["incl"])
+    self.ephtime, self.uephtime = pt.getpar(args["ephtime"])
+    self.period,  self.uperiod  = pt.getpar(args["period"])
+    self.T14,     self.uT14     = pt.getpar(args["T14"])
 
     self.rprs2  = (self.rplanet/self.rstar)**2
     self.urprs2 = 2*self.rprs2 * np.sqrt((self.urplanet/self.rplanet)**2 +
