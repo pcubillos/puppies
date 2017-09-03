@@ -92,3 +92,8 @@ Implemented disk routine for Python and C.
 
 *****
 
+Implemented imedit.py, tied together with disk.py into image
+module.
+
+*****
+
