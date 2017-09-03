@@ -85,5 +85,10 @@ Moved getpar() from spitzer.py to tools.
 Got badpix working.
 Added pup_badpix.py and stats module.
 
+
+*****  Sun Sep  3 20:09:46 CEST 2017  *****
+
+Implemented disk routine for Python and C.
+
 *****
 
