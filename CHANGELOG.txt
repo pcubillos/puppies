@@ -95,5 +95,11 @@ Implemented disk routine for Python and C.
 Implemented imedit.py, tied together with disk.py into image
 module.
 
+
+*****  Sun Sep 24 18:51:34 CEST 2017  *****
+
+Implemented gaussian functions into center module.
+TBD: give them their own submodule inside the center module.
+
 *****
 
