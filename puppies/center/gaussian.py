@@ -34,8 +34,8 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
   Returns
   -------
   gauss: 2D float ndarray
-    2D Gaussian function give by:
-         f(x,y) = 1.0/(2*pi * sigmay*sigmax) *
+    A 2D Gaussian function give by:
+         f(x,y) = 1.0/(2*pi*sigmay*sigmax) *
                   exp(-0.5 * (((y-ycenter)/sigmay)**2 +
                              ((y-ycenter)/sigmay)**2 )) + background
 
@@ -51,7 +51,7 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
   >>> gauss = g.gaussian(size, center, sigma)
   >>> plt.figure(0)
   >>> plt.clf()
-  >>> plt.imshow(gauss, origin="lower left")
+  >>> plt.imshow(gauss, origin="lower left", interpolation="nearest")
   >>> plt.title('2D Gaussian')
   >>> plt.xlabel('X')
   >>> plt.ylabel('Y')

@@ -101,5 +101,13 @@ module.
 Implemented gaussian functions into center module.
 TBD: give them their own submodule inside the center module.
 
+
+*****  Mon Sep 25 23:09:32 CEST 2017  *****
+
+Implemented least-asymetry routines into center module.
+
 *****
+
+
+
 
