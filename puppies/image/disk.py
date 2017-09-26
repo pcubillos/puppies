@@ -47,7 +47,7 @@ def disk(radius, center, size, status=False, ndisk=False):
   >>> print(stat)
   """
   # Cast inputs to the right data-type:
-  disk, stat, n = cdisk.pydisk(float(radius), np.asarray(center, float),
+  disk, stat, n = cdisk.disk(float(radius), np.asarray(center, float),
                             np.asarray(size, int))
   if not status and not ndisk:
     return disk

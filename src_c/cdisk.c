@@ -7,10 +7,9 @@
 #include <sys/types.h>
 
 #include "ind.h"
-#include "disk_c.h"
 
 /* Function's doc string */
-PyDoc_STRVAR(pydisk__doc__,
+PyDoc_STRVAR(disk__doc__,
 "Compute a disk image of given size, with True/False values for those\n\
 pixels whose center lies closer/farther than radius from center.     \n\
                                                                      \n\
@@ -25,7 +24,7 @@ size: 1D integer ndarray                                             \n\
                                                                      \n\
 Returns                                                              \n\
 -------                                                              \n\
-pydisk: 2D bool ndarray                                              \n\
+disk: 2D bool ndarray                                                \n\
    Disk image.                                                       \n\
 status: Integer                                                      \n\
    Flag with 1/0 if any part of the disk lies outside/inside of the  \n\
@@ -36,41 +35,42 @@ ndisk: Integer                                                       \n\
 Examples                                                             \n\
 --------                                                             \n\
 >>> import cdisk as d                                                \n\
->>> disk, s, n = d.pydisk(3.5, np.array([4.0,6.0]), np.array([8,8])) \n\
+>>> disk, s, n = d.disk(3.5, np.array([4.0,6.0]), np.array([8,8]))   \n\
 >>> print(disk)                                                      \n\
 >>> print(s, n)");
 
 
-static PyObject *pydisk(PyObject *self, PyObject *args){
+static PyObject *disk(PyObject *self, PyObject *args){
   double radius;
-  PyArrayObject *pydisk, *center, *size;
+  PyArrayObject *d, *center, *size;
   npy_intp dims[2];
-  int i, j, ny, nx, status, ndisk;
-  char **d;
+  int i, j, ny, nx, status=0, ndisk, n=0;
+  double yctr, xctr;
 
   if (!PyArg_ParseTuple(args, "dOO", &radius, &center, &size))
       return NULL;
 
   ny = dims[0] = INDi(size,0);
   nx = dims[1] = INDi(size,1);
-  pydisk = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+  d = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
 
-  /* Allocate disk: */
-  d    = (char **)malloc(ny*    sizeof(char *));
-  d[0] = (char  *)calloc(ny*nx, sizeof(char  ));
-  for (i=1; i<ny; i++)
-    d[i] = d[0] + nx*i;
-
-  disk(d, radius, INDd(center,0), INDd(center,1), INDi(size,0), INDi(size,1),
-       &status, &ndisk);
+  yctr = INDd(center,0);
+  xctr = INDd(center,1);
+  /* Alert if the center lies outside the image:                           */
+  if ( (yctr-radius) < 0 || (yctr+radius) > (ny-1) ||
+       (xctr-radius) < 0 || (xctr+radius) > (nx-1) )
+    status = 1;
 
   for   (i=0; i<ny; i++)
-    for (j=0; j<nx; j++)
-      IND2b(pydisk,i,j) = d[i][j];
+    for (j=0; j<nx; j++){
+      /* Is the point disk[i][j] inside the disk?                          */
+      IND2b(d,i,j) = (i-yctr)*(i-yctr) + (j-xctr)*(j-xctr) <= radius*radius;
+      n += IND2b(d,i,j);
+    }
+  /* Number of pixels within radius in ndisk:                              */
+  ndisk = n;
 
-  free(d[0]);
-  free(d);
-  return Py_BuildValue("Nii", pydisk, status, ndisk);
+  return Py_BuildValue("Nii", d, status, ndisk);
 }
 
 
@@ -79,8 +79,8 @@ PyDoc_STRVAR(cdisk__doc__, "Circular disk image.");
 
 
 static PyMethodDef cdisk_methods[] = {
-    {"pydisk", pydisk, METH_VARARGS, pydisk__doc__},
-    {NULL,     NULL,   0,            NULL}
+    {"disk", disk, METH_VARARGS, disk__doc__},
+    {NULL,   NULL, 0,            NULL}
 };
 
 #if PY_MAJOR_VERSION >= 3

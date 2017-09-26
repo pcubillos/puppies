@@ -106,7 +106,13 @@ TBD: give them their own submodule inside the center module.
 
 Implemented least-asymetry routines into center module.
 
+
+*****  Tue Sep 26 21:01:11 CEST 2017  *****
+
+Cleaned up the disk.py and cdisk.c functions.
+
 *****
+
 
 
 
