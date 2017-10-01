@@ -3,9 +3,9 @@ import sys
 import numpy as np
 import scipy.optimize as so
 
-from .. import image as im
+from ... import image as im
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
+topdir = os.path.realpath(os.path.dirname(__file__) + "/../../..")
 sys.path.append(topdir + "/puppies/lib")
 import gauss as g
 
@@ -42,7 +42,7 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
   Examples
   --------
   >>> import matplotlib.pyplot as plt
-  >>> import puppies.gaussian as g
+  >>> import puppies.center.gaussian as g
 
   >>> # Make 2D Gaussian (Y, X):
   >>> size   = 50, 80

@@ -111,8 +111,12 @@ Implemented least-asymetry routines into center module.
 
 Cleaned up the disk.py and cdisk.c functions.
 
-*****
 
+*****  Sun Oct  1 15:04:01 CEST 2017  *****
+
+Sorted up gaussian, made it its own module inside the center module.
+
+*****
 
 
 

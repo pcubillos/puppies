@@ -1,17 +1,9 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['init', 'badpix',
-           'stats', 'tools', 'io', 'center']
+from .gaussian import *
+from .gaussian import __all__
 
-# Import sub-packages:
-from . import tools
-from . import center
-from . import stats
-from . import io
-
-from .driver import init
-from .pup_badpix import badpix
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

@@ -1,13 +1,12 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-from .gaussian   import *
+from . import gaussian
 from .least_asym import *
 
-from .gaussian   import __all__ as gall
-from .least_asym import __all__ as aall
+from .least_asym import __all__
 
-__all__ = gall + aall
+__all__ = ["gaussian"] + __all__
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

@@ -3,8 +3,8 @@ import os
 import numpy as np
 from scipy.ndimage.interpolation import map_coordinates
 
-#from . import gaussian as g
-from .gaussian import fit
+from . import gaussian as g
+#from .gaussian import fit
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 import asymmetry as a
@@ -91,12 +91,13 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
   Example
   -------
   >>> import puppies.center as c
+  >>> import puppies.center.gaussian as g
 
   >>> # Create image:
   >>> size   = 30, 30
   >>> center =  15.1, 15.45
   >>> sigma  =  1.2, 1.2
-  >>> data = c.gaussian(size, center, sigma)
+  >>> data = g.gaussian(size, center, sigma)
 
   >>> # Least-asymmetry fit:
   >>> yxguess = 15, 14
@@ -106,9 +107,8 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
   >>> c.asym(data, yxguess, arad, asize, method=method)
   array([ 15.09980257,  15.44999291])
   """
-  # Initialize the boolean that determines if there are weights present or not
-  # This is used in the make asym array to square the variance, to provide
-  #larger contrast when using weights
+  # Boolean that determines if there are weights to square the variance,
+  # to provide larger contrast when using weights
   w_truth = 1
   # Create the weights array if one is not passed in, and set w_truth to 0
   if weights is None:
@@ -204,7 +204,7 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
   if method == 'col':
     yxfit = col(asym)
   if method == 'gauss':
-    yxfit = fit(asym)[0:2]
+    yxfit = g.fit(asym)[0:2]
 
   return (np.array(yxfit)/resize - asym_size +
           np.array((suby[middle], subx[middle]), dtype=float))
