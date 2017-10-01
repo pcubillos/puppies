@@ -118,6 +118,8 @@ Sorted up gaussian, made it its own module inside the center module.
 
 *****
 
+Implemented center-of-light calculation into center module.
 
+*****
 
 

@@ -3,10 +3,12 @@
 
 from . import gaussian
 from .least_asym import *
+from .col        import *
 
-from .least_asym import __all__
+from .least_asym import __all__ as lall
+from .col        import __all__ as call
 
-__all__ = ["gaussian"] + __all__
+__all__ = ["gaussian"] + lall + call
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

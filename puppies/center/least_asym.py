@@ -4,25 +4,12 @@ import numpy as np
 from scipy.ndimage.interpolation import map_coordinates
 
 from . import gaussian as g
-#from .gaussian import fit
+from .col import col
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 import asymmetry as a
 
 __all__ = ["asym"]
-
-
-def col(data, weights=False):
-  """
-  Center of light calculation.
-  """
-  if type(weights) == type(False):
-    weights = np.ones(data.shape,dtype=float)
-  elif weights.dtype != np.dtype('float'):
-    weights = np.array(weights,dtype(float))
-  yind, xind = np.indices(data.shape)
-  return [np.sum(weights*yind*data)/np.sum(weights*data),
-          np.sum(weights*xind*data)/np.sum(weights*data)]
 
 
 def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
