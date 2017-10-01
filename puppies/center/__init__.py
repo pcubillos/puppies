@@ -4,11 +4,13 @@
 from . import gaussian
 from .least_asym import *
 from .col        import *
+from .driver     import *
 
 from .least_asym import __all__ as lall
 from .col        import __all__ as call
+from .driver     import __all__ as dall
 
-__all__ = ["gaussian"] + lall + call
+__all__ = ["gaussian"] + lall + call + dall
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

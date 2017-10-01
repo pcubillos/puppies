@@ -122,4 +122,7 @@ Implemented center-of-light calculation into center module.
 
 *****
 
+Implemented center driver.py routine.
+
+*****
 

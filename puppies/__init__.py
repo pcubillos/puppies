@@ -2,7 +2,7 @@
 # puppies is open-source software under the MIT license (see LICENSE).
 
 __all__ = ['init', 'badpix',
-           'stats', 'tools', 'io', 'center']
+           'stats', 'tools', 'io', 'image', 'center']
 
 # Import sub-packages:
 from . import tools

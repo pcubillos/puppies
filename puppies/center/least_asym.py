@@ -4,7 +4,7 @@ import numpy as np
 from scipy.ndimage.interpolation import map_coordinates
 
 from . import gaussian as g
-from .col import col
+from . import col
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 import asymmetry as a
@@ -41,8 +41,10 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
      y,x guess of the center
   asym_rad: Integer
      Span of the radial profile used in the asym calculation.
+     See notes.
   asym_size: Integer
      Radius of the asym space that is used to determine the center.
+     See notes.
   maxcounts: Integer
      Number of times the routine tries to put the point of minimum
      asymmetry in the center of the array.
@@ -64,6 +66,13 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
   -------
   yx_asym: 1D tuple
      The y,x least-asymmetry sub-pixel position of the array.
+
+  Notes
+  -----
+     This seems to be a good rule of thumb to avoid code breaks:
+     - data.shape > arad + asize
+     - arad > asize
+     I can't explain it, it just works.
 
   Raises
   ------

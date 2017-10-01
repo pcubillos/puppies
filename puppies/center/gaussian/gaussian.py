@@ -154,29 +154,19 @@ def fit(data, background=None, fitbg=False, fitguess=None,
   Returns
   -------
   params: ndarray
-     This array contains the best fitting values parameters: width,
-     center, height, and if requested, bgpars. with:
-        width :  The fitted Gaussian widths in each dimension.
-        center : The fitted Gaussian center coordinate in each dimension.
-        height : The fitted height.
-  err: ndarray
-     An array containing the concatenated uncertainties
-     corresponding to the values of params.  For example, 2D input
-     gives np.array([widthyerr, widthxerr, centeryerr, centerxerr,
-     heighterr]).
+     The best fitting values parameters:
+     [ycenter, xcenter, ywidth, xwidth, height, background]
+     Note that background is returned only if fitbg is True.
 
   Notes
   -----
   If the input does not look anything like a Gaussian, the result
   might not even be the best fit to that.
 
-  Method: First guess the parameters (if no guess is provided), then
-  call a Levenberg-Marquardt optimizer to finish the job.
-
   Examples
   --------
   >>> import matplotlib.pyplot as plt
-  >>> import puppies.gaussian as g
+  >>> import puppies.center.gaussian as g
 
   >>> # Fit its own model:
   >>> size   = 20,   20
@@ -203,6 +193,9 @@ def fit(data, background=None, fitbg=False, fitguess=None,
     mask    = np.ones((ny,nx), dtype=bool)
   if weights is None:
     weights = np.ones((ny,nx), dtype=float)
+
+  # Make sure mask is a boolean:
+  mask = np.array(mask, bool)
 
   # Mask the target:
   #medmask = np.copy(mask)

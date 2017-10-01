@@ -19,7 +19,7 @@ def trim(data, center, size, mask=None, uncd=None, oob=0):
   mask: 2D ndarray
      If specified, this routine will extract the mask subimage 
      as well.
-  uncd: 2D ndarray
+  uncd: 2D float ndarray
      If specified, this routine will extract the uncd subimage 
      as well.
   oob: scalar
