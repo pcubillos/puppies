@@ -31,12 +31,14 @@ class Pup():
 
 
   def initpars(self, args):
+    # Put user inputs into the Pup object:
+    self.inputs = inputs = args
     # Event:
-    self.planetname = args["planetname"]
-    self.ID         = args["ID"]
+    self.planetname = inputs["planetname"]
+    self.ID         = inputs["ID"]
 
     # Create output folder:
-    self.root = args["root"]
+    self.root = inputs["root"]
     if self.root == "default":
       self.root = os.getcwd()
     if not os.path.exists(self.root):
@@ -48,56 +50,56 @@ class Pup():
     os.chdir(self.folder)
 
     # Make file to store running log:
-    self.logfile = self.folder + "/" + self.ID + ".log"
+    self.logfile = "{:s}/{:s}.log".format(self.folder, self.ID)
     self.log = open(self.logfile, "w")
-    pt.msg(1, "\nStarting new Puppies project at '{:s}'.".format(self.folder))
-
+    pt.msg(1, "\nStarting new Puppies project in '{:s}'.".
+                  format(self.folder), self.log)
 
     # Parse Parameters:
-    ra  = args["ra"].split()
-    dec = args["dec"].split()
+    ra  = inputs["ra"].split()
+    dec = inputs["dec"].split()
     self.ra  = coord.Angle(ra[0],  unit=u.Unit(ra[1]))
     self.dec = coord.Angle(dec[0], unit=u.Unit(dec[1]))
 
     # Parameter   uncertainty:
-    self.rstar,   self.urstar   = pt.getpar(args["rstar"])
-    self.Zstar,   self.uZstar   = pt.getpar(args["Zstar"])
-    self.tstar,   self.utstar   = pt.getpar(args["tstar"])
-    self.logg,    self.ulogg    = pt.getpar(args["logg"])
-    self.rplanet, self.urplanet = pt.getpar(args["rplanet"])
-    self.smaxis,  self.usmaxis  = pt.getpar(args["smaxis"])
-    self.incl,    self.uincl    = pt.getpar(args["incl"])
-    self.ephtime, self.uephtime = pt.getpar(args["ephtime"])
-    self.period,  self.uperiod  = pt.getpar(args["period"])
-    self.T14,     self.uT14     = pt.getpar(args["T14"])
+    self.rstar,   self.urstar   = pt.getpar(inputs["rstar"])
+    self.Zstar,   self.uZstar   = pt.getpar(inputs["Zstar"])
+    self.tstar,   self.utstar   = pt.getpar(inputs["tstar"])
+    self.logg,    self.ulogg    = pt.getpar(inputs["logg"])
+    self.rplanet, self.urplanet = pt.getpar(inputs["rplanet"])
+    self.smaxis,  self.usmaxis  = pt.getpar(inputs["smaxis"])
+    self.incl,    self.uincl    = pt.getpar(inputs["incl"])
+    self.ephtime, self.uephtime = pt.getpar(inputs["ephtime"])
+    self.period,  self.uperiod  = pt.getpar(inputs["period"])
+    self.T14,     self.uT14     = pt.getpar(inputs["T14"])
 
     self.rprs2  = (self.rplanet/self.rstar)**2
     self.urprs2 = 2*self.rprs2 * np.sqrt((self.urplanet/self.rplanet)**2 +
                                          (self.urstar  /self.rstar  )**2 )
 
-    self.units = u.Unit(args["units"])
+    self.units = u.Unit(inputs["units"])
 
     # Instrument-specific:
-    self.inst = Instrument(args["instrument"])
-    self.inst.npos    = int(args["npos"])
-    self.inst.nnod    = int(args["nnod"])
-    self.inst.aorname = pt.parray(args["aorname"])
+    self.inst = Instrument(inputs["instrument"])
+    self.inst.npos    = int(inputs["npos"])
+    self.inst.nnod    = int(inputs["nnod"])
+    self.inst.aorname = pt.parray(inputs["aorname"])
     self.inst.naor    = len(self.inst.aorname)
-    self.inst.datadir = args["data"]
+    self.inst.datadir = inputs["data"]
 
     # Ancilliary files:
-    self.horizons = args["horizons"]
+    self.horizons = inputs["horizons"]
     if self.horizons == "default":
       self.horizons = topdir + "/inputs/spitzer/all_spitzer.vec"
 
-    self.kurucz   = args["kurucz"]
+    self.kurucz   = inputs["kurucz"]
 
-    self.filter   = args["filter"]
+    self.filter   = inputs["filter"]
     if self.filter == "default":
       self.filter = "{:s}/inputs/spitzer/filter/{:s}".format(
                                 topdir, self.inst.filter_def[self.inst.chan-1])
 
-    self.psf      = args["psf"]
+    self.psf      = inputs["psf"]
     if self.psf == "default":
       self.psf = "{:s}/inputs/spitzer/psf/{:s}".format(
                                 topdir, self.inst.psf_def[self.inst.chan-1])
@@ -106,11 +108,11 @@ class Pup():
     for i in np.arange(self.inst.naor):
       self.inst.pmaskfile.append("{:s}/r{:s}/{:s}/cal/{:s}".
         format(self.inst.datadir, self.inst.aorname[i], self.inst.channel,
-               args["pmaskfile"]))
+               inputs["pmaskfile"]))
 
     # Sigma rejection:
-    self.schunk = int(args["schunk"])
-    self.sigma  = pt.parray(args["sigma"], float)
+    self.schunk = int(inputs["schunk"])
+    self.sigma  = pt.parray(inputs["sigma"], float)
 
 
   def calc(self):
@@ -141,8 +143,7 @@ class Pup():
       elif bdmsk2pattern.findall(framesstring) != []:
         inst.masksuf = inst.bdmsksuf2
       else:
-        log.writeclose("No mask files found.")
-        return
+        pt.error("No mask files found.", self.log)
 
       # get first index of exposition ID, number of expID, and ndcenum
       #                    expid      dcenum     pipev

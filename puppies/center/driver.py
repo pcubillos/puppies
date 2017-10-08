@@ -135,7 +135,7 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
   elif method == 'col':
     y, x = col(img)
   elif method == 'lag':
-    y, x = la.asym(img, loc, asym_rad=radius, asym_size=size, method='gauss')
+    y, x = la.asym(img, loc, asym_rad=arad, asym_size=asize, method='gauss')
   #elif method == 'lac':   # This does not work well
   #  y, x = la.asym(img, loc, asym_rad=radius, asym_size=size, method='col')
   #elif method in ['bpf', 'ipf']:

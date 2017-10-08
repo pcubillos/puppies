@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['init', 'badpix',
+__all__ = ['init', 'badpix', 'cen',
            'stats', 'tools', 'io', 'image', 'center']
 
 # Import sub-packages:
@@ -12,6 +12,7 @@ from . import io
 
 from .driver import init
 from .pup_badpix import badpix
+from .pup_center import driver as cen
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

@@ -29,7 +29,7 @@ def badpix(pup):
   shutil.copy(pup.logfile, pup.folder)
   pup.logfile = pup.folder + "/" + pup.ID + ".log"
   pup.log = open(pup.logfile, "a")
-  pt.msg(1, "\n{:s}\nStarting bad pixel masking  ({:s})\n".
+  pt.msg(1, "\n\n{:s}\nStarting bad pixel masking  ({:s})\n\n".
             format(70*":", time.ctime()), pup.log)
 
   # Julian observation date
@@ -104,12 +104,9 @@ def badpix(pup):
   # Apply sigma rejection on medsky here?
 
   # Print time elapsed and close log:
-  pt.msg(1, "\nFinished bad-pixel mask flagging.\nOutput folder: '{:s}'.".
-         format(pup.folder), pup.log)
+  pt.msg(1, "\nFinished bad-pixel masking  ({:s}).\nOutput folder: '{:s}'.\n".
+         format(time.ctime(), pup.folder), pup.log)
   io.save(pup)
-
-  #dt = t.hms_time(time.time()-tini)
-  #log.writeclose('\nBad pixel masking time (h:m:s):  %s '%dt)
 
 
 def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):

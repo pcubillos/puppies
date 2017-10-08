@@ -124,5 +124,14 @@ Implemented center-of-light calculation into center module.
 
 Implemented center driver.py routine.
 
+
+*****  Sun Oct  8 22:55:49 CEST 2017  *****
+
+Got pup_center running (yay!).
+Added temporary calling sequence to pup_center.
+Fixed minor bug in center/driver.py for least-asym calls.
+Tweaked main driver (removed parse() def).
+Put user-input dict (from config files) into pup.inputs.
+
 *****
 

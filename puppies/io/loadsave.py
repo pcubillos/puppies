@@ -30,26 +30,6 @@ with open(st, 'wb') as f:
     #  info["data"] = pup.data
     #  pup.data = savefile
 
-    #if not isinstance(pup.uncd, str):
-    #  info["uncd"] = pup.uncd
-    #  pup.uncd = savefile
-
-    #if not isinstance(pup.head, str):
-    #  info["head"] = pup.head
-    #  pup.head = savefile
-
-    #if not isinstance(pup.mask, str):
-    #  info["mask"] = pup.mask
-    #  pup.mask = savefile
-
-    #if not isinstance(pup.bdmskd, str):
-    #  info["bdmskd"] = pup.bdmskd
-    #  pup.bdmskd = savefile
-
-    #if isinstance(pup.brmskd, str):
-    #  info["brmskd"] = pup.brmskd
-    #  pup.brmskd = savefile
-
     np.savez(savefile, **info)
 
   # Need to close this FILE object:
