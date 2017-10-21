@@ -164,11 +164,11 @@ def centering(pup):
             format(pup.targpos.T), pup.log)
 
   # Multy Process set up:
-  x       = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  y       = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  flux    = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  sky     = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  goodfit = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  x     = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  y     = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  flux  = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  sky   = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  good  = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
 
   # Size of chunk of data each core will process:
   chunksize = int(pup.inst.maxnimpos/pup.ncpu + 1)
@@ -180,7 +180,7 @@ def centering(pup):
     start =  n    * chunksize # Starting index to process
     end   = (n+1) * chunksize # Ending   index to process
     proc = mp.Process(target=center, args=(pup, start, end, #centermask,
-                         x, y, flux, sky, goodfit))
+                         x, y, flux, sky, good))
     processes.append(proc)
     proc.start()
   # Make sure all processes finish their work:
@@ -192,9 +192,9 @@ def centering(pup):
   pup.fp.y         = np.array(y   ).reshape(pup.inst.npos, pup.inst.maxnimpos)
   # If PSF fit:
   if pup.centering in ["ipf", "bpf"]: 
-    pup.fp.flux    = np.array(flux).reshape(pup.inst.npos, pup.inst.maxnimpos)
-    pup.fp.psfsky  = np.array(sky ).reshape(pup.inst.npos, pup.inst.maxnimpos)
-    pup.fp.goodfit = np.array(goodfit).reshape(pup.inst.npos,pup.inst.maxnimpos)
+    pup.fp.aplev  = np.array(aplev).reshape(pup.inst.npos, pup.inst.maxnimpos)
+    pup.fp.skylev = np.array(sky  ).reshape(pup.inst.npos, pup.inst.maxnimpos)
+    pup.fp.good   = np.array(good ).reshape(pup.inst.npos, pup.inst.maxnimpos)
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   # Distance to closest pixel center:
@@ -212,7 +212,7 @@ def centering(pup):
   io.save(pup)
 
 
-def center(pup, start, end, x, y, flux, sky, goodfit):
+def center(pup, start, end, x, y, flux, sky, good):
   """
   Doc Me!
   """
@@ -250,16 +250,16 @@ def center(pup, start, end, x, y, flux, sky, goodfit):
           flux[ind] = extra[0]
           sky [ind] = extra[1]
           # FINDME: define some criterion for good/bad fit.
-          goodfit[ind] = 1
+          good[ind] = 1
       except:
         y[ind], x[ind] = pup.targpos[:, pos]
         flux[ind], sky[ind] = 0.0, 0.0
-        goodfit[ind] = 0
+        good[ind] = 0
         pt.msg(1, "Centering failed in image {:5d}, position: {:2d}".
                    format(i, pos), pup.log)
 
       if start == 0: 
         #print("{}/{}".format(i,end))
         # Report progress:
-        #clock.check(pos*end + im, name=pup.folder)
+        #clock.check(pos*end + i, name=pup.folder)
         pass

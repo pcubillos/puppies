@@ -3,7 +3,7 @@ import numpy as np
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/puppies/lib")
-import cdisk as cdisk
+import disk as d
 
 __all__ = ["disk"]
 
@@ -47,8 +47,8 @@ def disk(radius, center, size, status=False, ndisk=False):
   >>> print(stat)
   """
   # Cast inputs to the right data-type:
-  disk, stat, n = cdisk.disk(float(radius), np.asarray(center, float),
-                            np.asarray(size, int))
+  disk, stat, n = d.disk(float(radius), np.asarray(center, float),
+                         np.asarray(size, int))
   if not status and not ndisk:
     return disk
 

@@ -133,5 +133,12 @@ Fixed minor bug in center/driver.py for least-asym calls.
 Tweaked main driver (removed parse() def).
 Put user-input dict (from config files) into pup.inputs.
 
+
+*****  Sat Oct 21 18:56:15 CEST 2017  *****
+
+Rewrote disk C extension, moving most of the work into the cdisk.h
+header, such it can be called from other C extentions.
+
 *****
+
 

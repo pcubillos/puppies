@@ -1,4 +1,4 @@
-void disk(char **disk, double radius, double yctr, double xctr,
+void cdisk(PyArrayObject *disk, double radius, double yctr, double xctr,
           int ny, int nx, int *status, int *ndisk){
   int i, j, n=0;
 
@@ -12,8 +12,8 @@ void disk(char **disk, double radius, double yctr, double xctr,
   for   (i=0; i<ny; i++)
     for (j=0; j<nx; j++){
       /* Is the point disk[i][j] inside the disk? */
-      disk[i][j] = (i-yctr)*(i-yctr) + (j-xctr)*(j-xctr) <= radius*radius;
-      n += disk[i][j];
+      IND2b(disk,i,j) = (i-yctr)*(i-yctr) + (j-xctr)*(j-xctr) <= radius*radius;
+      n += IND2b(disk,i,j);
     }
 
   /* Set the number of pixels within radius in ndisk: */
