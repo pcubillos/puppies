@@ -147,3 +147,8 @@ in aphot.c (a C extension).
 
 *****
 
+Incorporated aperture photometry in the puppies.photometry submodule.
+
+*****
+
+

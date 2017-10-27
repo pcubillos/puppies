@@ -1,19 +1,15 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['init', 'badpix', 'cen',
-           'stats', 'tools', 'io', 'image', 'center', 'photometry']
+import sys
+import os
 
-# Import sub-packages:
-from . import tools
-from . import center
-from . import photometry
-from . import stats
-from . import io
+topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
+sys.path.append(topdir + "/puppies/lib")
+from aphot import aphot
 
-from .driver import init
-from .pup_badpix import badpix
-from .pup_center import driver as cen
+__all__ = ["aphot"]
+
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
