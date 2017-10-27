@@ -139,6 +139,11 @@ Put user-input dict (from config files) into pup.inputs.
 Rewrote disk C extension, moving most of the work into the cdisk.h
 header, such it can be called from other C extentions.
 
-*****
 
+*****  Fr 27. Okt 17:23:32 CEST 2017  *****
+
+Implemented and documented the low-level aperture photometry routine
+in aphot.c (a C extension).
+
+*****
 
