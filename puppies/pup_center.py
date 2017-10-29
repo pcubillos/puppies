@@ -44,7 +44,7 @@ def update(pup, cfile):
   pup.inputs.setdefault("psftrim",  "0")
   pup.inputs.setdefault("psfarad",  "0")
   pup.inputs.setdefault("psfasize", "0")
-  pup.inputs.setdefault("expand",   "0")
+  pup.inputs.setdefault("psfscale", "0")
 
   # check all necessary inputs are provided:
   if "centering" not in pup.inputs.keys():
@@ -60,7 +60,7 @@ def update(pup, cfile):
   pup.psftrim   = int( pup.inputs["psftrim"])
   pup.psfarad   = int( pup.inputs["psfarad"])
   pup.psfasize  = int( pup.inputs["psfasize"])
-  pup.expand    = int( pup.inputs["expand"])
+  pup.psfscale  = int( pup.inputs["psfscale"])
 
   if "lag" in pup.centering:
     if pup.aradius == 0 or pup.asize == 0:
@@ -70,8 +70,8 @@ def update(pup, cfile):
         pt.error("Missing 'psfaradius' or 'psfasize' least-asym. user inputs.")
 
   if "psffit" in pup.centering:
-    if pup.expand == 0:
-      pt.error("Missing 'expand' centering user input.")
+    if pup.psfscale == 0:
+      pt.error("Missing 'psfscale' centering user input.")
 
 
 def driver(pup, cfile=None):
@@ -158,7 +158,7 @@ def centering(pup):
     guess  = pup.srcest[:, pos]
     targpos, extra = pc.center(pup.centering, meanim, guess, pup.ctrim,
                       pup.aradius, pup.asize, fitbg=pup.fitbg,
-                      psf=pup.psfim, psfctr=pup.psfctr, expand=pup.expand)
+                      psf=pup.psfim, psfctr=pup.psfctr, expand=pup.psfscale)
     pup.targpos[:,pos] = targpos
   pt.msg(1, "Center position(s) of the mean Image(s):\n{}".
             format(pup.targpos.T), pup.log)
@@ -243,7 +243,7 @@ def center(pup, start, end, x, y, flux, sky, good):
                                pup.aradius, pup.asize,
                                pup.mask[i,:,:,pos],
                                uncd, fitbg=pup.fitbg,
-                               expand=pup.expand,
+                               expand=pup.psfscale,
                                psf=pup.psfim, psfctr=pup.psfctr)
         y[ind], x[ind] = position
         if pup.centering in ["ipf", "bpf"]:

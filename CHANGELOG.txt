@@ -157,4 +157,9 @@ Optimal photometry is TBI.
 
 *****
 
+Renamed centering's expand input to psfscale (pixel scale ratio
+between the PSF and data images) to avoid conflict with photometry's
+expand interpolating factor.
+
+*****
 
