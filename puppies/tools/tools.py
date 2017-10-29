@@ -64,7 +64,7 @@ def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
                          initial_indent=indspace, subsequent_indent=sindspace)
     text += line + "\n"
 
-  # Do not print, just return the string:
+  # Do not print anywhere, just return the string:
   if noprint:
     return text
 

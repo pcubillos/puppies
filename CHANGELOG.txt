@@ -149,6 +149,12 @@ in aphot.c (a C extension).
 
 Incorporated aperture photometry in the puppies.photometry submodule.
 
+
+*****  Sun Oct 29 17:05:52 CET 2017  *****
+
+Implemented aperture photometry module.
+Optimal photometry is TBI.
+
 *****
 
 
