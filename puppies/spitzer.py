@@ -494,6 +494,8 @@ class Instrument:
     if   self.name.startswith("irac"):
       self.bcdsuf   = '_bcd.fits'     # bcd image (basic calibrated data)
       self.buncsuf  = '_bunc.fits'    # bcd uncertainties
+      # Note: At some point in time, SSC switched from dmask to imask,
+      #  thus, this pipeline uses imask file, if not, then the dmask file.
       self.bdmsksuf  = '_bimsk.fits'  # bcd outlier mask
       self.bdmsksuf2 = '_bdmsk.fits'  # bcd outlier mask
       self.brmsksuf = '_brmsk.fits'   # bcd outlier mask
@@ -516,16 +518,50 @@ class Instrument:
     self.irsasuf  = '_irsa.tbl'       # list of 2MASS sources in the field
     self.pmasksuf = '_pmask.fits'     # pointing-refinement-corrected keywords
 
-    # Critical mask flags
-    self.pcrit   = np.long(65535)  # in pmask (permanent bad-pixel
-                                   # mask, IRACDH2.0, T4.1)
+    # Permanent bad pixel mask:
+    self.pcrit = np.long(
+        65535)
+        # 2** 6 +  # Non-linear “rogue” pixels (IRS)
+        # 2** 7 +  # Dark current highly variable
+        # 2** 8 +  # Response to light highly variable (IRAC)
+        # 2** 9 +  # Pixel response to light is too high (fast saturation, IRAC)
+        # 2**10 +  # Pixel dark current is too excessive
+        # 2**14    # Pixel response to light is too low (pixel is dead)
+        )
+    # irsa.ipac.caltech.edu/data/SPITZER/docs/irac/iracinstrumenthandbook/55/
+
+    # Individual bad pixel masks:
     if self.chan < 6:
       # in dmask (per-frame bad-pixel mask, IRACDH2.0, T4.2) added bit
       # 4 (decimal 16) since uncerts are high and flux is low in top
       # row, which has this flag
-      self.dcrit   = np.int_(32560)
+      self.dcrit = np.long(
+        32560
+        # 2** 4 +  # saturation corrected in pipeline
+        # 2** 5 +  # muxbleed in ch 1, 2; bandwidth effect in ch 3, 4
+        # 2** 8 +  # crosstalk flag
+        # 2** 9 +  # radhit (single frame radhit detection)
+        # 2**10 +  # latent flag (not functional in IER observations)
+        # 2**11 +  # not flat-field corrected
+        # 2**12 +  # data not very linear
+        # 2**13 +  # saturated (not corrected in pipeline),
+        #          #  or predicted to be saturated in long HDR frames
+        # 2**14    # data bad and/or missing
+        )
+    # irsa.ipac.caltech.edu/data/SPITZER/docs/irac/iracinstrumenthandbook/56/
     else:
-      self.dcrit   = np.long(65024)
+      # FINDME: Check this:
+      self.dcrit = np.long(
+        65024
+        # 2** 9 +  # Radhit detection (radhitmedfilt)
+        # 2**10 +  #
+        # 2**11 +  # Pixel masked in pmask - bad hardware state (satmask)
+        # 2**12 +  # Non-linearity correction could not be computed (slopecorr)
+        # 2**13 +  # Soft saturated (satmask)
+        # 2**14 +  # Data missing in downlink (cvti2r4)
+        # 2**15    # reserved: sign bit
+        )
+    # irsa.ipac.caltech.edu/data/SPITZER/docs/mips/mipsinstrumenthandbook/68/
 
     # Default ancilliary files:
     self.filter_def = ["irac1_filter.dat", "irac2_filter.dat",

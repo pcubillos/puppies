@@ -161,5 +161,11 @@ Renamed centering's expand input to psfscale (pixel scale ratio
 between the PSF and data images) to avoid conflict with photometry's
 expand interpolating factor.
 
+
+*****  Sat Nov  4 11:59:41 CET 2017  *****
+
+Added some extra information about the Spitzer bad-pixel-mask bits,
+still not completely sure it's the right one.
+
 *****
 
