@@ -1,14 +1,14 @@
 import time
-
 import os
 import sys
 import re
 import numpy as np
-import astropy.io.fits   as fits
 import matplotlib.pyplot as plt
 
-import astropy.coordinates as coord
 import astropy.constants   as ac
+import astropy.coordinates as coord
+import astropy.io.fits     as fits
+import astropy.time        as at
 import astropy.units       as u
 import astropy.wcs         as wcs
 
@@ -69,9 +69,18 @@ class Pup():
     self.rplanet, self.urplanet = pt.getpar(inputs["rplanet"])
     self.smaxis,  self.usmaxis  = pt.getpar(inputs["smaxis"])
     self.incl,    self.uincl    = pt.getpar(inputs["incl"])
-    self.ephtime, self.uephtime = pt.getpar(inputs["ephtime"])
     self.period,  self.uperiod  = pt.getpar(inputs["period"])
     self.T14,     self.uT14     = pt.getpar(inputs["T14"])
+    # Setting the ephemeris time is a bit more complicated:
+    ephemeris = inputs["ephtime"].split()
+    self.ephtime = at.Time(float(ephemeris[0]), format="jd", scale=ephemeris[3])
+    # Correct from HJD to BJD if necessary:
+    if ephemeris[2].lower() == "hjd":
+      sun = coord.get_body_barycentric('sun', self.ephtime, ephemeris='builtin')
+      target = coord.SkyCoord(self.ra, self.dec).cartesian
+      self.ephtime += at.TimeDelta(np.sum(target.xyz*sun.xyz)/ac.c)
+
+    self.uephtime = float(ephemeris[1]) # * u.d
 
     self.rprs2  = (self.rplanet/self.rstar)**2
     self.urprs2 = 2*self.rprs2 * np.sqrt((self.urplanet/self.rplanet)**2 +
@@ -88,10 +97,6 @@ class Pup():
     self.inst.datadir = inputs["data"]
 
     # Ancilliary files:
-    self.horizons = inputs["horizons"]
-    if self.horizons == "default":
-      self.horizons = topdir + "/inputs/spitzer/all_spitzer.vec"
-
     self.kurucz   = inputs["kurucz"]
 
     self.filter   = inputs["filter"]
@@ -126,18 +131,20 @@ class Pup():
 
     # Make list of files in each AOR:
     inst.bcdfiles = []
+    # Total number of files (may not be equal to the number of images):
+    inst.nfiles = 0
     for aor in np.arange(inst.naor):
       bcddir = "{:s}/r{:s}/{:s}/bcd/".format(inst.datadir, inst.aorname[aor],
                                              inst.channel)
       frameslist = os.listdir(bcddir)
       framesstring = '\n'.join(frameslist) + '\n'
 
-      # find the data files
+      # Find BCD data files and sort them:
       bcdfiles = bcdpattern.findall(framesstring)
-      # and sort them
       inst.bcdfiles.append(sorted(bcdfiles))
+      inst.nfiles += len(inst.bcdfiles[aor])
 
-      # find bdmask suffix:
+      # Find bdmask suffix:
       if bdmskpattern.findall(framesstring) != []:
         inst.masksuf = inst.bdmsksuf
       elif bdmsk2pattern.findall(framesstring) != []:
@@ -145,10 +152,10 @@ class Pup():
       else:
         pt.error("No mask files found.", self.log)
 
-      # get first index of exposition ID, number of expID, and ndcenum
+      # Get first index of exposition ID, number of expID, and ndcenum
       #                    expid      dcenum     pipev
-      first = re.search("_([0-9]{4})_([0-9]{4})_([0-9])",inst.bcdfiles[-1][0])
-      last  = re.search("_([0-9]{4})_([0-9]{4})_([0-9])",inst.bcdfiles[-1][-1])
+      first = re.search("_([0-9]{4})_([0-9]{4})_([0-9])", inst.bcdfiles[-1][0])
+      last  = re.search("_([0-9]{4})_([0-9]{4})_([0-9])", inst.bcdfiles[-1][-1])
 
       inst.expadj      = int(first.group(1))
       inst.nexpid[aor] = int(last.group(1)) + 1 - inst.expadj
@@ -189,6 +196,9 @@ class Pup():
     else:
       inst.maxnimpos = np.sum(inst.nexpid) * inst.ndcenum * inst.nz // inst.nnod
 
+    # Total number of images:
+    inst.nframes = inst.nfiles * inst.nz
+
     # Header info:
     try:
       inst.framtime = head['FRAMTIME']   # interval between exposure starts
@@ -215,31 +225,36 @@ class Pup():
 
   def read(self):
     """
-    Read a set of IRAC AORS, (or IRAC Subarray AORS), sorting by dither
+    Read a set of IRAC AORs, (or IRAC Subarray AORs), sorting by dither
     position, if any.
     """
     inst = self.inst
     # Allocate space for returned arrays:
-    headerdtype = 'S'+str(inst.hsize)
-    head   = np.zeros((inst.maxnimpos//inst.nz, inst.npos), headerdtype)
-    data   = np.zeros((inst.maxnimpos, inst.ny, inst.nx, inst.npos), float)
-    uncd   = np.zeros((inst.maxnimpos, inst.ny, inst.nx, inst.npos), float)
-    bdmskd = np.zeros((inst.maxnimpos, inst.ny, inst.nx, inst.npos), int)
-    brmskd = np.zeros((inst.maxnimpos, inst.ny, inst.nx, inst.npos), int)
+    headerdtype = 'S' + str(inst.hsize)
+    head   = np.zeros((inst.nframes//inst.nz), headerdtype)
+    data   = np.zeros((inst.nframes, inst.ny, inst.nx), float)
+    uncd   = np.zeros((inst.nframes, inst.ny, inst.nx), float)
+    bdmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
+    brmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
 
     # FP contains values per frame (duh!):
-    fp = FrameParameters(inst.npos, inst.maxnimpos)
+    fp = FrameParameters(inst.nframes)
     nimpos = np.zeros(inst.npos, np.int)
-
-    # dictionary to get position in MIPS
+    nframes = 0
+    # Dictionary to get position in MIPS:
     mirind = {1929.:0, 2149.5:1, 1907.5:2, 2128.:3,
               1886.:4, 2106.5:5, 1864.5:6}
 
-    # Write to log first line
+    # Write to log first line:
     pt.msg(1, "\nEvent data:\n  aor  expid  dcenum   pos", self.log)
 
     # pattern to find     expid      dcenum
     pattern = re.compile("_([0-9]{4})_([0-9]{4})_")
+
+    x_hcrs = np.zeros(inst.nframes)
+    y_hcrs = np.zeros(inst.nframes)
+    z_hcrs = np.zeros(inst.nframes)
+    time   = np.zeros(inst.nframes) * u.d
 
     # Obtain data
     for aor in np.arange(inst.naor):
@@ -292,79 +307,98 @@ class Pup():
           nod = expid % inst.nnod
           pos = nod * inst.nscyc + mirind[bcdhead['CSM_PRED']]
 
-        be = nimpos[pos]           # begining
-        en = nimpos[pos] + inst.nz # end
+        be = nframes           # begining
+        en = nframes + inst.nz # end
 
         # Store data
-        data  [be:en, :, :, pos] = dataf.reshape( (inst.nz, inst.ny, inst.nx))
-        uncd  [be:en, :, :, pos] = uncf.reshape(  (inst.nz, inst.ny, inst.nx))
-        bdmskd[be:en, :, :, pos] = bdmskf.reshape((inst.nz, inst.ny, inst.nx))
-        brmskd[be:en, :, :, pos] = brmskf.reshape((inst.nz, inst.ny, inst.nx))
+        data  [be:en] = dataf.reshape( (inst.nz, inst.ny, inst.nx))
+        uncd  [be:en] = uncf.reshape(  (inst.nz, inst.ny, inst.nx))
+        bdmskd[be:en] = bdmskf.reshape((inst.nz, inst.ny, inst.nx))
+        brmskd[be:en] = brmskf.reshape((inst.nz, inst.ny, inst.nx))
         # All the single numbers per frame that we care about
-        fp.frmobs[pos, be:en] = np.sum(nimpos) + np.arange(inst.nz)
-        fp.pos   [pos, be:en] = pos
-        fp.aor   [pos, be:en] = aor
-        fp.expid [pos, be:en] = expid
-        fp.dce   [pos, be:en] = dcenum
-        fp.subarn[pos, be:en] = np.arange(inst.nz)
-        fp.time  [pos, be:en] = (bcdhead['UTCS_OBS'] +
-                                 inst.framtime * (0.5 + np.arange(inst.nz)))
-        fp.pxscl1[pos, be:en] = np.abs(bcdhead['PXSCAL1'])
-        fp.pxscl2[pos, be:en] = np.abs(bcdhead['PXSCAL2'])
+        fp.frmobs[be:en] = nframes + np.arange(inst.nz)
+        fp.pos   [be:en] = pos
+        fp.aor   [be:en] = aor
+        fp.expid [be:en] = expid
+        fp.dce   [be:en] = dcenum
+        fp.subarn[be:en] = np.arange(inst.nz)
+        time     [be:en] = (bcdhead['MJD_OBS']*u.d
+                            + inst.framtime*(0.5 + np.arange(inst.nz))*u.s)
+        x_hcrs[be:en] = bcdhead['SPTZR_X']
+        y_hcrs[be:en] = bcdhead['SPTZR_Y']
+        z_hcrs[be:en] = bcdhead['SPTZR_Z']
+        fp.pxscl1[be:en] = np.abs(bcdhead['PXSCAL1'])
+        fp.pxscl2[be:en] = np.abs(bcdhead['PXSCAL2'])
         try:
-          fp.zodi    [pos, be:en] = bcdhead['ZODY_EST']
-          fp.ism     [pos, be:en] = bcdhead['ISM_EST']
-          fp.cib     [pos, be:en] = bcdhead['CIB_EST']
-          fp.afpat2b [pos, be:en] = bcdhead['AFPAT2B']
-          fp.afpat2e [pos, be:en] = bcdhead['AFPAT2E']
-          fp.ashtempe[pos, be:en] = bcdhead['ASHTEMPE'] + 273.0
-          fp.atctempe[pos, be:en] = bcdhead['ATCTEMPE'] + 273.0
-          fp.acetempe[pos, be:en] = bcdhead['ACETEMPE'] + 273.0
-          fp.apdtempe[pos, be:en] = bcdhead['APDTEMPE'] + 273.0
-          fp.acatmp1e[pos, be:en] = bcdhead['ACATMP1E']
-          fp.acatmp2e[pos, be:en] = bcdhead['ACATMP2E']
-          fp.acatmp3e[pos, be:en] = bcdhead['ACATMP3E']
-          fp.acatmp4e[pos, be:en] = bcdhead['ACATMP4E']
-          fp.acatmp5e[pos, be:en] = bcdhead['ACATMP5E']
-          fp.acatmp6e[pos, be:en] = bcdhead['ACATMP6E']
-          fp.acatmp7e[pos, be:en] = bcdhead['ACATMP7E']
-          fp.acatmp8e[pos, be:en] = bcdhead['ACATMP8E']
+          fp.zodi    [be:en] = bcdhead['ZODY_EST']
+          fp.ism     [be:en] = bcdhead['ISM_EST']
+          fp.cib     [be:en] = bcdhead['CIB_EST']
+          fp.afpat2b [be:en] = bcdhead['AFPAT2B']
+          fp.afpat2e [be:en] = bcdhead['AFPAT2E']
+          fp.ashtempe[be:en] = bcdhead['ASHTEMPE'] + 273.0
+          fp.atctempe[be:en] = bcdhead['ATCTEMPE'] + 273.0
+          fp.acetempe[be:en] = bcdhead['ACETEMPE'] + 273.0
+          fp.apdtempe[be:en] = bcdhead['APDTEMPE'] + 273.0
+          fp.acatmp1e[be:en] = bcdhead['ACATMP1E']
+          fp.acatmp2e[be:en] = bcdhead['ACATMP2E']
+          fp.acatmp3e[be:en] = bcdhead['ACATMP3E']
+          fp.acatmp4e[be:en] = bcdhead['ACATMP4E']
+          fp.acatmp5e[be:en] = bcdhead['ACATMP5E']
+          fp.acatmp6e[be:en] = bcdhead['ACATMP6E']
+          fp.acatmp7e[be:en] = bcdhead['ACATMP7E']
+          fp.acatmp8e[be:en] = bcdhead['ACATMP8E']
+        except:
+          pass
+        try:
+          fp.acatmp5e[be:en] = bcdhead['CMD_T_24']
+          fp.acatmp6e[be:en] = bcdhead['AD24TMPA']
+          fp.acatmp6e[be:en] = bcdhead['AD24TMPB']
+          fp.acatmp5e[be:en] = bcdHead['ACSMMTMP']
+          fp.acatmp6e[be:en] = bcdhead['ACEBOXTM'] + 273.0
         except:
           pass
 
-        try:
-          fp.acatmp5e[pos, be:en] = bcdhead['CMD_T_24']
-          fp.acatmp6e[pos, be:en] = bcdhead['AD24TMPA']
-          fp.acatmp6e[pos, be:en] = bcdhead['AD24TMPB']
-          fp.acatmp5e[pos, be:en] = bcdhead['ACSMMTMP']
-          fp.acatmp6e[pos, be:en] = bcdhead['ACEBOXTM'] + 273.0
-        except:
-          pass
+        # Store filename:
+        fp.filename[be:en] = os.path.realpath(bcddir + bcd[i])
 
-        # Store filename
-        fp.filename[pos, be:en] = os.path.realpath(bcddir + bcd[i])
-
-        # Store header
-        head[np.int(nimpos[pos]/inst.nz), pos] = str(bcdhead)
+        # Store header:
+        head[np.int(nframes//inst.nz)] = str(bcdhead)
 
         # Header position of the star:
         bcdhead["NAXIS"] = 2
         WCS = wcs.WCS(bcdhead, naxis=2)
         pix = WCS.wcs_world2pix([[self.ra.deg, self.dec.deg]], 0)
-        fp.headx[pos, be:en] = pix[0,0]
-        fp.heady[pos, be:en] = pix[0,1]
+        fp.headx[be:en] = pix[0,0]
+        fp.heady[be:en] = pix[0,1]
         nimpos[pos] += inst.nz
+        nframes     += inst.nz
 
         # Print to log and screen:
         pt.msg(1, "{:4d}{:7d}{:7d}{:7d}".format(aor, expid, dcenum, pos),
                self.log)
 
-    # where there exist data
-    for pos in np.arange(inst.npos):
-      fp.exist[pos, 0:nimpos[pos]] = True
+    # Observation mid time:
+    fp.time = at.Time(time, format="mjd", scale="utc")
+    # Barycentric location:
+    fp.loc = coord.SkyCoord(x_hcrs*u.km, y_hcrs*u.km, z_hcrs*u.km, frame='hcrs',
+           obstime=fp.time, representation='cartesian').transform_to(coord.ICRS)
 
+    target = coord.SkyCoord(self.ra, self.dec).cartesian
+    # Light-time travel from observatory (Spitzer) to barycenter:
+    ltt = at.TimeDelta(np.sum(fp.loc.cartesian.xyz.T * target.xyz, axis=1)/ac.c)
+    # Barycentric time:
+    fp.btime = fp.time + ltt
+
+    # Orbital phase:
+    fp.phase = (fp.btime.tdb.jd - self.ephtime.tdb.jd) / self.period.value
+    if np.ptp(fp.phase) < 1:  # Eclipse (phase[0]>0) or transit (phase[0]<0)
+      fp.phase -= int(np.amax(fp.phase))
+    else:                     # Phase curve (phase[0] > 0)
+      fp.phase -= int(np.amin(fp.phase))
+
+    # Image index per position:
     for pos in np.arange(inst.npos):
-      fp.im[pos, 0:nimpos[pos]] = np.arange(nimpos[pos], dtype=np.double)
+      fp.im[fp.pos==pos] = np.arange(nimpos[pos], dtype=np.double)
 
     # Set cycle number, visit within obs. set, frame within visit:
     if inst.name == "mips":
@@ -388,27 +422,34 @@ class Pup():
 
 
   def check(self):
+    """
+    Doc me.
+    """
     inst = self.inst
-    # Source estimated position
+    # Source estimated position:
     self.srcest = np.zeros((2, inst.npos))
     for p in np.arange(inst.npos):
-      self.srcest[0,p] = np.mean(self.fp.heady[p,:self.nimpos[p]])
-      self.srcest[1,p] = np.mean(self.fp.headx[p,:self.nimpos[p]])
+      self.srcest[0,p] = np.mean(self.fp.heady[self.fp.pos==p])
+      self.srcest[1,p] = np.mean(self.fp.headx[self.fp.pos==p])
 
-    # Plot a reference image
+    # Plot a reference image:
     image = np.zeros((inst.ny, inst.nx))
     for pos in np.arange(inst.npos):
-      image += self.data[0, :, :, pos]
-
-    plt.figure(101, (8,6))
-    plt.clf()
-    plt.imshow(image, interpolation='nearest', origin='ll', cmap=plt.cm.viridis)
-    plt.plot(self.srcest[1,:], self.srcest[0,:],'k+', ms=12, mew=2)
-    plt.xlim(-0.5, inst.nx-0.5)
-    plt.ylim(-0.5, inst.ny-0.5)
-    plt.title(self.ID + ' reference image')
-    plt.colorbar()
-    plt.savefig(self.ID + "_sample-frame.png")
+      i = np.where(self.fp.pos==pos)[0][0]
+      plt.figure(101, (8,6))
+      plt.clf()
+      plt.imshow(self.data[i], interpolation='nearest', origin='ll',
+                 cmap=plt.cm.viridis)
+      plt.plot(self.srcest[1,pos], self.srcest[0,pos],'k+', ms=12, mew=2)
+      plt.xlim(-0.5, inst.nx-0.5)
+      plt.ylim(-0.5, inst.ny-0.5)
+      plt.colorbar()
+      if inst.npos > 1:
+        plt.title("{:s} reference image pos {:d}".format(self.ID, pos))
+        plt.savefig("{:s}_sample-frame_pos{:02d}.png".format(self.ID, pos))
+      else:
+        plt.title("{:s} reference image".format(self.ID))
+        plt.savefig("{:s}_sample-frame.png".format(self.ID))
 
     # Throw a warning if the source estimate position lies outside of
     # the image.
@@ -433,16 +474,11 @@ class Pup():
     # Report files not found:
     print("Ancil Files:")
     if not os.path.isfile(inst.pmaskfile[0]):
-      pt.warning(1, "Pmask file not found ('{:s}').".format(inst.pmaskfile[0]),
-                 self.log)
+      pt.warning(1, "Permanent mask file not found ('{:s}').".
+                     format(inst.pmaskfile[0]), self.log)
     else:
-      pt.msg(1, "Pmask file: '{:s}'".format(inst.pmaskfile[0]), self.log, 2)
-
-    if not os.path.isfile(self.horizons):
-      pt.warning(1, "Horizon file not found ('{:s}').".format(self.horizons),
-                 self.log)
-    else:
-      pt.msg(1, "Horizon file: '{:s}'".format(self.horizons), self.log, 2)
+      pt.msg(1, "Permanent mask file: '{:s}'".format(inst.pmaskfile[0]),
+                  self.log, 2)
 
     if not os.path.isfile(self.kurucz):
       pt.warning(1, "Kurucz file not found ('{:s}').".format(self.kurucz),
@@ -520,7 +556,7 @@ class Instrument:
 
     # Permanent bad pixel mask:
     self.pcrit = np.long(
-        65535)
+        65535
         # 2** 6 +  # Non-linear “rogue” pixels (IRS)
         # 2** 7 +  # Dark current highly variable
         # 2** 8 +  # Response to light highly variable (IRAC)
@@ -576,45 +612,44 @@ class FrameParameters:
   """
   class holder of the frame parameters.
   """
-  def __init__(self, npos, maxnimpos):
-    self.frmobs   = np.zeros((npos,maxnimpos), int)  # Frame number
-    self.pos      = np.zeros((npos,maxnimpos), int)  # Position number
-    self.aor      = np.zeros((npos,maxnimpos), int)  # AOR number
-    self.expid    = np.zeros((npos,maxnimpos), int)  # Exposure ID
-    self.dce      = np.zeros((npos,maxnimpos), int)  # Data Collection Event
-    self.subarn   = np.zeros((npos,maxnimpos), int)  # Subarray frame number
-    self.exist    = np.zeros((npos,maxnimpos), bool) # frame tags in fp
-    self.im       = np.zeros((npos,maxnimpos), int)  # Frame within position
-    self.cycpos   = np.zeros((npos,maxnimpos), int)
-    self.visobs   = np.zeros((npos,maxnimpos), int)
-    self.frmvis   = np.zeros((npos,maxnimpos), int)
-    self.time     = np.zeros((npos,maxnimpos))  # Frame mid-time (s) J2000.0
-    self.zodi     = np.zeros((npos,maxnimpos))  # Zodiacal light estimate
-    self.ism      = np.zeros((npos,maxnimpos))  # interstellar medium estimate
-    self.cib      = np.zeros((npos,maxnimpos))  # Cosmic infrared background
-    self.afpat2b  = np.zeros((npos,maxnimpos))  # Temperatures
-    self.afpat2e  = np.zeros((npos,maxnimpos))
-    self.ashtempe = np.zeros((npos,maxnimpos))
-    self.atctempe = np.zeros((npos,maxnimpos))
-    self.acetempe = np.zeros((npos,maxnimpos))
-    self.apdtempe = np.zeros((npos,maxnimpos))
-    self.acatmp1e = np.zeros((npos,maxnimpos))
-    self.acatmp2e = np.zeros((npos,maxnimpos))
-    self.acatmp3e = np.zeros((npos,maxnimpos))
-    self.acatmp4e = np.zeros((npos,maxnimpos))
-    self.acatmp5e = np.zeros((npos,maxnimpos))
-    self.acatmp6e = np.zeros((npos,maxnimpos))
-    self.acatmp7e = np.zeros((npos,maxnimpos))
-    self.acatmp8e = np.zeros((npos,maxnimpos))
+  def __init__(self, nframes):
+    self.frmobs   = np.zeros(nframes, int)  # Frame number
+    self.pos      = np.zeros(nframes, int)  # Position number
+    self.aor      = np.zeros(nframes, int)  # AOR number
+    self.expid    = np.zeros(nframes, int)  # Exposure ID
+    self.dce      = np.zeros(nframes, int)  # Data Collection Event
+    self.subarn   = np.zeros(nframes, int)  # Subarray frame number
+    self.exist    = np.zeros(nframes, bool) # frame tags in fp
+    self.im       = np.zeros(nframes, int)  # Frame within position
+    self.cycpos   = np.zeros(nframes, int)
+    self.visobs   = np.zeros(nframes, int)
+    self.frmvis   = np.zeros(nframes, int)
+    self.zodi     = np.zeros(nframes)  # Zodiacal light estimate
+    self.ism      = np.zeros(nframes)  # interstellar medium estimate
+    self.cib      = np.zeros(nframes)  # Cosmic infrared background
+    self.afpat2b  = np.zeros(nframes)  # Temperatures
+    self.afpat2e  = np.zeros(nframes)
+    self.ashtempe = np.zeros(nframes)
+    self.atctempe = np.zeros(nframes)
+    self.acetempe = np.zeros(nframes)
+    self.apdtempe = np.zeros(nframes)
+    self.acatmp1e = np.zeros(nframes)
+    self.acatmp2e = np.zeros(nframes)
+    self.acatmp3e = np.zeros(nframes)
+    self.acatmp4e = np.zeros(nframes)
+    self.acatmp5e = np.zeros(nframes)
+    self.acatmp6e = np.zeros(nframes)
+    self.acatmp7e = np.zeros(nframes)
+    self.acatmp8e = np.zeros(nframes)
     # mips frame parameters
-    self.cmd_t_24 = np.zeros((npos,maxnimpos))
-    self.ad24tmpa = np.zeros((npos,maxnimpos))
-    self.ad24tmpb = np.zeros((npos,maxnimpos))
-    self.acsmmtmp = np.zeros((npos,maxnimpos))
-    self.aceboxtm = np.zeros((npos,maxnimpos))
-    self.pxscl2   = np.zeros((npos,maxnimpos))
-    self.pxscl1   = np.zeros((npos,maxnimpos))
+    self.cmd_t_24 = np.zeros(nframes)
+    self.ad24tmpa = np.zeros(nframes)
+    self.ad24tmpb = np.zeros(nframes)
+    self.acsmmtmp = np.zeros(nframes)
+    self.aceboxtm = np.zeros(nframes)
+    self.pxscl2   = np.zeros(nframes)
+    self.pxscl1   = np.zeros(nframes)
 
-    self.heady    = np.zeros((npos,maxnimpos))
-    self.headx    = np.zeros((npos,maxnimpos))
-    self.filename = np.zeros((npos,maxnimpos), dtype='S150')
+    self.heady    = np.zeros(nframes)
+    self.headx    = np.zeros(nframes)
+    self.filename = np.zeros(nframes, dtype='S150')

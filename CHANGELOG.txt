@@ -167,5 +167,19 @@ expand interpolating factor.
 Added some extra information about the Spitzer bad-pixel-mask bits,
 still not completely sure it's the right one.
 
+
+*****  Sun Nov 12 20:47:00 CET 2017  *****
+
+Revampled spitzer.py to handle time stamps with astropy.time objects
+for the ephtime and fp.time values.  This simplifies the light
+travel time corrections, bjd-utc corrections, phase calculation.
+The pipeline now takes the spacecraft location from the headers
+instead of the horizons file.
+All of these calculation are now in Spitzer.py rather than after
+the photometry step.
+
+Also, revamped the main object's FrameParameter from 2D into 1D.
+This commit breaks all further steps of the pipeline.
+
 *****
 
