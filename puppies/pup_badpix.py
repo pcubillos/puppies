@@ -51,9 +51,9 @@ def badpix(pup):
   bdmskd = io.load(pup.uncd, "bdmskd")
 
   # Mean Background Estimate, from zodi model
-  pup.estbg = ( np.mean(pup.fp.zodi[pup.fp.exist]) +
-                np.mean(pup.fp.ism [pup.fp.exist]) +
-                np.mean(pup.fp.cib [pup.fp.exist]) ) * pup.fluxunits
+  pup.estbg = (np.mean(pup.fp.zodi) +
+               np.mean(pup.fp.ism)  +
+               np.mean(pup.fp.cib)  ) * pup.fluxunits
 
   # Get permanent bad pixel mask.
   if not os.path.exists(pup.inst.pmaskfile[0]):
@@ -71,7 +71,7 @@ def badpix(pup):
 
   # Do NOT define sigma, we have a different scheme for finding baddies
   # adds Spitzer rejects: fp.nsstrej  &  our rejects: fp.nsigrej
-  pt.msg(1, "Apply Spitzer bad pixel mask.", pup.log)
+  pt.msg(1, "Apply bad pixel masks.", pup.log)
   pup.mask = badmask(data, uncd, pup.pmask,  pup.inst.pcrit,
                      bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos)
 
@@ -86,8 +86,7 @@ def badpix(pup):
 
   # Sigma rejection:
   pt.msg(1, "Sigma Rejection.", pup.log)
-  chunkbad(data, uncd, pup.mask, pup.nimpos, 
-           pup.sigma, pup.schunk, pup.fp) #, pup.inst.nscyc)
+  chunkbad(data, uncd, pup.mask, pup.nimpos, pup.sigma, pup.schunk, pup.fp)
 
   pt.msg(1, 'Compute mean frame and mean sky.', pup.log)
   # Mean image per pixel per pos:
@@ -97,10 +96,9 @@ def badpix(pup):
   pup.meanim = totdat / totmsk
 
   # Approximate sky for every image (median of an image):
-  pup.fp.medsky = np.zeros((inst.npos, inst.maxnimpos)) * data.unit
-  for pos in np.arange(inst.npos):
-    for i in np.arange(pup.nimpos[pos]):
-      pup.fp.medsky[pos, i] = np.median(data[i,:,:,pos][pup.mask[i,:,:,pos]])
+  pup.fp.medsky = np.zeros(inst.nframes) * data.unit
+  for i in np.arange(inst.nframes):
+    pup.fp.medsky[i] = np.median(data[i][pup.mask[i]])
   # Apply sigma rejection on medsky here?
 
   # Print time elapsed and close log:
@@ -115,19 +113,17 @@ def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
 
   Parameters
   ----------
-  data: 4D float ndarray
-     Array of shape (maxnimpos,ny,nx,npos) , where nx and ny
-     are the image dimensions, maxnimpos is the maximum number
-     of images in the largest set, and npos is the number of
-     sets (or 'positions').
-  uncd: 4D float ndarray
+  data: 3D float ndarray
+     Array of shape (nframes,ny,nx), where nx and ny are the image
+     dimensions, nframes is the number of images.
+  uncd: 3D float ndarray
      Uncertainties of data.
   pmask: 2D integer ndarray
      Permanent bad pixel mask for the instrument.
   pcrit: Integer
      A bitmask indicating which bits in Pmask are critical
      problems for which we should flag a bad pixel.
-  dmask: 4D integer ndarray
+  dmask: 3D integer ndarray
      Per-frame bad pixel masks for the dataset.  Same
      shape as Data, maybe different type.
   dcrit: Integer
@@ -146,38 +142,31 @@ def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
 
   Return
   ------
-  mask: 4D bool ndarray
+  mask: 3D bool ndarray
     Good pixel mask of data pixels (True=good, False=bad).
   """
 
   # sizes
-  maxnimpos, ny, nx, npos = np.shape(data)
+  nframes, ny, nx = np.shape(data)
 
   # allocate bad pixel mask
-  mask = np.zeros((maxnimpos, ny, nx, npos), bool)
-
-  # flag existing frames as good
-  for pos in np.arange(npos):
-    mask[0:nimpos[pos], :, :, pos] = True
+  mask = np.ones((nframes, ny, nx), bool)
 
   # Permanently-bad pixel mask:
   pmaskcrit = pmask & pcrit
   if np.amax(pmaskcrit) > 0:
-    mask &= np.expand_dims(pmaskcrit==0, 2)
+    mask &= pmaskcrit==0
 
   # Per-frame bad pixel mask:
   dmaskcrit = dmask & dcrit
-  mask &= (dmaskcrit==0)
+  mask &= dmaskcrit==0
 
   # Flag NaNs in the data and uncertainties:
   finite = np.isfinite(data) & np.isfinite(uncd)
   mask &= finite
 
-  # Spitzer-rejected bad pixels:
-  #fp.nsstrej = np.sum(np.sum(1 - mask, axis=1), axis=1)
+  # Spitzer-rejected bad pixels per frame:
   fp.nsstrej = np.sum(1-mask, axis=(1,2))
-
-  fp.nsstrej = np.transpose(fp.nsstrej)
   return mask
 
 
@@ -191,13 +180,12 @@ def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
 
   Parameters
   ----------
-  data: 4D float ndarray
-     The data to be analyzed. Of shape [nim,nx,ny,npos], nx and ny
-     are the image dimensions, nim is the maximum number of images
-     in the largest set, and npos is the number of sets (or 'positions').
-  uncd: 4D float ndarray
+  data: 3D float ndarray
+     The data to be analyzed. Of shape [nim,ny,nx], nx and ny
+     are the image dimensions, nim is the maximum number of images.
+  uncd: 3D float ndarray
      Uncertainties of corresponding points in data, same shape as data.
-  mask: 4D byte ndarray
+  mask: 3D byte ndarray
      Good-pixel mask (True=good, False=bad), same shape as data.
   nimpos: 1D integer array
      The number of good images at each photometry position.
@@ -209,10 +197,11 @@ def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
   fp: frame parameters variable.
   """
   # Sizes
-  maxnimpos, ny, nx, npos = np.shape(data)
+  nframes, ny, nx = np.shape(data)
+  npos = len(nimpos)
 
   # Our rejects
-  nsigrej = np.zeros((maxnimpos, npos))
+  nsigrej = np.zeros(nframes)
 
   # High value constant
   highval = 1e100 * data.unit
@@ -221,11 +210,12 @@ def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
   #clock = t.Timer(np.sum(nimpos)*1.0/szchunk)
 
   for pos in np.arange(npos):
+    ipos = fp.pos == pos
     # number of chunks:
     nchunk = int(np.ceil(nimpos[pos]/szchunk))
     # Aliases:
-    dat = data[:,:,:,pos]
-    msk = mask[:,:,:,pos]
+    dat = data[ipos]
+    msk = mask[ipos]
 
     for chunk in np.arange(nchunk):
       # Chunk boundaries:
@@ -238,18 +228,17 @@ def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
       keepmsk &= msk[start:end]
 
       # Number of rejected pixels:
-      nsigrej[start:end, pos] += np.sum(1-keepmsk, axis=(1,2))
+      nsigrej[ipos][start:end] += np.sum(1-keepmsk, axis=(1,2))
 
       # Flag bad data:
       reject = np.where(keepmsk == 0)  # location in chunk
-      reject[0][:] += start               # location in data
+      reject[0][:] += start            # location in data
 
       # Update mask and uncertainty arrays:
-      #uncd[:,:,:,pos][reject] = highval
-      mask[:,:,:,pos][reject] = False
+      mask[ipos][reject] = False
 
       # Report progress:
       #clock.check(np.sum(nimpos[0:pos])*1.0/szchunk + chunk)
 
   # Nsigrej now holds all the bad pixels.  How many are new?
-  fp.nsigrej = nsigrej.T - fp.nsstrej #- fp.userrej
+  fp.nsigrej = nsigrej - fp.nsstrej #- fp.userrej

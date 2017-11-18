@@ -181,5 +181,10 @@ the photometry step.
 Also, revamped the main object's FrameParameter from 2D into 1D.
 This commit breaks all further steps of the pipeline.
 
+
+*****  Sat Nov 18 22:09:59 CET 2017  *****
+
+Adapted pup_badpix.py to the new data shape.
+
 *****
 
