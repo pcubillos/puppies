@@ -89,11 +89,14 @@ def badpix(pup):
   chunkbad(data, uncd, pup.mask, pup.nimpos, pup.sigma, pup.schunk, pup.fp)
 
   pt.msg(1, 'Compute mean frame and mean sky.', pup.log)
-  # Mean image per pixel per pos:
-  totdat = np.nansum(data*pup.mask, axis=0)
-  totmsk = np.nansum(pup.mask,      axis=0)
-  totmsk[totmsk == 0] = 1.0  # Avoid dividing by zero
-  pup.meanim = totdat / totmsk
+  # Mean image per pixel per position:
+  pup.meanim = np.zeros((pup.inst.npos, pup.inst.ny, pup.inst.nx))
+  for pos in np.arange(pup.inst.npos):
+    ipos = pup.fp.pos == pos
+    totdat = np.nansum((data*pup.mask)[ipos], axis=0)
+    totmsk = np.nansum(pup.mask[ipos],        axis=0)
+    totmsk[totmsk == 0] = 1.0  # Avoid dividing by zero
+    pup.meanim[pos] = totdat / totmsk
 
   # Approximate sky for every image (median of an image):
   pup.fp.medsky = np.zeros(inst.nframes) * data.unit

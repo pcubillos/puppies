@@ -154,7 +154,7 @@ def centering(pup):
   # Find center of the mean Image:
   pup.targpos = np.zeros((2, pup.inst.npos))
   for pos in np.arange(pup.inst.npos):
-    meanim = pup.meanim[:,:,pos]
+    meanim = pup.meanim[pos]
     guess  = pup.srcest[:, pos]
     targpos, extra = pc.center(pup.centering, meanim, guess, pup.ctrim,
                       pup.aradius, pup.asize, fitbg=pup.fitbg,
@@ -164,14 +164,14 @@ def centering(pup):
             format(pup.targpos.T), pup.log)
 
   # Multy Process set up:
-  x     = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  y     = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  flux  = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  sky   = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
-  good  = mp.Array("d", np.zeros(pup.inst.npos * pup.inst.maxnimpos))
+  x     = mp.Array("d", np.zeros(pup.inst.nframes))
+  y     = mp.Array("d", np.zeros(pup.inst.nframes))
+  flux  = mp.Array("d", np.zeros(pup.inst.nframes))
+  sky   = mp.Array("d", np.zeros(pup.inst.nframes))
+  good  = mp.Array("b", np.zeros(pup.inst.nframes,bool))
 
   # Size of chunk of data each core will process:
-  chunksize = int(pup.inst.maxnimpos/pup.ncpu + 1)
+  chunksize = int(pup.inst.nframes/pup.ncpu + 1)
   pt.msg(1, "Number of parallel CPUs: {:d}.".format(pup.ncpu), pup.log)
 
   # Start Muti Procecess: ::::::::::::::::::::::::::::::::::::::
@@ -188,13 +188,13 @@ def centering(pup):
     processes[n].join()
 
   # Put the results in the object. I need to reshape them:
-  pup.fp.x         = np.array(x   ).reshape(pup.inst.npos, pup.inst.maxnimpos)
-  pup.fp.y         = np.array(y   ).reshape(pup.inst.npos, pup.inst.maxnimpos)
+  pup.fp.x    = np.array(x)
+  pup.fp.y    = np.array(y)
+  pup.fp.good = np.array(good, bool)
   # If PSF fit:
   if pup.centering in ["ipf", "bpf"]: 
-    pup.fp.aplev  = np.array(aplev).reshape(pup.inst.npos, pup.inst.maxnimpos)
-    pup.fp.skylev = np.array(sky  ).reshape(pup.inst.npos, pup.inst.maxnimpos)
-    pup.fp.good   = np.array(good ).reshape(pup.inst.npos, pup.inst.maxnimpos)
+    pup.fp.aplev  = np.array(aplev)
+    pup.fp.skylev = np.array(sky)
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   # Distance to closest pixel center:
@@ -224,42 +224,37 @@ def center(pup, start, end, x, y, flux, sky, good):
     pass
   data = pup.data
 
-  # Finally, do the centering:
-  for pos in np.arange(pup.inst.npos):
-    # Recalculate start/end, Care not to go out of bounds:
-    #start = np.amin([start, pup.nimpos[pos]]) # is this necessary?
-    end   = np.amin([end,   pup.nimpos[pos]])
-    for i in np.arange(start, end):
-      # Index in the share memory arrays:
-      ind = pos * pup.inst.maxnimpos + i
-      try:
-        if pup.cweights:   # weight by uncertainties in fitting?
-          uncd = pup.uncd[i,:,:,pos]
-        else:
-          uncd = None
-        # Do the centering:
-        position, extra = pc.center(pup.centering, data[i,:,:,pos],
-                               pup.targpos[:,pos], pup.ctrim,
-                               pup.aradius, pup.asize,
-                               pup.mask[i,:,:,pos],
-                               uncd, fitbg=pup.fitbg,
-                               expand=pup.psfscale,
-                               psf=pup.psfim, psfctr=pup.psfctr)
-        y[ind], x[ind] = position
-        if pup.centering in ["ipf", "bpf"]:
-          flux[ind] = extra[0]
-          sky [ind] = extra[1]
-          # FINDME: define some criterion for good/bad fit.
-          good[ind] = 1
-      except:
-        y[ind], x[ind] = pup.targpos[:, pos]
-        flux[ind], sky[ind] = 0.0, 0.0
-        good[ind] = 0
-        pt.msg(1, "Centering failed in image {:5d}, position: {:2d}".
-                   format(i, pos), pup.log)
+  # Recalculate end, care not to go out of bounds:
+  end = np.amin([end, pup.inst.nframes])
+  # Compute the centering in each frame:
+  for i in np.arange(start, end):
+    uncd = None
+    pos  = pup.fp.pos[i]
+    try:
+      if pup.cweights:   # weight by uncertainties in fitting?
+        uncd = pup.uncd[i]
+      # Do the centering:
+      position, extra = pc.center(pup.centering, data[i],
+                                  pup.targpos[:,pos], pup.ctrim,
+                                  pup.aradius, pup.asize,
+                                  pup.mask[i], uncd, fitbg=pup.fitbg,
+                                  expand=pup.psfscale,
+                                  psf=pup.psfim, psfctr=pup.psfctr)
+      y[i], x[i] = position
+      good[i] = True
+      # This is not necessarily true, it just means centering didn't crashed
+      if pup.centering in ["ipf", "bpf"]:
+        flux[i] = extra[0]
+        sky [i] = extra[1]
+        # FINDME: define some criterion for good/bad fit.
+    except:
+      y[i], x[i] = pup.targpos[:, pos]
+      flux[i], sky[i] = 0.0, 0.0
+      good[i] = False
+      pt.msg(1, "Centering failed in frame {:d}.".format(i), pup.log)
 
-      if start == 0: 
-        #print("{}/{}".format(i,end))
-        # Report progress:
-        #clock.check(pos*end + i, name=pup.folder)
-        pass
+    if start == 0:
+      #print("{}/{}".format(i,end))
+      # Report progress:
+      #clock.check(pos*end + i, name=pup.folder)
+      pass

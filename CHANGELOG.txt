@@ -188,3 +188,7 @@ Adapted pup_badpix.py to the new data shape.
 
 *****
 
+Adapted pup_centering.py to the new data shape.
+
+*****
+

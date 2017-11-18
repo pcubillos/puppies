@@ -619,7 +619,7 @@ class FrameParameters:
     self.expid    = np.zeros(nframes, int)  # Exposure ID
     self.dce      = np.zeros(nframes, int)  # Data Collection Event
     self.subarn   = np.zeros(nframes, int)  # Subarray frame number
-    self.exist    = np.zeros(nframes, bool) # frame tags in fp
+    self.good     = np.zeros(nframes, bool) # frame tags in fp
     self.im       = np.zeros(nframes, int)  # Frame within position
     self.cycpos   = np.zeros(nframes, int)
     self.visobs   = np.zeros(nframes, int)
