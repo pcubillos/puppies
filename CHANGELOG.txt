@@ -201,3 +201,8 @@ Adapted pup_photom.py to the new data shape.
 
 *****
 
+Added new plots module, to make plots (duh!).
+Implemented YX plot vs. phase for centering.
+
+*****
+
