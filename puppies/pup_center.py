@@ -12,6 +12,7 @@ from . import tools  as pt
 from . import io     as io
 from . import stats  as ps
 from . import center as pc
+from . import plots  as pp
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../")
 
@@ -190,16 +191,47 @@ def centering(pup):
   # Put the results in the object. I need to reshape them:
   pup.fp.x    = np.array(x)
   pup.fp.y    = np.array(y)
-  pup.fp.good = np.array(good, bool)
+  pup.fp.goodcen = np.array(good, bool)
+  # Flag out out of boundaries y,x frames:
+  pup.fp.goodcen[(pup.fp.y<0) | (pup.fp.y>pup.inst.ny) |
+                 (pup.fp.x<0) | (pup.fp.x>pup.inst.nx) ] = False
+  # goodcen is the centering good flag, good is current to each step:
+  pup.fp.good = np.copy(pup.fp.goodcen)
+
   # If PSF fit:
   if pup.centering in ["ipf", "bpf"]: 
     pup.fp.aplev  = np.array(aplev)
     pup.fp.skylev = np.array(sky)
-  # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-  # Distance to closest pixel center:
-  pup.fp.r = np.sqrt((pup.fp.x % 1.0 - 0.5)**2.0 + 
-                     (pup.fp.y % 1.0 - 0.5)**2.0 )
+  pup.fp.r = np.zeros(pup.inst.nframes)
+  for pos in np.arange(pup.inst.npos):
+    igood = (pup.fp.pos==pos) & pup.fp.good
+    ymean = np.round(np.median(pup.fp.y[igood]))
+    xmean = np.round(np.median(pup.fp.x[igood]))
+    # Distance to center of mean pixel:
+    ipos = pup.fp.pos==pos
+    pup.fp.r[ipos] = np.sqrt( (pup.fp.y[ipos]-ymean)**2.0
+                            + (pup.fp.x[ipos]-xmean)**2.0)
+
+    # XY stats:
+    dy = np.ediff1d(pup.fp.y[igood])
+    dx = np.ediff1d(pup.fp.x[igood])
+    pup.yrms = np.sqrt(np.mean(dy**2))
+    pup.xrms = np.sqrt(np.mean(dx**2))
+    pt.msg(1, "\nPosition {:2d}:   Y (pixel)   X (pixel)\n"
+                "mean          {:10.5f}  {:10.5f}\n"
+                "std dev.      {:10.5f}  {:10.5f}\n"
+                "RMS(delta)    {:10.5f}  {:10.5f}\n"
+                "mean(delta)   {:10.5f}  {:10.5f}\n"
+                "median(delta) {:10.5f}  {:10.5f}".format(pos,
+             np.mean(pup.fp.y[igood]), np.mean(pup.fp.x[igood]),
+             np.std( pup.fp.y[igood]), np.std( pup.fp.x[igood]),
+             pup.yrms,                 pup.xrms,
+             np.mean(  np.abs(dy)),    np.mean(  np.abs(dx)),
+             np.median(np.abs(dy)),    np.median(np.abs(dx))), pup.log)
+
+  # Plots:
+  pp.yx(pup.fp.y, pup.fp.x, pup.fp.phase, pup.fp.good, pup.fp.pos, pup.folder)
 
   # Delete data arrays:
   pup.data = pup.datafile

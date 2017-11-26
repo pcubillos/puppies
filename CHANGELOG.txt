@@ -206,3 +206,8 @@ Implemented YX plot vs. phase for centering.
 
 *****
 
+Added stats calculations at the end of pup_centering.py to print
+means, median, std, and RMS.  Also make yx plots.
+
+*****
+
