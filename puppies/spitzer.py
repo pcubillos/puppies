@@ -239,6 +239,7 @@ class Pup():
 
     # FP contains values per frame (duh!):
     fp = FrameParameters(inst.nframes)
+    telem = fp.telemetry
     nimpos = np.zeros(inst.npos, np.int)
     nframes = 0
     # Dictionary to get position in MIPS:
@@ -329,32 +330,32 @@ class Pup():
         z_hcrs[be:en] = bcdhead['SPTZR_Z']
         fp.pxscl1[be:en] = np.abs(bcdhead['PXSCAL1'])
         fp.pxscl2[be:en] = np.abs(bcdhead['PXSCAL2'])
-        try:
-          fp.zodi    [be:en] = bcdhead['ZODY_EST']
-          fp.ism     [be:en] = bcdhead['ISM_EST']
-          fp.cib     [be:en] = bcdhead['CIB_EST']
-          fp.afpat2b [be:en] = bcdhead['AFPAT2B']
-          fp.afpat2e [be:en] = bcdhead['AFPAT2E']
-          fp.ashtempe[be:en] = bcdhead['ASHTEMPE'] + 273.0
-          fp.atctempe[be:en] = bcdhead['ATCTEMPE'] + 273.0
-          fp.acetempe[be:en] = bcdhead['ACETEMPE'] + 273.0
-          fp.apdtempe[be:en] = bcdhead['APDTEMPE'] + 273.0
-          fp.acatmp1e[be:en] = bcdhead['ACATMP1E']
-          fp.acatmp2e[be:en] = bcdhead['ACATMP2E']
-          fp.acatmp3e[be:en] = bcdhead['ACATMP3E']
-          fp.acatmp4e[be:en] = bcdhead['ACATMP4E']
-          fp.acatmp5e[be:en] = bcdhead['ACATMP5E']
-          fp.acatmp6e[be:en] = bcdhead['ACATMP6E']
-          fp.acatmp7e[be:en] = bcdhead['ACATMP7E']
-          fp.acatmp8e[be:en] = bcdhead['ACATMP8E']
+        fp.zodi[be:en] = bcdhead['ZODY_EST']
+        fp.ism [be:en] = bcdhead['ISM_EST']
+        fp.cib [be:en] = bcdhead['CIB_EST']
+        try:  # Telemetry:
+          telem.afpat2b [be:en] = bcdhead['AFPAT2B']
+          telem.afpat2e [be:en] = bcdhead['AFPAT2E']
+          telem.ashtempe[be:en] = bcdhead['ASHTEMPE'] + 273.0
+          telem.atctempe[be:en] = bcdhead['ATCTEMPE'] + 273.0
+          telem.acetempe[be:en] = bcdhead['ACETEMPE'] + 273.0
+          telem.apdtempe[be:en] = bcdhead['APDTEMPE'] + 273.0
+          telem.acatmp1e[be:en] = bcdhead['ACATMP1E']
+          telem.acatmp2e[be:en] = bcdhead['ACATMP2E']
+          telem.acatmp3e[be:en] = bcdhead['ACATMP3E']
+          telem.acatmp4e[be:en] = bcdhead['ACATMP4E']
+          telem.acatmp5e[be:en] = bcdhead['ACATMP5E']
+          telem.acatmp6e[be:en] = bcdhead['ACATMP6E']
+          telem.acatmp7e[be:en] = bcdhead['ACATMP7E']
+          telem.acatmp8e[be:en] = bcdhead['ACATMP8E']
         except:
           pass
-        try:
-          fp.acatmp5e[be:en] = bcdhead['CMD_T_24']
-          fp.acatmp6e[be:en] = bcdhead['AD24TMPA']
-          fp.acatmp6e[be:en] = bcdhead['AD24TMPB']
-          fp.acatmp5e[be:en] = bcdHead['ACSMMTMP']
-          fp.acatmp6e[be:en] = bcdhead['ACEBOXTM'] + 273.0
+        try:  # MIPS telemetry:
+          telem.cmd_t_24[be:en] = bcdhead['CMD_T_24']
+          telem.ad24tmpa[be:en] = bcdhead['AD24TMPA']
+          telem.ad24tmpb[be:en] = bcdhead['AD24TMPB']
+          telem.acsmmtmp[be:en] = bcdHead['ACSMMTMP']
+          telem.aceboxtm[be:en] = bcdhead['ACEBOXTM'] + 273.0
         except:
           pass
 
@@ -607,6 +608,31 @@ class Instrument:
                     "IRAC.1.PRF.5X.070312.fits", "IRAC.1.PRF.5X.070312.fits",
                     "IRS_BPUI_PSF.fits"]
 
+class Telemetry:
+  """
+  Spizter-specific temperature telemetry.
+  """
+  def __init__(self, nframes):
+    self.afpat2b  = np.zeros(nframes)  # Temperatures
+    self.afpat2e  = np.zeros(nframes)
+    self.ashtempe = np.zeros(nframes)
+    self.atctempe = np.zeros(nframes)
+    self.acetempe = np.zeros(nframes)
+    self.apdtempe = np.zeros(nframes)
+    self.acatmp1e = np.zeros(nframes)
+    self.acatmp2e = np.zeros(nframes)
+    self.acatmp3e = np.zeros(nframes)
+    self.acatmp4e = np.zeros(nframes)
+    self.acatmp5e = np.zeros(nframes)
+    self.acatmp6e = np.zeros(nframes)
+    self.acatmp7e = np.zeros(nframes)
+    self.acatmp8e = np.zeros(nframes)
+    self.cmd_t_24 = np.zeros(nframes)
+    self.ad24tmpa = np.zeros(nframes)
+    self.ad24tmpb = np.zeros(nframes)
+    self.acsmmtmp = np.zeros(nframes)
+    self.aceboxtm = np.zeros(nframes)
+
 
 class FrameParameters:
   """
@@ -624,32 +650,12 @@ class FrameParameters:
     self.cycpos   = np.zeros(nframes, int)
     self.visobs   = np.zeros(nframes, int)
     self.frmvis   = np.zeros(nframes, int)
-    self.zodi     = np.zeros(nframes)  # Zodiacal light estimate
-    self.ism      = np.zeros(nframes)  # interstellar medium estimate
-    self.cib      = np.zeros(nframes)  # Cosmic infrared background
-    self.afpat2b  = np.zeros(nframes)  # Temperatures
-    self.afpat2e  = np.zeros(nframes)
-    self.ashtempe = np.zeros(nframes)
-    self.atctempe = np.zeros(nframes)
-    self.acetempe = np.zeros(nframes)
-    self.apdtempe = np.zeros(nframes)
-    self.acatmp1e = np.zeros(nframes)
-    self.acatmp2e = np.zeros(nframes)
-    self.acatmp3e = np.zeros(nframes)
-    self.acatmp4e = np.zeros(nframes)
-    self.acatmp5e = np.zeros(nframes)
-    self.acatmp6e = np.zeros(nframes)
-    self.acatmp7e = np.zeros(nframes)
-    self.acatmp8e = np.zeros(nframes)
-    # mips frame parameters
-    self.cmd_t_24 = np.zeros(nframes)
-    self.ad24tmpa = np.zeros(nframes)
-    self.ad24tmpb = np.zeros(nframes)
-    self.acsmmtmp = np.zeros(nframes)
-    self.aceboxtm = np.zeros(nframes)
+    self.zodi     = np.zeros(nframes)       # Zodiacal light estimate
+    self.ism      = np.zeros(nframes)       # interstellar medium estimate
+    self.cib      = np.zeros(nframes)       # Cosmic infrared background
     self.pxscl2   = np.zeros(nframes)
     self.pxscl1   = np.zeros(nframes)
-
     self.heady    = np.zeros(nframes)
     self.headx    = np.zeros(nframes)
     self.filename = np.zeros(nframes, dtype='S150')
+    self.telemetry = Telemetry(nframes)

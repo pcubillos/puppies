@@ -190,5 +190,10 @@ Adapted pup_badpix.py to the new data shape.
 
 Adapted pup_centering.py to the new data shape.
 
+
+*****  Sun Nov 26 11:29:16 CET 2017  *****
+
+Moved telemetry frame parameters into its own subclass.
+
 *****
 
