@@ -197,3 +197,7 @@ Moved telemetry frame parameters into its own subclass.
 
 *****
 
+Adapted pup_photom.py to the new data shape.
+
+*****
+

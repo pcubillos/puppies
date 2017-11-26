@@ -15,13 +15,6 @@ from . import io    as io
 from . import image as im
 from . import photometry as ph
 
-"""
-PHOTOMETRY WORKFLOW
--------------------
-- driver
-- photometry
-- do_phot
-"""
 
 def update(pup, cfile):
   """
@@ -156,43 +149,33 @@ def photometry(pup):
   # Copy photom.pcf in photdir
   #pcf.make_file("photom.pcf")
 
-  maxnimpos, npos = pup.inst.maxnimpos, pup.inst.npos
-  # allocating frame parameters:
-  pup.fp.aplev     = np.zeros((npos, maxnimpos))  # aperture flux
-  pup.fp.aperr     = np.zeros((npos, maxnimpos))  # aperture error
-  pup.fp.nappix    = np.zeros((npos, maxnimpos))  # number of aperture pixels
-  pup.fp.skylev    = np.zeros((npos, maxnimpos))  # sky level
-  pup.fp.skyerr    = np.zeros((npos, maxnimpos))  # sky error
-  pup.fp.nskypix   = np.zeros((npos, maxnimpos))  # number of sky pixels
-  pup.fp.nskyideal = np.zeros((npos, maxnimpos))  # ideal number of sky pixels
-  pup.fp.status    = np.zeros((npos, maxnimpos), int)  # apphot return status
-  pup.fp.good      = np.zeros((npos, maxnimpos), int)  # good photometry flag
-
+  nframes = pup.inst.nframes
   # Aperture photometry:
   if pup.photap != "optimal":
-    # Multy Process set up:
-    aplev     = mp.Array("d", np.zeros(npos*maxnimpos))
-    aperr     = mp.Array("d", np.zeros(npos*maxnimpos))
-    nappix    = mp.Array("d", np.zeros(npos*maxnimpos))
-    skylev    = mp.Array("d", np.zeros(npos*maxnimpos))
-    skyerr    = mp.Array("d", np.zeros(npos*maxnimpos))
-    nskypix   = mp.Array("d", np.zeros(npos*maxnimpos))
-    nskyideal = mp.Array("d", np.zeros(npos*maxnimpos))
-    status    = mp.Array("i", np.zeros(npos*maxnimpos, int))
-    good      = mp.Array("i", np.zeros(npos*maxnimpos, int))
+    # Multiprocess set up:
+    aplev     = mp.Array("d", np.zeros(nframes))  # aperture flux
+    aperr     = mp.Array("d", np.zeros(nframes))  # aperture error
+    nappix    = mp.Array("d", np.zeros(nframes))  # number of aperture pixels
+    skylev    = mp.Array("d", np.zeros(nframes))  # sky level
+    skyerr    = mp.Array("d", np.zeros(nframes))  # sky error
+    nskypix   = mp.Array("d", np.zeros(nframes))  # number of sky pixels
+    nskyideal = mp.Array("d", np.zeros(nframes))  # ideal number of sky pixels
+    status    = mp.Array("i", np.zeros(nframes, int))  # apphot return status
+    good      = mp.Array("i", np.zeros(nframes, int))  # good photometry flag
+    # FINDME: Move this allocation out of the if?
+
     # Size of chunk of data each core will process:
-    chunksize = int(maxnimpos/pup.ncpu + 1)
+    chunksize = int(nframes/pup.ncpu + 1)
     pt.msg(1, "Number of parallel CPUs for photometry: {:d}."
                .format(pup.ncpu), pup.log)
 
     # Start Muti Procecess:
     processes = []
     for n in np.arange(pup.ncpu):
-      start =  n    * chunksize  # Starting index to process
-      end   = (n+1) * chunksize  # Ending   index to process
-      proc = mp.Process(target=aphot, args=(start, end, pup,
-                 aplev, aperr, nappix, skylev, skyerr, nskypix,
-                 nskyideal, status, good))
+      start =  n    * chunksize
+      end   = (n+1) * chunksize
+      proc = mp.Process(target=aphot, args=(start, end, pup, aplev, aperr,
+                  nappix, skylev, skyerr, nskypix, nskyideal, status, good))
       processes.append(proc)
       proc.start()
     # Make sure all processes finish their work:
@@ -200,32 +183,20 @@ def photometry(pup):
       processes[n].join()
 
     # Put the results in the event. I need to reshape them:
-    pup.fp.aplev     = np.array(aplev    ).reshape(npos, maxnimpos)
-    pup.fp.aperr     = np.array(aperr    ).reshape(npos, maxnimpos)
-    pup.fp.nappix    = np.array(nappix   ).reshape(npos, maxnimpos)
-    pup.fp.skylev    = np.array(skylev   ).reshape(npos, maxnimpos)
-    pup.fp.skyerr    = np.array(skyerr   ).reshape(npos, maxnimpos)
-    pup.fp.nskypix   = np.array(nskypix  ).reshape(npos, maxnimpos)
-    pup.fp.nskyideal = np.array(nskyideal).reshape(npos, maxnimpos)
-    pup.fp.status    = np.array(status   ).reshape(npos, maxnimpos)
-    pup.fp.good      = np.array(good     ).reshape(npos, maxnimpos)
+    pup.fp.aplev     = np.array(aplev)
+    pup.fp.aperr     = np.array(aperr)
+    pup.fp.nappix    = np.array(nappix)
+    pup.fp.skylev    = np.array(skylev)
+    pup.fp.skyerr    = np.array(skyerr)
+    pup.fp.nskypix   = np.array(nskypix)
+    pup.fp.nskyideal = np.array(nskyideal)
+    pup.fp.status    = np.array(status)
+    pup.fp.good      = np.array(good)
 
     # Raw photometry (star + sky flux within the aperture):
     pup.fp.apraw = pup.fp.aplev + pup.fp.skylev*pup.fp.nappix
 
-    # Print results into the log if it wasn't done before:
-    for pos in np.arange(npos):
-      for i in np.arange(pup.nimpos[pos]):
-        pt.msg(1, '\nframe = {:11d}  pos ={:3d}  status ={:3d}  good ={:3d}\n'
-          'aplev = {:11.3f}  skylev = {:7.3f}  nappix    = {:7.2f}\n'
-          'aperr = {:11.3f}  skyerr = {:7.3f}  nskypix   = {:7.2f}\n'
-          'y     = {:11.3f}  x      = {:7.3f}  nskyideal = {:7.2f}\n'
-           .format(i, pos, pup.fp.status[pos,i], pup.fp.good[pos,i],
-             pup.fp.aplev[pos,i], pup.fp.skylev[pos,i], pup.fp.nappix[pos,i],
-             pup.fp.aperr[pos,i], pup.fp.skyerr[pos,i], pup.fp.nskypix[pos,i],
-             pup.fp.y[pos,i], pup.fp.x[pos,i], pup.fp.nskyideal[pos,i]),
-               pup.log)
-
+  # FINDME: Make this a multiprocessing task as well.
   elif pup.photap == "optimal":
     # utils for profile construction:
     pshape = np.array([2*pup.otrim+1, 2*pup.otrim+1])
@@ -234,39 +205,50 @@ def photometry(pup):
     #clock = t.Timer(np.sum(pup.nimpos),
     #                progress=np.array([0.05, 0.1, 0.25, 0.5, 0.75, 1.1]))
 
-    for  pos in np.arange(npos):
-      for i in np.arange(pup.nimpos[pos]):
-        # Integer part of center of subimage:
-        cen = np.rint([pup.fp.y[pos,i], pup.fp.x[pos,i]])
-        # Center in the trimed image:
-        loc = (pup.otrim, pup.otrim)
-        # Do the trim:
-        img, msk, err = im.trim(pup.data[i,:,:,pos], cen, loc,
-                           mask=pup.mask[i,:,:,pos], uncd=pup.uncd[i,:,:,pos])
+    for i in np.arange(nframes):
+      # Integer part of center of subimage:
+      cen = np.rint([pup.fp.y[i], pup.fp.x[i]])
+      # Center in the trimed image:
+      loc = (pup.otrim, pup.otrim)
+      # Do the trim:
+      img, msk, err = im.trim(pup.data[i], cen, loc, mask=pup.mask[i],
+                              uncd=pup.uncd[i])
 
-        # Center of star in the subimage:
-        ctr = (pup.fp.y[pos,i]-cen[0]+pup.otrim,
-               pup.fp.x[pos,i]-cen[1]+pup.otrim)
-        # Make profile:
-        # Index of the position in the supersampled PSF:
-        pix = pf.pos2index(ctr, pup.expand)
-        profile, pctr = pf.make_psf_binning(pup.psfim, pshape, pup.expand,
-                                            [pix[0], pix[1], 1.0, 0.0],
-                                            pup.psfctr, subpsf)
+      # Center of star in the subimage:
+      ctr = (pup.fp.y[i]-cen[0]+pup.otrim,
+             pup.fp.x[i]-cen[1]+pup.otrim)
+      # Make profile:
+      # Index of the position in the supersampled PSF:
+      pix = pf.pos2index(ctr, pup.expand)
+      profile, pctr = pf.make_psf_binning(pup.psfim, pshape, pup.expand,
+                                          [pix[0], pix[1], 1.0, 0.0],
+                                          pup.psfctr, subpsf)
 
-        # Subtract the sky level:
-        img -= pup.fp.skylev[pos,i]
-        # optimal photometry calculation:
-        immean, uncert, good = op.optphot(img, profile, var=err**2.0, mask=msk)
-        # FINDME: Am I not fitting the sky at the same time? I dont like this
+      # Subtract the sky level:
+      img -= pup.fp.skylev[i]
+      # optimal photometry calculation:
+      immean, uncert, good = op.optphot(img, profile, var=err**2.0, mask=msk)
+      # FINDME: Am I not fitting the sky at the same time? I dont like this
 
-        pup.fp.aplev [pos, i] = immean
-        pup.fp.aperr [pos, i] = uncert
-        pup.fp.skylev[pos, i] = pup.fp.skylev[pos,i]
-        pup.fp.good  [pos, i] = good
+      pup.fp.aplev [i] = immean
+      pup.fp.aperr [i] = uncert
+      pup.fp.skylev[i] = pup.fp.skylev[i]
+      pup.fp.good  [i] = good
 
-        # Report progress:
-        #clock.check(np.sum(pup.nimpos[0:pos]) + i, name=pup.folder)
+      # Report progress:
+      #clock.check(np.sum(pup.nimpos[0:pos]) + i, name=pup.folder)
+
+  # Print results into the log:
+  for i in np.arange(nframes):
+    pt.msg(1, '\nframe = {:11d}  pos ={:3d}  status ={:3d}  good ={:3d}\n'
+      'aplev = {:11.3f}  skylev = {:7.3f}  nappix    = {:7.2f}\n'
+      'aperr = {:11.3f}  skyerr = {:7.3f}  nskypix   = {:7.2f}\n'
+      'y     = {:11.3f}  x      = {:7.3f}  nskyideal = {:7.2f}\n'
+       .format(i, pup.fp.pos[i], pup.fp.status[i], pup.fp.good[i],
+         pup.fp.aplev[i], pup.fp.skylev[i], pup.fp.nappix [i],
+         pup.fp.aperr[i], pup.fp.skyerr[i], pup.fp.nskypix[i],
+         pup.fp.y[i],     pup.fp.x[i],      pup.fp.nskyideal[i]),
+           pup.log)
 
   if pup.centering in ["bpf"]:
     pup.ispsf = False
@@ -316,7 +298,7 @@ def aphot(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
   """
   # Initialize a Timer to report progress (use first Process):
   if start == 0:
-    #clock = t.Timer(pup.inst..npos*end,
+    #clock = t.Timer(pup.inst.nframes,
     #                progress=np.array([0.05, 0.1, 0.25, 0.5, 0.75, 1.1]))
     pass
 
@@ -324,42 +306,37 @@ def aphot(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
   data   = pup.data
   mask   = pup.mask
   imer   = pup.uncd
-  nimpos = pup.nimpos
 
-  for pos in np.arange(pup.inst.npos):
-    # Recalculate star and end indexes. Care not to go out of bounds:
-    end = np.amin([end,   nimpos[pos]])
+  # Recalculate star and end indexes. Care not to go out of bounds:
+  end = np.amin([end, pup.inst.nframes])
 
-    for i in np.arange(start, end):
-      # Index in the share memory arrays:
-      loc = pos * pup.inst.maxnimpos + i
+  for i in np.arange(start, end):
+    if pup.fp.good[i]:
       # Calculate aperture photometry:
-      aplev  [loc], aperr  [loc], nappix   [loc], skylev[loc], \
-       skyerr[loc], nskypix[loc], nskyideal[loc], status[loc] = \
-                ph.aphot(data[i,:,:,pos], imer[i,:,:,pos],
-                         mask[i,:,:,pos],  y[pos,i], x[pos,i],
+      aplev  [i], aperr  [i], nappix   [i], skylev[i], \
+       skyerr[i], nskypix[i], nskyideal[i], status[i] = \
+                ph.aphot(data[i], imer[i], mask[i], y[i], x[i],
                          pup.photap,  pup.skyin,   pup.skyout,
                          pup.skyfrac, pup.expand, pup.skymed)
 
-      if status[loc] == 0:
-        good[loc] = 1 # good flag
+      if status[i] == 0:
+        good[i] = 1 # good flag
 
       # Print to screen only if one core:
-      if pup.ncpu == 1 and not mute: # (end - start) == pup.inst.maxnimpos:
+      if pup.ncpu == 1 and not mute:
         pt.msg(1, '\nframe = {:11d}  pos ={:3d}  status ={:3d}  good ={:3d}\n'
           'aplev = {:11.3f}  skylev = {:7.3f}  nappix    = {:7.2f}\n'
           'aperr = {:11.3f}  skyerr = {:7.3f}  nskypix   = {:7.2f}\n'
           'y     = {:11.3f}  x      = {:7.3f}  nskyideal = {:7.2f}\n'
-           .format(i, pos, status[loc], good[loc],
-            aplev[loc], skylev[loc], nappix[loc], aperr[loc], skyerr[loc],
-            nskypix[loc], y[pos,i], x[pos,i], nskyideal[loc]),
-                   pup.log)
+           .format(i, pup.fp.pos[i], status[i], good[i], aplev[i], skylev[i],
+                   nappix[i], aperr[i], skyerr[i], nskypix[i],
+                   y[i], x[i], nskyideal[i]), pup.log)
 
-        perc = 100.0*(np.sum(pup.nimpos[:pos])+i+1)/np.sum(pup.nimpos)
-        #hms = clock.hms_left(np.sum(pup.nimpos[0:pos]) + i)
-        #print("progress: {:6.2f}%  -  Remaining time (h:m:s): {}.".
-        #      format(perc, hms))
+    perc = 100.0*(i+1.0)/np.sum(pup.inst.nframes)
+    #hms = clock.hms_left(np.sum(pup.nimpos[0:pos]) + i)
+    #print("progress: {:6.2f}%  -  Remaining time (h:m:s): {}.".
+    #      format(perc, hms))
 
-      if start == 0:
-          #clock.check(pos*end + i, name=pup.folder)
-          pass
+    if start == 0:
+      #clock.check(pos*end + i, name=pup.folder)
+      pass
