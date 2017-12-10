@@ -169,7 +169,7 @@ def centering(pup):
   y     = mp.Array("d", np.zeros(pup.inst.nframes))
   flux  = mp.Array("d", np.zeros(pup.inst.nframes))
   sky   = mp.Array("d", np.zeros(pup.inst.nframes))
-  good  = mp.Array("b", np.zeros(pup.inst.nframes,bool))
+  good  = mp.Array("b", np.zeros(pup.inst.nframes, bool))
 
   # Size of chunk of data each core will process:
   chunksize = int(pup.inst.nframes/pup.ncpu + 1)
@@ -189,8 +189,8 @@ def centering(pup):
     processes[n].join()
 
   # Put the results in the object. I need to reshape them:
-  pup.fp.x    = np.array(x)
-  pup.fp.y    = np.array(y)
+  pup.fp.x = np.array(x)
+  pup.fp.y = np.array(y)
   pup.fp.goodcen = np.array(good, bool)
   # Flag out out of boundaries y,x frames:
   pup.fp.goodcen[(pup.fp.y<0) | (pup.fp.y>pup.inst.ny) |

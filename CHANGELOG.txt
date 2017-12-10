@@ -216,4 +216,8 @@ Added MC3 submodule.
 
 *****
 
+Added background() and rawflux() to plots module.
+Generate raw flux and background plots at the end of pup_photom.py.
+
+*****
 

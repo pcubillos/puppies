@@ -13,6 +13,7 @@ import multiprocessing as mp
 from . import tools as pt
 from . import io    as io
 from . import image as im
+from . import plots as pp
 from . import photometry as ph
 
 
@@ -160,8 +161,8 @@ def photometry(pup):
     skyerr    = mp.Array("d", np.zeros(nframes))  # sky error
     nskypix   = mp.Array("d", np.zeros(nframes))  # number of sky pixels
     nskyideal = mp.Array("d", np.zeros(nframes))  # ideal number of sky pixels
-    status    = mp.Array("i", np.zeros(nframes, int))  # apphot return status
-    good      = mp.Array("i", np.zeros(nframes, int))  # good photometry flag
+    status    = mp.Array("i", np.zeros(nframes, int))   # apphot return status
+    good      = mp.Array("b", np.zeros(nframes, bool))  # good photometry flag
     # FINDME: Move this allocation out of the if?
 
     # Size of chunk of data each core will process:
@@ -191,7 +192,9 @@ def photometry(pup):
     pup.fp.nskypix   = np.array(nskypix)
     pup.fp.nskyideal = np.array(nskyideal)
     pup.fp.status    = np.array(status)
-    pup.fp.good      = np.array(good)
+    pup.fp.goodphot  = np.array(good, bool)
+    # Overwrite good with goodphot:
+    pup.fp.good = np.copy(pup.fp.goodphot)
 
     # Raw photometry (star + sky flux within the aperture):
     pup.fp.apraw = pup.fp.aplev + pup.fp.skylev*pup.fp.nappix
@@ -278,6 +281,12 @@ def photometry(pup):
     pt.msg(1, 'Aperture contains {:.4f} of the PSF.'.format(pup.psffrac),
            pup.log)
 
+  # Make some plots:
+  pp.rawflux(pup.fp.aplev, pup.fp.aperr, pup.fp.phase, pup.fp.good,
+             pup.folder, units=str(pup.units))
+  pp.background(pup.fp.skylev, pup.fp.phase, pup.fp.good, pup.folder,
+                str(pup.units))
+
   # Delete data arrays:
   pup.data = pup.datafile
   pup.uncd = pup.uncdfile
@@ -318,9 +327,7 @@ def aphot(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
                 ph.aphot(data[i], imer[i], mask[i], y[i], x[i],
                          pup.photap,  pup.skyin,   pup.skyout,
                          pup.skyfrac, pup.expand, pup.skymed)
-
-      if status[i] == 0:
-        good[i] = 1 # good flag
+      good[i] = status[i]==0  # good flag
 
       # Print to screen only if one core:
       if pup.ncpu == 1 and not mute:
