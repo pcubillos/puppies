@@ -219,5 +219,12 @@ Added MC3 submodule.
 Added background() and rawflux() to plots module.
 Generate raw flux and background plots at the end of pup_photom.py.
 
+
+*****  Sun Jan 28 17:56:23 CET 2018  *****
+
+Added models module with lightcurve models.
+Added linramp(), mandelecl(), and bliss() light-curve models.
+TBD: Need to doublecheck bliss model works.
+
 *****
 
