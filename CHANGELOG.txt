@@ -250,3 +250,14 @@ light-curve model parameters, bounds, and stepsizes.
 
 *****
 
+Added pup_model.py which implements the Model() and Fit() clasess
+(for light-curve modeling).  It also implements the puppies.setup()
+method, which prepares the code for a light-curve fitting/posterior
+sampling.
+
+TBI in this file: the fit() and mcmc() methods, which do the
+least-square optimization and posterior sampling of the light-curve
+modeling.
+
+*****
+
