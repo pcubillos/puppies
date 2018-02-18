@@ -234,3 +234,8 @@ light-curve models.
 
 *****
 
+Added tools.cat(), a shorthand for numpy concatenate.
+Removed tools.parray().
+
+*****
+

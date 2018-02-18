@@ -5,24 +5,10 @@ import numpy as np
 
 import astropy.units  as u
 
-__all__ = ["parray", "msg", "warning", "error", "getpar"]
+__all__ = ["msg", "warning", "error", "getpar", "cat"]
 
 # Warning/error banner:
 sep = 70*":"
-
-
-def parray(string, dtype=None):
-  """
-  Convert a string containin a list of white-space-separated (and/or
-  newline-separated) values into a numpy array
-  """
-  if string == 'None':
-    return [None]
-  # Return list of strings if dtype is None:
-  if dtype is None:
-    return string.split()
-  # Else, convert to numpy array if given type
-  return np.asarray(string.split(), dtype)
 
 
 def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
@@ -178,3 +164,16 @@ def getpar(par, units=u.dimensionless_unscaled, dtype=float):
     error = 0 * units
 
   return value, error
+
+
+def cat(a, b):
+  """
+  Short hand version of np.concatenate.
+
+  Parameters
+  ----------
+  a, b: Sequences or ndarrays
+     Arrays to concatenate. Must have compatible shapes, see
+     help(np.concatenate)
+  """
+  return np.concatenate([a,b])
