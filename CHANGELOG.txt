@@ -245,3 +245,8 @@ It also implements tools.parray().
 
 *****
 
+Added paramedit.py which implements tools.loadparams() to read-in
+light-curve model parameters, bounds, and stepsizes.
+
+*****
+
