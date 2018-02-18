@@ -239,3 +239,9 @@ Removed tools.parray().
 
 *****
 
+Added parse.py file which implements tools.parse_model() to handle the
+light-cruve modeling configuration files.
+It also implements tools.parray().
+
+*****
+
