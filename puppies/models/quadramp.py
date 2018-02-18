@@ -4,19 +4,20 @@ import numpy as np
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/puppies/lib")
-import _mandelecl as me
+import _quadramp as qr
 
 
-__all__ = ["mandelecl"]
+__all__ = ["quadramp"]
 
-class mandelecl():
+
+class quadramp():
   def __init__(self):
-    self.name = "mandelecl"
-    self.type = "astro"
-    self.pnames = ["midpt",  "width",  "depth",  "tin",  "teg",  "flux"]
-    self.npars = len(self.pnames)
+    self.name = "quadramp"
+    self.type = "ramp"
+    self.pnames = ["r2", "r1", "r0", "t0"]
+    self.npars  = len(self.pnames)
     self.params = np.zeros(self.npars)
-    self.pmin   = np.array([-np.inf, 0.0, 0.0, 0.0, 0.0, -np.inf])
+    self.pmin   = np.tile(-np.inf, self.npars)
     self.pmax   = np.tile( np.inf, self.npars)
     self.pstep  = np.zeros(self.npars)
 
@@ -33,16 +34,16 @@ class mandelecl():
     return self.eval(params, self.time[self.mask])
 
 
-  def eval(self, params, time=None):
+  def eval(self, params, time):
     """
     Evaluate function at specified input times.
     """
-    return me.mandelecl(params, time)
+    return qr.quadramp(params, time)
 
 
   def setup(self, time=None, mask=None, pup=None):
     """
-    Set independent variables and default values.
+    Set default independent variables (when calling eval without args).
     """
     if pup is not None:
       time = pup.time

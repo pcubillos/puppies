@@ -8,13 +8,13 @@
 
 PyDoc_STRVAR(linramp__doc__,
 "Linear polynomial model:                                         \n\
-   y(x) = a*(x-x0) + b                                            \n\
+   ramp(t) = r1*(t-t0) + r0                                       \n\
                                                                   \n\
 Parameters                                                        \n\
 ----------                                                        \n\
 params: 1D float ndarray                                          \n\
-   Model slope (a), constant (b), and reference point (x0).       \n\
-x: 1D float ndarray                                               \n\
+   Model slope (r1), constant (r0), and reference point (t0).     \n\
+t: 1D float ndarray                                               \n\
    Evaluation points.                                             \n\
                                                                   \n\
 Returns                                                           \n\
@@ -24,23 +24,23 @@ ramp: 1D float ndarray                                            \n\
 
 
 static PyObject *linramp(PyObject *self, PyObject *args){
-  PyArrayObject *x, *ramp, *params;
-  double a, b, x0;
+  PyArrayObject *t, *ramp, *params;
+  double r1, r0, t0;
   int i;
   npy_intp dims[1];
 
-  if(!PyArg_ParseTuple(args, "OO", &params, &x))
+  if(!PyArg_ParseTuple(args, "OO", &params, &t))
     return NULL;
 
-  a  = INDd(params,0);
-  b  = INDd(params,1);
-  x0 = INDd(params,2);
+  r1 = INDd(params,0);
+  r0 = INDd(params,1);
+  t0 = INDd(params,2);
 
-  dims[0] = (int)PyArray_DIM(x,0);
+  dims[0] = (int)PyArray_DIM(t,0);
   ramp = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
   for(i=0; i<dims[0]; i++)
-    INDd(ramp,i) = a*(INDd(x,i)-x0) + b;
+    INDd(ramp,i) = r1*(INDd(t,i)-t0) + r0;
 
   return Py_BuildValue("N", ramp);
 }

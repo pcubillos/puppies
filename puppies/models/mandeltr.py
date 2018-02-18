@@ -4,19 +4,21 @@ import numpy as np
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/puppies/lib")
-import _mandelecl as me
+import _mandeltr as mt
 
 
-__all__ = ["mandelecl"]
+__all__ = ["mandeltr"]
 
-class mandelecl():
+
+class mandeltr():
   def __init__(self):
-    self.name = "mandelecl"
+    self.name = "mandeltr"
     self.type = "astro"
-    self.pnames = ["midpt",  "width",  "depth",  "tin",  "teg",  "flux"]
+    self.pnames = ["epoch", "rprs", "cosi", "ars", "flux", "per",
+                   "c1", "c2", "c3", "c4"]
     self.npars = len(self.pnames)
     self.params = np.zeros(self.npars)
-    self.pmin   = np.array([-np.inf, 0.0, 0.0, 0.0, 0.0, -np.inf])
+    self.pmin   = np.tile(-np.inf, self.npars)
     self.pmax   = np.tile( np.inf, self.npars)
     self.pstep  = np.zeros(self.npars)
 
@@ -37,7 +39,7 @@ class mandelecl():
     """
     Evaluate function at specified input times.
     """
-    return me.mandelecl(params, time)
+    return mt.mandeltr(params, time)
 
 
   def setup(self, time=None, mask=None, pup=None):

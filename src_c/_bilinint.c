@@ -18,7 +18,7 @@ model:  1D float ndarray                                             \n\
    Model of all other data systematics.                              \n\
 knotpts:  1D integer ndarray                                         \n\
    Array with the datapoint indices sorted per knot.                 \n\
-kpsize:  1D integer ndarray                                          \n\
+knotpsize:  1D integer ndarray                                       \n\
    Number of data points for each knot.                              \n\
 kploc:  1D integer ndarray                                           \n\
    Index in knotpts of the first data-point index of each knot.      \n\
@@ -30,7 +30,7 @@ xdist:  1D float ndarray                                             \n\
    Normalized X-axis distance to the binloc knot.                    \n\
 xsize:  Integer                                                      \n\
    Number of knots along the x axis.                                 \n\
-retblissmap:  Boolean                                                \n\
+retmap:  Boolean                                                     \n\
    If True return the BLISS map.                                     \n\
 retbinstd:  Boolean                                                  \n\
    If True, return the standard deviation of the BLISS map.          \n\
@@ -54,44 +54,44 @@ static PyObject *bilinint(PyObject *self, PyObject *args){
   int i, j, xsize, arsize, iknot, idata, counter;
   double mean, std, meanbinflux;
 
-  /* Return flags:                                                          */
-  PyObject *retblissmap=Py_False,
+  /* Return flags:                                                  */
+  PyObject *retmap=Py_False,
            *retbinstd=Py_False;
-  /* Returned arrays:                                                       */
+  /* Returned arrays:                                               */
   PyArrayObject *ipflux, *blissmap, *binstd;
 
   if (!PyArg_ParseTuple(args, "OOOOOOOOi|OO", &flux, &model, &knotpts,
                         &knotsize, &kploc, &binloc, &ydist, &xdist, &xsize,
-                        &retblissmap, &retbinstd))
+                        &retmap, &retbinstd))
     return NULL;
 
-  nknots[0] = (int)PyArray_DIM(kploc, 0);  /* Number of knots               */
-  npts  [0] = (int)PyArray_DIM(flux,  0);  /* Number of data points         */
+  nknots[0] = (int)PyArray_DIM(kploc, 0);  /* Number of knots       */
+  npts  [0] = (int)PyArray_DIM(flux,  0);  /* Number of data points */
 
-  /* Allocate output intra-pixel flux array:                                */
+  /* Allocate output intra-pixel flux array:                        */
   ipflux   = (PyArrayObject *) PyArray_SimpleNew(1, npts, NPY_DOUBLE);
-  /* Allocate output BLISS map and BLISS map std:                           */
+  /* Allocate output BLISS map and BLISS map std:                   */
   blissmap = (PyArrayObject *) PyArray_SimpleNew(1, nknots, NPY_DOUBLE);
   binstd   = (PyArrayObject *) PyArray_SimpleNew(1, nknots, NPY_DOUBLE);
 
-  counter = 0;      /* Number of used BLISS knots in calculation            */
-  meanbinflux = 0;  /* BLISS overall mean flux                              */
+  counter = 0;      /* Number of used BLISS knots in calculation    */
+  meanbinflux = 0;  /* BLISS overall mean flux                      */
 
-  /* Calculate the mean flux for each BLISS knot:                           */
+  /* Calculate the mean flux for each BLISS knot:                   */
   for(i=0; i < (int)nknots[0]; i++){
     if(INDi(knotsize, i) > 0){
-      arsize = INDi(knotsize, i);  /* Data points in knot                */
-      iknot  = INDi(kploc,    i);  /* Index in knotpts                   */
+      arsize = INDi(knotsize, i);  /* Data points in knot           */
+      iknot  = INDi(kploc,    i);  /* Index in knotpts              */
       mean = 0;
-      /* Calculate the mean in the knot:                                    */
+      /* Calculate the mean in the knot:                            */
       for(j=iknot; j<iknot+arsize; j++){
-        idata = INDi(knotpts, j);  /* Data-point index                   */
+        idata = INDi(knotpts, j);  /* Data-point index              */
         mean += (INDd(flux, idata)/INDd(model, idata));
       }
       mean /= (double)arsize;
       INDd(blissmap, i) = mean;
 
-      /* Calculate the standard deviation if requested:                     */
+      /* Calculate the standard deviation if requested:             */
       if(PyObject_IsTrue(retbinstd) == 1){
         std = 0;
         for(j=iknot; j<iknot+arsize; j++){
@@ -132,15 +132,15 @@ static PyObject *bilinint(PyObject *self, PyObject *args){
   }
 
   /* Return BLISS flux, map, and std arrays as requested:                   */
-  if(PyObject_IsTrue(retblissmap) == 0 && PyObject_IsTrue(retbinstd) == 0){
+  if(PyObject_IsTrue(retmap) == 0 && PyObject_IsTrue(retbinstd) == 0){
       Py_XDECREF(blissmap);
       Py_XDECREF(binstd);
       return PyArray_Return(ipflux);
   }
-  else if (PyObject_IsTrue(retblissmap) == 1 && PyObject_IsTrue(retbinstd)==1){
+  else if (PyObject_IsTrue(retmap) == 1 && PyObject_IsTrue(retbinstd)==1){
       return Py_BuildValue("NNN", ipflux, blissmap, binstd);
   }
-  else if (PyObject_IsTrue(retblissmap) == 1){
+  else if (PyObject_IsTrue(retmap) == 1){
       Py_XDECREF(binstd);
       return Py_BuildValue("NN", ipflux, blissmap);
   }

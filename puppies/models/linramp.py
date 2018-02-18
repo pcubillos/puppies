@@ -9,6 +9,7 @@ import _linramp as lr
 
 __all__ = ["linramp"]
 
+
 class linramp():
   def __init__(self):
     self.name = "linramp"
@@ -20,9 +21,37 @@ class linramp():
     self.pmax   = np.tile( np.inf, self.npars)
     self.pstep  = np.zeros(self.npars)
 
-  def __call__(self, params, x):
-    return self.eval(params, x)
 
-  def eval(self, params, x):
-    return lr.linramp(params, x)
+  def __call__(self, params, time=None, mask=None):
+    """
+    Call function with self vaues.
+    Update defaults if necessary.
+    """
+    if time is not None:
+      self.time = time
+    if mask is not None:
+      self.mask = mask
+    return self.eval(params, self.time[self.mask])
 
+
+  def eval(self, params, time):
+    """
+    Evaluate function at specified input times.
+    """
+    return lr.linramp(params, time)
+
+
+  def setup(self, time=None, mask=None, pup=None):
+    """
+    Set default independent variables (when calling eval without args).
+    """
+    if pup is not None:
+      time = pup.time
+      if mask is None:  # Input mask takes priority over pup.mask
+        mask = pup.mask
+
+    if mask is None:
+      mask = np.ones(len(time), bool)
+
+    self.time = time
+    self.mask = mask

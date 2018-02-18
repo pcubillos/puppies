@@ -19,25 +19,54 @@ class bliss():
     self.pmin   = np.tile(-np.inf, self.npars)
     self.pmax   = np.tile( np.inf, self.npars)
     self.pstep  = np.zeros(self.npars)
+    self.fixip  = False
 
-  def __call__(self, params, x):
-    return self.eval(params, x)
+  def __call__(self, params, model=None):
+    """
+    Call function with self vaues.
+    Update defaults if necessary.
+    """
+    if model is not None:
+      self.model = model
+    return self.eval(params, model)
 
 
-  def eval(self, params, x):
-    flux, model = x
-    args = (flux, model, self.knotpts, self.knotsize, self.kploc,
-            self.binloc, self.ydist, self.xdist, xsize)
-    # FINDME: retblissmap, retbinstd
-    return bli.bilinint(params, args)
+  def eval(self, params, model=None, retmap=False, retbinstd=False):
+    """
+    Evaluate function at specified input times.
+    """
+    if model is None:
+      model = self.model
+
+    if self.fixip:
+      return self.ipflux
+
+    # FINDME: Test calls with retmap, retbinstd
+    ipflux = bli.bilinint(self.flux, self.model, self.knotpts,
+                          self.knotsize, self.kploc, self.binloc,
+                          self.ydist, self.xdist, self.xsize,
+                          retmap, retbinstd)
+    # If requested, put extra variables in self:
+    if retmap and retbinstd:
+      ipflux, self.blissmap, self.binstd = ipflux
+    elif retmap:
+      ipflux, self.blissmap = ipflux
+    elif retbinstd:
+      ipflux, self.binstd   = ipflux
+
+    self.ipflux = ipflux
+    return ipflux
 
 
-  def setup(self, y, x, ystep, xstep, minpt=1, verbose=False):
+  def setup(self, flux=None, y=None, x=None, ystep=None, xstep=None,
+            minpt=1, mask=None, verbose=True, pup=None):
     """
     Set up the BLISS map variables.
 
     Parameters
     ----------
+    flux: 1D float ndarray
+      Flux values.
     y: 1D float ndarray
       Y-coordinate array of data set (zeroth index).
     x: 1D float ndarray
@@ -48,6 +77,8 @@ class bliss():
       X-coordinate BLISS map grid size.
     minpt: Integer
       Minimum number of points to accept in a BLISS map tile.
+    pup: A pup instance
+      [Optional] If not None, extract input arguments from pup.
 
     Notes
     -----
@@ -71,25 +102,33 @@ class bliss():
     self.xdist: 1D float ndarray
       Normalized distance to the left knot (binloc).
     """
+    # Retrieve data from pup object:
+    if pup is not None:
+      flux  = pup.flux
+      y     = pup.y
+      x     = pup.x
+      ystep = pup.ystep
+      xstep = pup.xstep
+      minpt = pup.minpt
+    if mask is None:
+      mask = np.ones(len(flux), bool)
+
     # Determine the centroid location relative to the center of pixel:
     # Record in which quadrant the center of light falls:
-    ndata    = np.size(y)
     yround   = np.round(np.median(y))
     xround   = np.round(np.median(x))
-    # Remainder around the x,yround:
-    y = y - yround
-    x = x - xround
     if verbose:
       print("Reference pixel position (y, x): ({:d}, {:d})".
             format(int(yround), int(xround)))
 
     # Put the first knot one step to the right of the left-most point:
-    ymin = np.amin(y) - ystep
-    xmin = np.amin(x) - xstep
+    ymin = np.amin(y[mask]) - ystep
+    xmin = np.amin(x[mask]) - xstep
 
     # Calculate number of necessary cells:
-    ysize = int((np.amax(y) - ymin)/ystep + 0.5) + 2
-    xsize = int((np.amax(x) - xmin)/xstep + 0.5) + 2
+    ysize = int((np.amax(y[mask]) - ymin)/ystep + 0.5) + 2
+    xsize = int((np.amax(x[mask]) - xmin)/xstep + 0.5) + 2
+    self.xsize = xsize
 
     # Position of the last knot:
     ymax = ymin + (ysize-1)*ystep
@@ -108,18 +147,20 @@ class bliss():
       print('Ignoring bins with < {:d} points.'.format(minpt))
 
     # Make mask for minimum number of points:
-    self.blissmask = np.ones(ndata, dtype=int)
+    self.mask = mask
+    ndata = np.sum(mask)
     for m in np.arange(ysize):
-      wbftemp = np.where(np.abs(y-self.ygrid[m]) < ystep/2.0)[0]
+      wbftemp = np.where(mask & (np.abs(y-self.ygrid[m]) < ystep/2.0))[0]
       for n in np.arange(xsize):
         wbf = wbftemp[np.where(np.abs(x[wbftemp] - self.xgrid[n]) < xstep/2.0)]
         if len(wbf) < minpt:
-          self.blissmask[wbf] = 0
+          self.mask[wbf] = False
 
     # Redefine clipped variables based on minnumpts for IP mapping:
-    yfit = np.copy(y[np.where(self.blissmask)])
-    xfit = np.copy(x[np.where(self.blissmask)])
+    yfit = y[self.mask]
+    xfit = x[self.mask]
     nfit = np.size(xfit)
+    self.flux = flux[self.mask]
 
     if verbose:
       print("Light-curve data points:    {:6d}".format(ndata))
@@ -151,7 +192,7 @@ class bliss():
     self.binloc = (np.asarray((yfit-self.ygrid[0])/ystep, int)*xsize +
                    np.asarray((xfit-self.xgrid[0])/xstep, int)       )
 
-    print('Compute distance to the four nearest knots.')
+    # Compute distance to the four nearest knots:
     self.ydist = np.mod((yfit-self.ygrid[0])/ystep, 1.0) # Dist from bottom
     self.xdist = np.mod((xfit-self.xgrid[0])/xstep, 1.0) # Dist from left
 
