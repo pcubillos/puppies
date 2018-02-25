@@ -259,5 +259,14 @@ TBI in this file: the fit() and mcmc() methods, which do the
 least-square optimization and posterior sampling of the light-curve
 modeling.
 
+
+*****  So 25. Feb 18:54:17 CET 2018  *****
+
+Implemented pup_model.fit(). Need to tie some loose ends (write file,
+output, pickle file).
+Sorted out variables in pup_model.setup().
+Cleaned up pup_model.evalmodel().
+Enabled chiscale and optimizer arguments for light-curve modeling.
+
 *****
 

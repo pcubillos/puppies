@@ -10,30 +10,21 @@ from . import plots as pp
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/modules/MCcubed")
+import MCcubed.fit   as mf
 import MCcubed.utils as mu
+
+
+__all__ = ["setup", "fit", "mcmc", "evalmodel"]
+
 
 """
 this module runs the light-curve modeling, either optimization or
 Markov Chain Monte Carlo runs.
 
-Main Routines
--------------
-setup: Set up the event for MCMC simulation. Initialize the models
-fit: Least-squares wrapper for ligtcurve fitting.
-mcmc: Run the MCMC, produce plots, and save results. 
-
-Auxiliary routines
-------------------
-evalmodel: Evaluate light-curve model with given set of parameters.
-"""
-
-"""
-These are the rules:
-- There are three types of runs: {SDNR, BIC, joint}
+There are three types of runs: {SDNR, BIC, joint}
     BIC:   N model, 1 dataset, N mcmc
     SDNR:  1 model, N dataset, N mcmc
     joint: 1 model, N dataset, 1 mcmc
-- joints are detected when using inter-dataset shared parameters
 """
 
 
@@ -60,6 +51,13 @@ class Fit():
     self.modelfile = []
     self.models    = []
     self.mask      = []
+    # Fit outputs:
+    self.bestfit = [None] * npups
+    self.chisq  = np.zeros(npups)
+    self.rchisq = np.zeros(npups)
+    # Data (filled as a 1D array with pup-concatenated non-masked data):
+    self.flux = np.zeros(0, np.double)
+    self.ferr = np.zeros(0, np.double)
     # MC3-related arrays:
     self.params = np.zeros(0, np.double)
     self.pmin   = np.zeros(0, np.double)
@@ -72,6 +70,8 @@ class Fit():
     self.nparams = [0]
     self.iparams = []
     self.ndata   = []  # Not to confuse with pup.ndata
+    self.nfree   = np.zeros(npups, int)
+
 
 
 def setup(cfile, mode='turtle'):
@@ -112,6 +112,7 @@ def setup(cfile, mode='turtle'):
   laika.nchains   = config[0]["nchains"]
   laika.timeunits = config[0]["timeunits"]
   laika.leastsq   = config[0]["leastsq"]
+  laika.optimizer = config[0]["optimizer"]
   laika.joint     = config[0]["joint"]
 
   # Total number of MCMC runs:
@@ -132,7 +133,7 @@ def setup(cfile, mode='turtle'):
 
     # Read in frame-parameters data from masked raw light curve:
     good = pup.fp.good
-    pup.ndata = int(np.sum(good))
+    pup.ndata  = int(np.sum(good))
     pup.flux   = pup.fp.aplev[good]
     pup.ferr   = pup.fp.aperr[good]
     pup.y      = pup.fp.y    [good]
@@ -175,8 +176,6 @@ def setup(cfile, mode='turtle'):
     #for m in np.arange(len(config[j]['ipclip'])):
     #  ipclip = config[j]['ipclip'][m]
     #  fit.ipmask[ipclip[0]:ipclip[1]] = False
-
-    # FINDME: Apply sigma-rejection mask
 
     # Set orbital phase or days as unit of time:
     pup.timeoffset = config[j]['timeoffset']
@@ -276,13 +275,26 @@ def setup(cfile, mode='turtle'):
         iparams.append(np.arange(ntotal, ntotal+npars, dtype=int))
         ntotal += npars
 
+      # Cumulative number of models for each pup:
+      fit.iparams.append(iparams)
       # Setup models (in reverse order, because pixmap might modify mask):
       for k in np.arange(fit.nmodels[j])[::-1]:
         fit.models[j][k].setup(pup=pup, mask=fit.mask[j])
+        # Number of free parameters for each pup:
+        fit.nfree[j] += np.sum(fit.pstep[fit.iparams[j][k]]>0)
 
-    fit.ndata.append(np.sum(fit.mask[j]))
-    # Cumulative number of models for each pup:
-    fit.iparams.append(iparams)
+      # Number of non-masked datapoints:
+      fit.ndata.append(np.sum(fit.mask[j]))
+      # The fit's data as 1D concatenated arrays:
+      fit.flux = pt.cat(fit.flux, laika.pup[ipup].flux[fit.mask[j]])
+      fit.ferr = pt.cat(fit.ferr, laika.pup[ipup].ferr[fit.mask[j]])
+
+    # Set data indices for each pup:
+    fit.idata = np.zeros((fit.npups, len(fit.flux)), bool)
+    ndata = 0
+    for j in np.arange(fit.npups):
+      fit.idata[j][ndata:ndata+fit.ndata[j]] = True
+      ndata += fit.ndata[j]
 
     # Binned data:
     fit.binflux = [None] * fit.npups
@@ -320,8 +332,10 @@ def fit(cfile=None, laika=None):
 
   - Do Least-square fitting with initial parameters.
   - Scale data uncertainties to get reduced chisq == 1.0
+  - FINDME: Do another sigrej on residuals?
   - Re-do least-squares fitting with new uncertainties.
   - Save best-fitting parameters to initvals file.
+
   """
   if laika is None:
     if cfile is None:
@@ -329,64 +343,54 @@ def fit(cfile=None, laika=None):
     # Call setup
     setup(cfile)
 
-  # Indices of non-fixed parameters:
-  inonprior = np.where(stepsize > 0)[0] 
+  lm = laika.optimizer == "lm"
+  # Run MC3 least-squares fit:
+  print("Calculating least-squares fit.")
+  for fit in laika.fit:
+    # Optimization:
+    output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
+        indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+        prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
 
-  # Run MC3's fit
-  # Least-squares fit:
-  if laika.leastsq:
-    print("Calculating least-squares fit.")
-    # calculate, now also fitting the parameters:
-    output = modelfit(params, inonprior, stepsize, fit, full=True)
+    # Evaluate model using current values:
+    params = output[1]
+    model = evalmodel(params, fit)
+    for j in np.arange(fit.npups):
+      idata = fit.idata[j]
+      fit.bestfit[j] = model[idata]
+      # Reduced chi-square for each pup:
+      fit.rchisq[j] = np.sum(((fit.bestfit[j]-fit.flux[idata])
+                             /fit.ferr[idata])**2) / (fit.ndata[j]-fit.nfree[j])
+      print("Reduced chi-square: {:f}".format(fit.rchisq[j]))
 
-  # Evaluate model using current values:
-  for j in range(npups):
-    fit[j].fit0, fit[j].binipflux, fit[j].binipstd = \
-                 evalmodel(params, fit[j], getbinflux=True, getbinstd=True)
+      if laika.chiscale:
+        # Scale uncertainties such reduced chi-square = 1.0:
+        fit.ferr[fit.idata[i]] *= np.sqrt(fit.rchisq[i])
 
-    for k in np.arange(fit.nmodels[j]):
-      if fit[j].models[k].type == 'pixmap':
-        fit[j].binipflux = fit[j].binipflux.reshape(fit[j].gridshape)
-        fit[j].binipstd  = fit[j].binipstd. reshape(fit[j].gridshape)
+    # New Least-squares fit using modified sigma values:
+    if laika.chiscale and fit.npups > 1:
+      print("Re-calculating least-squares fit with new errors.")
+      output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
+          indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+          prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
 
-    # Reduced chi-square:
-    fit[j].redchisq = np.sum(((fit[j].fit0 - fit[j].flux) / 
-                      fit[j].sigma)**2.0) / (fit[j].nobj - fit[j].numfreepars)
-    print("Reduced Chi-square: " + str(fit[j].redchisq), file=printout)
+    # Store best-fitting parameters:
+    fit.bestparams = output[1]
+    model = evalmodel(fit.bestparams, fit)
+    # Calculate chi-square:
+    for j in np.arange(npups):
+      idata = fit.idata[j]
+      fit.bestfit[j] = model[idata]
+      fit.chisq += np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.ferr[idata])**2)
 
-  # Since Spitzer over-estimates errors,
-  # Modify sigma such that reduced chi-square = 1
-  for j in np.arange(npups):
-    # Uncertainty of data from raw light curve:
-    fit[j].rawsigma      = fit[j].sigma
-    # Scaled data uncertainty such reduced chi-square = 1.0
-    fit[j].scaledsigma   = fit[j].sigma   * np.sqrt(fit[j].redchisq)
+    # Save best-fitting paramters to file:
+    for j in np.arange(npups):
+    # FINDME: Implement pt.saveparams()
+      pt.saveparams(fit) #fit[j].modelfile, parlist[j])
 
-    if config[0].chi2flag:
-      fit[j].sigma   = fit[j].scaledsigma  
-
-  # New Least-squares fit using modified sigma values:
-  if leastsq.leastsq:
-    print("Re-calculating least-squares fit with new errors.")
-    output = modelfit(params, inonprior, stepsize, fit, verbose=True)
-
-  # Calculate current chi-square and store it in fit[0]:
-  fit[0].chisq = 0.0
-  for j in np.arange(npups):
-    model = evalmodel(params, fit[j])
-    fit[0].chisq += np.sum(((model - fit[j].flux)/fit[j].sigma)**2.0)
-  # Store current fitting parameters in fit[0]:
-  fit[0].fitparams = params
-
-  for   j in np.arange(npups):
-    for k in np.arange(fit.nmodels[j]):
-      parlist[j][k][2][0] = params[fit[j].iparams[k]]
-    # Update initial parameters:
-    pe.write(fit[j].modelfile, parlist[j])
-    ier = os.system("cp %s %s/." % (fit[j].modelfile, pup[j].folder))
-
-  # Store results into a pickle file:
+  # FINDME: Store results into a pickle file:
   pass
+  # FINDME: What to return?
 
 
 def mcmc(cfile, fit=None):
@@ -410,8 +414,7 @@ def mcmc(cfile, fit=None):
   pass
 
 
-def evalmodel(params, fit,        getuc=False,     getipflux=False, 
-              getbinflux=False,   getbinstd=False, getipfluxuc=False, 
+def evalmodel(params, fit, getuc=False, getbinflux=False, getbinstd=False,
               getbinfluxuc=False, skip=[]):
   """
   Evaluate the light-curve model for a single pup.
@@ -431,6 +434,12 @@ def evalmodel(params, fit,        getuc=False,     getipflux=False,
                  Return binned ipflux map for unclipped data.
   skip: List of strings
         List of names of models not to evaluate.
+
+  Returns
+  -------
+  lightcurve: 1D float ndarray
+     The fit light-curve model evaluated according to params.
+     If there are more than one pup in fit, concatenate all models.
   """
   lightcurve = []
   for j in np.arange(fit.npups):
@@ -442,149 +451,11 @@ def evalmodel(params, fit,        getuc=False,     getipflux=False,
         fit0 *= fit.models[j][k](params[fit.iparams[j][k]])
     lightcurve.append(fit0)
 
-  # Return statement:
-  if (not getuc     and not getbinflux  and
-      not getbinstd and not getipfluxuc and not getbinfluxuc):
-    # Return the fit alone:
-    return np.concatenate(lightcurve)
+  return np.concatenate(lightcurve)
 
-  # Else, return a list with the requested values:
-  ret = [fit0]
-  if getuc:
-    ret.append(fituc0)
-  if getbinflux:
-    ret.append(binipflux)
-  if getbinstd:
-    ret.append(binstd)
-  return ret
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
-def residuals(freepars, params, inonprior, fit, nopriors=False):
-  """
-  Calculate the residual between the lightcurves and models.
-
-  Parameters:
-  -----------
-  freepars: 1D ndarray
-            Array of fitting light-curve model parameters.
-  params: 1D ndarray 
-            Array of light-curve model parameters.
-  inonprior: 1D ndarray
-            Array with the indices of freepars.
-  fit: List of fits instances of an pup.
-  nopriors: Boolean
-            Do not add priors penalty to chi square in minimization.
-  """
-  # The output:
-  residuals = []        # Residuals from the fit
-  prior_residuals = []  # Residuals from the prior penalization
-
-  # Number of pups:
-  npups = len(fit)
-
-  # Update the fitting parameters:
-  pmin, pmax, stepsize  = [], [], []
-  for j in np.arange(npups): 
-    pmin     = np.concatenate((pmin,     fit[j].pmin),     0)
-    pmax     = np.concatenate((pmax,     fit[j].pmax),     0)
-    stepsize = np.concatenate((stepsize, fit[j].stepsize), 0)
-
-  # Fitting parameters:
-  params[inonprior] = freepars
-
-  # Check min and max boundaries:
-  params[np.where(params < pmin)] = pmin[np.where(params < pmin)]
-  params[np.where(params > pmax)] = pmax[np.where(params > pmax)]
-
-  # Update shared parameters:
-  for i in np.arange(len(stepsize)):
-    if stepsize[i] < 0:
-      params[i] = params[-stepsize[i]-1]
-
-  # Evaluate model for each pup:
-  for j in np.arange(npups):
-    model = evalmodel(params, fit[j])
-
-    # Calculate pup's residuals and concatenate:
-    ev_res = (model - fit[j].flux)/fit[j].sigma
-    residuals = np.concatenate((residuals, ev_res))
-
-    # Apply priors penalty if exists:
-    if len(fit[j].ipriors) > 0:
-      pbar = fit[j].priorvals[:,0]
-      psigma = np.zeros(len(pbar))
-      for i in np.arange(len(fit[j].ipriors)):
-        if params[fit[j].ipriors[i]] < pbar[i]:
-          psigma[i] = fit[j].priorvals[i,1]
-        else:
-          psigma[i] = fit[j].priorvals[i,2]
-        #priorchisq += ((params[fit[j].ipriors[i]]-pbar[i])/psigma[i])**2.0
-        prior_residuals.append((params[fit[j].ipriors[i]]-pbar[i])/psigma[i])
-
-  # chisq = np.sum(residuals**2) + priorchisq
-  # pseudoresiduals = np.sqrt(chisq/len(residuals)*np.ones(len(residuals)) )
-  if nopriors:
-    return residuals
-  return np.concatenate((residuals, prior_residuals))
-
-
-def modelfit(params, inonprior, stepsize, fit, verbose=False, full=False,
-             retchisq=False, nopriors=False):
-  """
-  Least-squares fitting wrapper.
-
-  Parameters:
-  -----------
-  params: 1D ndarray 
-          Array of light-curve model parameters.
-  inonprior: 1D ndarray
-             Array with the indices of freepars.
-  stepsize: 1D ndarray
-            Array of fitting light-curve model parameters.
-  fit: List of fits instances of an pup.
-  verbose:  Boolean
-            If True print least-square fitting message.
-  full:     Boolean
-            If True return full output in scipy's leastsq and print message.
-  retchisq: Boolean
-            Return the best-fitting chi-square value.
-  nopriors: Boolean
-            Do not add priors penalty to chi square in minimization.
-  """
-  fitting = op.leastsq(residuals, params[inonprior],
-        args=(params, inonprior, fit, nopriors), factor=100, ftol=1e-16,
-        xtol=1e-16, gtol=1e-16, diag=1./stepsize[inonprior], full_output=full)
-
-  # Unpack least-squares fitting results:
-  if full:
-    output, cov_x, infodict, mesg, err = fitting
-    print(mesg)
-  else:
-    output, err = fitting
-
-  # Print least-squares flag message:
-  if verbose:
-    if (err >= 1) and (err <= 4):
-      print("Fit converged without error.")
-    else:
-      print("WARNING: Error with least squares fit!")
-
-  # Print out results:
-  if full or verbose:
-    print("Least squares fit best parameters:")
-    print(output)
-
-  # Return chi-square of the fit:
-  if retchisq:
-    fit_residuals = residuals(params[inonprior], params, inonprior, fit)
-    chisq = np.sum(fit_residuals)**2.0
-    return output, chisq
-
-  return output
-
 
 def runmcmc(fit, numit, walk, mode, grtest, printout, bound):
   """

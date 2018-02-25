@@ -102,7 +102,7 @@ def defaults(pupdict):
   # MCMC options:
   add_arg(parser, "rwalk",    str,  None)
   add_arg(parser, "nchains",  int,  21)
-  add_arg(parser, "chi2flag", eval, False)
+  add_arg(parser, "chiscale", eval, False)
   add_arg(parser, "thinning", int,  None)
   add_arg(parser, "nsamples", int,  None)
   add_arg(parser, "nproc",    int,  None)

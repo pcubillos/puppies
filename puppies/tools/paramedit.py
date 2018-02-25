@@ -5,7 +5,7 @@ from .. import models as pm
 from .  import tools  as pt
 
 
-__all__ = ["loadparams"]
+__all__ = ["loadparams", "saveparams"]
 
 
 def init_comment():
@@ -93,7 +93,7 @@ def loadparams(filename, mnames=None):
   return models
 
 
-def write(filename, models_used):
+def saveparams(fit):
   """
   FINDME: Needs to be implemented.
 
@@ -102,6 +102,8 @@ def write(filename, models_used):
   filename: String
   models:
   """
+  return
+
   if not os.path.isfile(filename):
     print("'{:s}' does not exist.  Creating new file...".format(filename))
     models = read_parameters('params2.txt') # Read from default/backup file
