@@ -7,6 +7,7 @@ from . import tools as pt
 from . import io    as io
 from . import image as im
 from . import plots as pp
+from . import stats as ps
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/modules/MCcubed")
@@ -111,6 +112,7 @@ def setup(cfile, mode='turtle'):
   laika.nsamples  = config[0]["nsamples"]
   laika.nchains   = config[0]["nchains"]
   laika.timeunits = config[0]["timeunits"]
+  laika.sigrej    = config[0]["sigrej"]
   laika.leastsq   = config[0]["leastsq"]
   laika.optimizer = config[0]["optimizer"]
   laika.joint     = config[0]["joint"]
@@ -176,6 +178,11 @@ def setup(cfile, mode='turtle'):
     #for m in np.arange(len(config[j]['ipclip'])):
     #  ipclip = config[j]['ipclip'][m]
     #  fit.ipmask[ipclip[0]:ipclip[1]] = False
+
+    # Apply sigma-rejection mask:
+    # FINDME: What if the LC varies significantly from start to end?
+    if laika.sigrej is not None:
+      pup.mask = ps.sigrej(pup.flux, laika.sigrej, mask=pup.mask)
 
     # Set orbital phase or days as unit of time:
     pup.timeoffset = config[j]['timeoffset']

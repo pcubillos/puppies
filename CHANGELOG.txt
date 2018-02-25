@@ -270,3 +270,12 @@ Enabled chiscale and optimizer arguments for light-curve modeling.
 
 *****
 
+Implemented sigrej at the begining of pup_model.setup().
+Need to think what to do if the data veries significantly from stat to
+end, messing up the sigma rejection (do piecewise?, what's a good
+recipe for this).
+Also could do a sigrej from the residuals, after an initial fit
+(consider if fit fails, it may mess up things as well).
+
+*****
+

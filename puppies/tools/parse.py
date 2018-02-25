@@ -112,6 +112,7 @@ def defaults(pupdict):
   add_arg(parser, "preclip",    parray, None)
   add_arg(parser, "postclip",   parray, None)
   add_arg(parser, "interclip",  parray, None)
+  add_arg(parser, "sigrej",     parray, None)
   add_arg(parser, "priorvars",  parray, None)
   add_arg(parser, "priorvals",  parray, None)
   add_arg(parser, "tunits",     str,    None)
