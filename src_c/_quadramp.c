@@ -26,7 +26,7 @@ ramp: 1D float ndarray                                          \n\
 
 static PyObject *quadramp(PyObject *self, PyObject *args){
   PyArrayObject *t, *ramp, *params;
-  double a, b, c, t0;
+  double r0, r1, r2, t0;
   int i;
   npy_intp dims[1];
 

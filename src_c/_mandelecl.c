@@ -69,19 +69,23 @@ static PyObject *mandelecl(PyObject *self, PyObject *args){
   else
     t3 = midpt;
 
-  p = sqrt(fabs(depth)) * (depth/fabs(depth));
+  p = depth/sqrt(fabs(depth));
 
   for(i=0; i<dims[0]; i++){
-    INDd(eclipse,i) = 1.0;
-    if(INDd(t,i) >= t2  &&  INDd(t,i) <= t3){
+    /* Out of eclipse:                                      */
+    if (INDd(t,i) < t1 || INDd(t,i) > t4){
+      INDd(eclipse,i) = 1.0;
+    }
+    /* Totality:                                            */
+    else if (INDd(t,i) >= t2  &&  INDd(t,i) <= t3){
       INDd(eclipse,i) = 1 - depth;
     }
+    /* Eq. (1) of Mandel & Agol (2002) for ingress/egress:  */
     else if (p != 0){
-      /* Use Mandel & agol (2002) for ingress of eclipse: */
       if (INDd(t,i) > t1  &&  INDd(t,i) < t2){
         z  = -2*p*(INDd(t,i)-t1)/t12 + 1 + p;
-        k0 = acos((p*p+z*z-1)/2/p/z);
-        k1 = acos((1-p*p+z*z)/2/z);
+        k0 = acos(0.5*(p*p + z*z - 1)/p/z);
+        k1 = acos(0.5*(1 - p*p + z*z)/z);
         INDd(eclipse,i) = 1 - depth/fabs(depth)/M_PI * (p*p*k0 + k1
                                     - sqrt((4*z*z - pow((1+z*z-p*p),2))/4));
       }

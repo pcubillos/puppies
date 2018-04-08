@@ -52,7 +52,7 @@ static PyObject *mandeltr(PyObject *self, PyObject *args){
   double per, z, c1, c2, c3, c4, Sigma4, I1star, sig1, sig2, I2star, mod;
   int i;
   npy_intp dims[1];
-  
+
   if(!PyArg_ParseTuple(args, "OO", &params, &t))
     return NULL;
 
@@ -66,9 +66,9 @@ static PyObject *mandeltr(PyObject *self, PyObject *args){
   c2    = INDd(params,7);
   c3    = INDd(params,8);
   c4    = INDd(params,9);
-  
+
   dims[0] = (int)PyArray_DIM(t,0);
- 
+
   y = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
   Sigma4 = (1 - c1/5 - c2/3 - 3*c3/7 - c4/2);
 
@@ -81,7 +81,7 @@ static PyObject *mandeltr(PyObject *self, PyObject *args){
       }
       else{
         z = ars*sqrt(pow(     sin(2*M_PI*(INDd(t,i)-epoch)/per),2) +
-                     pow(cosi*cos(2*M_PI*(INDd(t,i)-eopch)/per),2) );
+                     pow(cosi*cos(2*M_PI*(INDd(t,i)-epoch)/per),2) );
       }
       /* Ingress or egress: */
       if(z>(1-rprs) && z<=(1+rprs)){
