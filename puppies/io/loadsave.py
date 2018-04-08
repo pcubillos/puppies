@@ -3,6 +3,7 @@ import numpy as np
 
 __all__ = ["save", "load"]
 
+
 def save(pup):
   """
 st = '/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/puppies/puppies/wa043b.nop'

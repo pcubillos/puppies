@@ -5,28 +5,40 @@ from .. import models as pm
 from .  import tools  as pt
 
 
-__all__ = ["loadparams", "saveparams"]
+__all__ = ["newparams", "loadparams", "saveparams"]
 
 
-def init_comment():
-    comment = """****COMMENT SPACE****
-This file lists the models and their parameters.
-The parameters are presented in a table headed
-by the name of each model. Column headers are
-unique to each model, but rows follow a
-standard format:
-  Row 1: Initial parameters
-  Row 2: Lower bounds
-  Row 3: Upper bounds
-  Row 4: Step size
-NOTE1: To set one parameter equal to another, set its stepsize to the
-negative value of the location of the paramter you wish it to be equal to.
-CAUTION: The first location is 1, NOT 0, since you can't have -0.
-    eg. To set t12 = t34, set stepsize[3] = -5
-NOTE2: Zero stepsize results in a fixed value.
-****MODELS BELOW****
+header = """\
+# This file lists the models and their parameters.  The parameters are
+# presented in a table headed by the name of each model. Column headers
+# are unique to each model, but rows follow a standard format:
+#   Row 1: Parameter value
+#   Row 2: Lower bound
+#   Row 3: Upper bound
+#   Row 4: Step size
+# NOTE1: To set one parameter equal to another, set its stepsize to the
+# negative value of the index of the paramter you wish it to be equal to,
+# starting from -1. For example: to set t12 = t34, set stepsize[3] = -5
+# NOTE2: Zero stepsize results in a fixed value.\n
 """
-    return comment
+
+
+def newparams(filename):
+  """
+  Create new modelparams text file with all currently-available
+  models and their default values.
+
+  Parameters
+  ----------
+  filename: String
+     File where to save the model parameters.
+  """
+  # Make list of models:
+  models = []
+  for modelname in pm.__all__:
+    models.append(eval("pm.{:s}()".format(modelname)))
+  # Save to file:
+  writeparams(filename, models)
 
 
 def loadparams(filename, mnames=None):
@@ -51,9 +63,9 @@ def loadparams(filename, mnames=None):
 
   with open(filename, "r") as f:
     lines = f.readlines()
-  # Skip comments:
+  # Skip header:
   i = 0
-  while lines[i].startswith("#"):
+  while lines[i].startswith("#") or lines[i].strip() == "":
     i += 1
 
   # Update models' parameters with info from file:
@@ -95,55 +107,62 @@ def loadparams(filename, mnames=None):
 
 def saveparams(fit):
   """
-  FINDME: Needs to be implemented.
+  Update a modelparams file with current values from a puppies Fit()
+  object.
+
+  Parameters
+  ----------
+  fit: puppies Fit() object
+  """
+  for j in np.arange(fit.npups):
+    filename = fit.modelfile[j]
+
+    # If file already exists, load for default values:
+    defaults, dnames = [], []
+    if os.path.isfile(filename):
+      defaults = loadparams(filename)
+    for dmodel in defaults:
+      dnames.append(dmodel.name)
+
+    for k in np.arange(fit.nmodels[j]):
+      model = fit.models[j][k]
+      # Update with models from fit:
+      if model.name in dnames:
+        idx = dnames.index(model.name)
+        defaults[idx] = model
+      # This should never happen in principle:
+      else:
+        defaults.append(model)
+
+    # Write to file:
+    writeparams(filename, defaults)
+
+
+def writeparams(filename, models):
+  """
+  Write models' info into filename.
 
   Parameters
   ----------
   filename: String
-  models:
-  """
-  return
-
-  if not os.path.isfile(filename):
-    print("'{:s}' does not exist.  Creating new file...".format(filename))
-    models = read_parameters('params2.txt') # Read from default/backup file
-    write_parameters(filename, models)
-  else:
-    models = read_parameters(filename)
-
-  print('Updating the following models:')
-  for i in models_used:
-    k = 0
-    print(i[0])
-    for j in models:
-      if i[0] == j[0]: #Test if model names are equal
-        models[k] = i
-      k+=1
-  write_parameters(filename, models)
-  return
-
-
-def write_parameters(filename, models, verbose=False):
-  """
-  FINDME: Needs to be implemented.
-
-  Parameters
-  ----------
-  filename: String
-     Name of file where to write the parameters.
-  models: List
-  verbose: Bool
+     Parameters file to write.
+  models: List of puppies model() objects
+     The models to write.
   """
   f = open(filename, "w")
-  f.write(init_comment())
+  f.write(header)
   for model in models:
-    f.write(model[0] + "\n")  # Model name
-    f.write(model[1] + "\n")  # Parameter names
-    for j in np.arange(4):
-      f.write("\t".join(["{:11.4e}".format(x) for x in model[2][j]]))
-      f.write('\n')
+    # Model name:
+    f.write("{:s}\n".format(model.name))
+    # Parameter names, values, boundaries, and stepsizes:
+    if model.npars == 0:  # Special case:
+      f.write("CanIHazParz?\n")
+      f.write("{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n"
+              .format(0.0, 0.0, 0.0, 0.0))
+    else:
+      f.write("".join(["{:16s}".format(s) for s in model.pnames]) + "\n")
+      f.write("".join(["{:< 16.6e}".format(x) for x in model.params]) + "\n")
+      f.write("".join(["{:< 16.6e}".format(x) for x in model.pmin  ]) + "\n")
+      f.write("".join(["{:< 16.6e}".format(x) for x in model.pmax  ]) + "\n")
+      f.write("".join(["{:< 16.6e}".format(x) for x in model.pstep ]) + "\n")
   f.close()
-  if verbose:
-    print("Parameters have been written to '{:s}'.".format(filename))
-  return
-

@@ -277,5 +277,13 @@ recipe for this).
 Also could do a sigrej from the residuals, after an initial fit
 (consider if fit fails, it may mess up things as well).
 
+
+*****  Sun Apr  8 20:01:23 CEST 2018  *****
+
+Implemented newparams() and saveparams() in puppies.tool submodule.
+This let's the user create a new modelparams file with default values
+and to update an existing file with values from a Fit() object,
+respectively.
+
 *****
 
