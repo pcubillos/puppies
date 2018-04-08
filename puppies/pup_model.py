@@ -79,7 +79,7 @@ def setup(cfile, mode='turtle'):
   """
   Set up the event for MCMC simulation.  Initialize the models and
   performs a least-squares fit.
-  
+
   Parameters
   ----------
   cfile: String
@@ -115,6 +115,7 @@ def setup(cfile, mode='turtle'):
   laika.sigrej    = config[0]["sigrej"]
   laika.leastsq   = config[0]["leastsq"]
   laika.optimizer = config[0]["optimizer"]
+  laika.chiscale  = config[0]["chiscale"]
   laika.joint     = config[0]["joint"]
 
   # Total number of MCMC runs:
@@ -320,7 +321,7 @@ def setup(cfile, mode='turtle'):
       #  fit[j].preclipflux  = fit[j].fluxuc [:fit[j].preclip]
       #  fit[j].preclipsigma = fit[j].sigmauc[:fit[j].preclip]
       #  fit[j].binprecstd, fit[j].binprecflux = bd.bindata(fit[j].nbins,
-      #              std=[fit[j].preclipsigma], weighted=[fit[j].preclipflux], 
+      #              std=[fit[j].preclipsigma], weighted=[fit[j].preclipflux],
       #              binsize=binsize)
 
     # Print summary of fit:
@@ -346,9 +347,9 @@ def fit(cfile=None, laika=None):
   """
   if laika is None:
     if cfile is None:
-      pt.error("Neither a config file nor a pup object was provided.")
+      pt.error("Neither a config file nor a Model object was provided.")
     # Call setup
-    setup(cfile)
+    laika = setup(cfile)
 
   lm = laika.optimizer == "lm"
   # Run MC3 least-squares fit:
@@ -372,7 +373,7 @@ def fit(cfile=None, laika=None):
 
       if laika.chiscale:
         # Scale uncertainties such reduced chi-square = 1.0:
-        fit.ferr[fit.idata[i]] *= np.sqrt(fit.rchisq[i])
+        fit.ferr[fit.idata[j]] *= np.sqrt(fit.rchisq[j])
 
     # New Least-squares fit using modified sigma values:
     if laika.chiscale and fit.npups > 1:
@@ -383,21 +384,21 @@ def fit(cfile=None, laika=None):
 
     # Store best-fitting parameters:
     fit.bestparams = output[1]
-    model = evalmodel(fit.bestparams, fit)
+    model = evalmodel(fit.bestparams, fit, update=True)
     # Calculate chi-square:
-    for j in np.arange(npups):
+    for j in np.arange(fit.npups):
       idata = fit.idata[j]
       fit.bestfit[j] = model[idata]
       fit.chisq += np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.ferr[idata])**2)
 
     # Save best-fitting paramters to file:
-    for j in np.arange(npups):
-    # FINDME: Implement pt.saveparams()
-      pt.saveparams(fit) #fit[j].modelfile, parlist[j])
+    for j in np.arange(fit.npups):
+      pt.saveparams(fit)
 
   # FINDME: Store results into a pickle file:
   pass
-  # FINDME: What to return?
+
+  return laika
 
 
 def mcmc(cfile, fit=None):
@@ -421,32 +422,26 @@ def mcmc(cfile, fit=None):
   pass
 
 
-def evalmodel(params, fit, getuc=False, getbinflux=False, getbinstd=False,
-              getbinfluxuc=False, skip=[]):
+def evalmodel(params, fit, skip=[], update=False):
   """
   Evaluate the light-curve model for a single pup.
 
   Parameters
   ----------
   params: 1D ndarray
-          List of lightcurve parameters
-  fit: A fit instance
-  getuc: Boolean
-         Evaluate and return lightcurve for unclipped data.
-  getbinflux:    Boolean
-                 Return binned ipflux map.
-  getbinstd:     Boolean
-                 Return binned ipflux standard deviation.
-  getbinfluxcuc: Boolean
-                 Return binned ipflux map for unclipped data.
+     List of lightcurve parameters.
+  fit: A puppies Fit() instance
+     Object containing the models to use.
   skip: List of strings
-        List of names of models not to evaluate.
+     List of names of models not to evaluate.
+  update: Bool
+     If True, set model.params from the params array.
 
   Returns
   -------
   lightcurve: 1D float ndarray
      The fit light-curve model evaluated according to params.
-     If there are more than one pup in fit, concatenate all models.
+     If there is more than one pup in fit, concatenate all models.
   """
   lightcurve = []
   for j in np.arange(fit.npups):
@@ -456,6 +451,8 @@ def evalmodel(params, fit, getuc=False, getbinflux=False, getbinstd=False,
         fit.models[j][k].model = fit0
       if fit.models[j][k].name not in skip:
         fit0 *= fit.models[j][k](params[fit.iparams[j][k]])
+      if update:
+        fit.models[j][k].params = params[fit.iparams[j][k]]
     lightcurve.append(fit0)
 
   return np.concatenate(lightcurve)
@@ -484,16 +481,16 @@ def runmcmc(fit, numit, walk, mode, grtest, printout, bound):
     numit: Scalar
            Number of MCMC iterations.
   walk: String
-        Random walk for the Markov chain: 
+        Random walk for the Markov chain:
         'demc': differential evolution MC.
         'mrw': Metropolis random walk.
   mode: String
            MCMC mode: ['burn' | 'continue' | 'final']
   grtest: Boolean
-          Do Gelman and Rubin convergence test. 
+          Do Gelman and Rubin convergence test.
   printout: File object for directing print statements
   bound: Boolean
-         Use bounded-eclipse constrain for parameters (start after the 
+         Use bounded-eclipse constrain for parameters (start after the
          first frame, end before the last frame).
   """
   npups = len(fit)
@@ -530,7 +527,7 @@ def runmcmc(fit, numit, walk, mode, grtest, printout, bound):
   # Run MCMC:
   allparams, numaccept, bestp, bestchisq = mcmc.mcmc(fitpars, pmin, pmax,
                               stepsize, numit, fit,
-                              laika.nchains, walk=walk, 
+                              laika.nchains, walk=walk,
                               grtest=grtest, bound=bound)
   numaccept = np.sum(numaccept)
 

@@ -292,4 +292,9 @@ light-curve models.
 
 *****
 
+Updated fit() in pup_model.py to return the Model() object and store
+best-fitting values into modelparams file(s).
+Added update argument in evalmdel to update the models' parameters.
+
+*****
 
