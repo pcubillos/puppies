@@ -310,3 +310,8 @@ to obj in the settup() method.
 
 *****
 
+Added eclipse submodule, which implements mandelecl() and eclipse()
+light-curve models.
+
+*****
+
