@@ -325,3 +325,8 @@ and make it less verbose.
 
 *****
 
+Adapted pup_model.py to latest changes in puppies.models.
+
+*****
+
+

@@ -1,3 +1,8 @@
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ["setup", "fit", "mcmc", "evalmodel"]
+
 import os
 import sys
 import time
@@ -9,13 +14,10 @@ from . import image as im
 from . import plots as pp
 from . import stats as ps
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(topdir + "/modules/MCcubed")
+sys.path.append(os.path.realpath(os.path.dirname(__file__)
+                + "/../../modules/MCcubed"))
 import MCcubed.fit   as mf
 import MCcubed.utils as mu
-
-
-__all__ = ["setup", "fit", "mcmc", "evalmodel"]
 
 
 """
@@ -287,7 +289,7 @@ def setup(cfile, mode='turtle'):
       fit.iparams.append(iparams)
       # Setup models (in reverse order, because pixmap might modify mask):
       for k in np.arange(fit.nmodels[j])[::-1]:
-        fit.models[j][k].setup(pup=pup, mask=fit.mask[j])
+        fit.models[j][k].setup(obj=pup, mask=fit.mask[j])
         # Number of free parameters for each pup:
         fit.nfree[j] += np.sum(fit.pstep[fit.iparams[j][k]]>0)
 
