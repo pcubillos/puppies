@@ -315,3 +315,9 @@ light-curve models.
 
 *****
 
+Adapted puppies.models' init to new ramps.py file and eclipse module.  
+Removed mandelecl.py file (replaced with eclipse submodule).
+
+*****
+
+
