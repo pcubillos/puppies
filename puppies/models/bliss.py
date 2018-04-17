@@ -1,3 +1,8 @@
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ["bliss"]
+
 import sys
 import os
 import numpy as np
@@ -6,8 +11,6 @@ topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(topdir + "/puppies/lib")
 import _bilinint as bli
 
-
-__all__ = ["bliss"]
 
 class bliss():
   def __init__(self):
@@ -59,7 +62,7 @@ class bliss():
 
 
   def setup(self, flux=None, y=None, x=None, ystep=None, xstep=None,
-            minpt=1, mask=None, verbose=True, pup=None):
+            minpt=1, mask=None, verbose=True, obj=None):
     """
     Set up the BLISS map variables.
 
@@ -77,8 +80,9 @@ class bliss():
       X-coordinate BLISS map grid size.
     minpt: Integer
       Minimum number of points to accept in a BLISS map tile.
-    pup: A pup instance
-      [Optional] If not None, extract input arguments from pup.
+    obj: An object
+      [Optional] If not None, extract input arguments from the
+      attributes of this object.
 
     Notes
     -----
@@ -102,14 +106,15 @@ class bliss():
     self.xdist: 1D float ndarray
       Normalized distance to the left knot (binloc).
     """
-    # Retrieve data from pup object:
-    if pup is not None:
-      flux  = pup.flux
-      y     = pup.y
-      x     = pup.x
-      ystep = pup.ystep
-      xstep = pup.xstep
-      minpt = pup.minpt
+    # Retrieve data from pup (obj) object:
+    if obj is not None:
+      flux  = obj.flux
+      y     = obj.y
+      x     = obj.x
+      ystep = obj.ystep
+      xstep = obj.xstep
+      minpt = obj.minpt
+
     if mask is None:
       mask = np.ones(len(flux), bool)
 

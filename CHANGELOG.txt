@@ -305,3 +305,8 @@ Files need to be properly documented.
 
 *****
 
+Updated bliss and ramp light-curve classes, renamed the pup argument
+to obj in the settup() method.
+
+*****
+

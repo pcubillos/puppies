@@ -32,7 +32,7 @@ class Ramp(object):
 
   def __call__(self, params, time=None, mask=None):
     """
-    Call function with self vaues.
+    Call function with self values.
     Update defaults if necessary.
     """
     if time is not None:
@@ -62,14 +62,15 @@ class Ramp(object):
 class linramp(Ramp):
   """
   Linear ramp model.
-
   Docstring me!
 
   Attributes
   ----------
+  TBD
 
   Example
   -------
+  TBD
   """
   def __init__(self, time=None, mask=None, params=None):
     self.name = "linramp"
@@ -87,14 +88,15 @@ class linramp(Ramp):
 class quadramp(Ramp):
   """
   Quadratic ramp model.
-
   Docstring me!
 
   Attributes
   ----------
+  TBD
 
   Example
   -------
+  TBD
   """
   def __init__(self, time=None, mask=None, params=None):
     self.name = "quadramp"
@@ -112,14 +114,15 @@ class quadramp(Ramp):
 class expramp(Ramp):
   """
   Exponential ramp model.
-
   Docstring me!
 
   Attributes
   ----------
+  TBD
 
   Example
   -------
+  TBD
   """
   def __init__(self, time=None, mask=None, params=None):
     self.name = "expramp"
