@@ -296,5 +296,12 @@ Updated fit() in pup_model.py to return the Model() object and store
 best-fitting values into modelparams file(s).
 Added update argument in evalmdel to update the models' parameters.
 
+
+*****  Di 17. Apr 16:27:31 CEST 2018  *****
+
+Combined all ramp models into ramps.py, where the specific models
+inherit from the Ramp() superclass.
+Files need to be properly documented.
+
 *****
 
