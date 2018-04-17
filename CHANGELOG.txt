@@ -320,4 +320,8 @@ Removed mandelecl.py file (replaced with eclipse submodule).
 
 *****
 
+Updated Makefile to include submodules
+and make it less verbose.
+
+*****
 

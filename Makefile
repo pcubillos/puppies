@@ -11,7 +11,6 @@
 # To enforce compilation with Python3 append "PY3=1" to the make command:
 #      make PY3=1
 
-
 LIBDIR = puppies/lib/
 
 # Set verbosity
@@ -24,7 +23,10 @@ ifdef VERBOSE
 		Q =
 		O =
 	endif
+else
+	MAKEFLAGS += --no-print-directory
 endif
+
 
 DIRECTIVE = 
 ifdef PY3
@@ -33,11 +35,38 @@ ifdef PY3
 	endif
 endif
 
-all:
+
+# Get the location of this Makefile.
+mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
+
+# `make [clean]` should run `make [clean]` on all of the modules.
+all: make_pup make_mc3 make_eclipse
+clean: clean_pup clean_mc3 clean_eclipse
+
+
+make_pup:
 	@echo "Building puppies package."
 	$(Q) python$(DIRECTIVE) setup.py build $(O)
 	@mv -f build/lib.*/*.so $(LIBDIR)
 	@rm -rf build/
 	@echo "Successful compilation.\n"
-clean:
+
+make_mc3:
+	@cd $(mkfile_dir)/modules/MCcubed/ && make
+
+make_eclipse:
+	@cd $(mkfile_dir)/modules/eclipse/ && make
+
+
+clean_pup:
 	@rm -rf $(LIBDIR)*.so
+	@echo "Cleaned Pyrat Bay.\n"
+
+clean_mc3:
+	@cd $(mkfile_dir)/modules/MCcubed && make clean
+	@echo "Cleaned MC3.\n"
+
+clean_eclipse:
+	@cd $(mkfile_dir)/modules/eclipse && make clean
+	@echo "Cleaned eclipse.\n"
+
