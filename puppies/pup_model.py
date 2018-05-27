@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ["setup", "fit", "mcmc", "evalmodel"]
+__all__ = ["setup", "lcfit", "mcmc", "evalmodel"]
 
 import os
 import sys
@@ -318,14 +318,6 @@ def setup(cfile, mode='turtle'):
       binflux, binferr, bintime = mu.binarray(data, uncert, time, binsize)
       fit.binflux[j], fit.binferr[j], fit.bintime[j] = binflux, binferr, bintime
 
-      # Pre/post clipped binned data:
-      #if fit.preclip > 0:
-      #  fit[j].preclipflux  = fit[j].fluxuc [:fit[j].preclip]
-      #  fit[j].preclipsigma = fit[j].sigmauc[:fit[j].preclip]
-      #  fit[j].binprecstd, fit[j].binprecflux = bd.bindata(fit[j].nbins,
-      #              std=[fit[j].preclipsigma], weighted=[fit[j].preclipflux],
-      #              binsize=binsize)
-
     # Print summary of fit:
     #print("Total observed points:      {:7d}".format(pup.ndata))
     #print("Raw light-curve points:     {:7d}".format(fit[j].nobj))
@@ -335,7 +327,7 @@ def setup(cfile, mode='turtle'):
   return laika
 
 
-def fit(cfile=None, laika=None):
+def lcfit(cfile=None, laika=None):
   """
   Run the optimization for the lightcurves and models specified in the
   input configuration file.
@@ -353,6 +345,10 @@ def fit(cfile=None, laika=None):
     # Call setup
     laika = setup(cfile)
 
+  # Some stats:
+  sdr = [[] for n in np.arange(laika.npups)]
+  bic = [[] for n in np.arange(laika.npups)]
+
   lm = laika.optimizer == "lm"
   # Run MC3 least-squares fit:
   print("Calculating least-squares fit.")
@@ -363,8 +359,8 @@ def fit(cfile=None, laika=None):
         prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
 
     # Evaluate model using current values:
-    params = output[1]
-    model = evalmodel(params, fit)
+    fit.bestparams = output[1]
+    model = evalmodel(fit.bestparams, fit)
     for j in np.arange(fit.npups):
       idata = fit.idata[j]
       fit.bestfit[j] = model[idata]
@@ -372,26 +368,34 @@ def fit(cfile=None, laika=None):
       fit.rchisq[j] = np.sum(((fit.bestfit[j]-fit.flux[idata])
                              /fit.ferr[idata])**2) / (fit.ndata[j]-fit.nfree[j])
       print("Reduced chi-square: {:f}".format(fit.rchisq[j]))
+      # Standard deviation of the residuals:
+      sdr[fit.ipup[j]].append(np.std(fit.bestfit[j]-fit.flux[idata]))
 
-      if laika.chiscale:
-        # Scale uncertainties such reduced chi-square = 1.0:
-        fit.ferr[fit.idata[j]] *= np.sqrt(fit.rchisq[j])
+  for fit in laika.fit:
+    if laika.chiscale:
+      for j in np.arange(fit.npups):
+        imin = np.argmin(sdr[fit.ipup[j]])
+        # Scale uncertainties such reduced chi-square = 1.0
+        #  (scale relative to fit with lowest SDR):
+        fit.ferr[fit.idata[j]] *= np.sqrt(laika.fit[imin].rchisq[j])
 
-    # New Least-squares fit using modified sigma values:
-    if laika.chiscale and fit.npups > 1:
-      print("Re-calculating least-squares fit with new errors.")
-      output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
-          indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
-          prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
+      # New Least-squares fit using modified uncertainties:
+      if laika.joint:
+        print("Re-calculating least-squares fit with new errors.")
+        output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
+            indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+            prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
+        fit.bestparams = output[1]
 
     # Store best-fitting parameters:
-    fit.bestparams = output[1]
     model = evalmodel(fit.bestparams, fit, update=True)
     # Calculate chi-square:
     for j in np.arange(fit.npups):
       idata = fit.idata[j]
       fit.bestfit[j] = model[idata]
-      fit.chisq += np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.ferr[idata])**2)
+      chisq = np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.ferr[idata])**2)
+      fit.chisq += chisq
+      bic[fit.ipup[j]].append(chisq + fit.nfree[j]*np.log(fit.ndata[j]))
 
     # Save best-fitting paramters to file:
     for j in np.arange(fit.npups):
@@ -400,10 +404,12 @@ def fit(cfile=None, laika=None):
   # FINDME: Store results into a pickle file:
   pass
 
+  laika.sdr = sdr
+  laika.bic = bic
   return laika
 
 
-def mcmc(cfile, fit=None):
+def mcmc(cfile=None, laika=None):
   """
   Run MCMC for the lightcurves and models specified in the input
   configuration file.
@@ -415,13 +421,32 @@ def mcmc(cfile, fit=None):
   fit: String
      A PUPPIES model-fit pickle file (if not None, overrides cfile).
   """
-  # FINDME: Do I want an option to take self.fit ouput?
-  # Call setup
-  setup(cfile)
+  if laika is None:
+    if cfile is None:
+      pt.error("Neither a config file nor a Model object was provided.")
+    # Call setup
+    laika = setup(cfile)
+
+  # Run optimization if requested:
+  if laika.leastsq:
+    laika = lcfit(laika=laika)
+
+  # Tweak uncertainties if laika.chiscale and BIC comparison:
+  for j in np.arange(laika.npups):
+    for i in np.arange(laika.nfits[j]):
+      #sdr[i] = np.std(bestmodel-data)
+      pass
+
   # Run MC3's MCMC:
-  pass
+  for fit in laika.fit:
+    output = mf.mcmc(fit.params, evalmodel, fit.flux, fit.ferr,
+          indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+          prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup)
+
   # Store results into a pickle file:
   pass
+
+  return laika
 
 
 def evalmodel(params, fit, skip=[], update=False):

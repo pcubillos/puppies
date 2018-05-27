@@ -327,6 +327,16 @@ and make it less verbose.
 
 Adapted pup_model.py to latest changes in puppies.models.
 
+
+*****  Sun May 27 22:57:36 CEST 2018  *****
+
+Renamed pup.model.fit() to lcfit() to avoid variable name conflict.
+Added SDR and BIC calculations to laika object during lcfit().
+For multiple model fits per pup requesting chiscale, scale according
+to fit with lowest SDR.
+
 *****
+
+
 
 
