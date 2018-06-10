@@ -100,13 +100,16 @@ def defaults(pupdict):
   add_arg(parser, "leastsq",   eval, False)
   add_arg(parser, "optimizer", str,  "lm")
   # MCMC options:
-  add_arg(parser, "rwalk",    str,  None)
+  add_arg(parser, "walk",     str,  None)
+  add_arg(parser, "nsamples", eval, None)
+  add_arg(parser, "burnin",   eval, None)
   add_arg(parser, "nchains",  int,  21)
-  add_arg(parser, "chiscale", eval, False)
-  add_arg(parser, "thinning", int,  None)
-  add_arg(parser, "nsamples", int,  None)
   add_arg(parser, "nproc",    int,  None)
-  add_arg(parser, "burnin",   int,  None)
+  add_arg(parser, "thinning", int,  None)
+  add_arg(parser, "chiscale", eval, False)
+  add_arg(parser, "grbreak",  int,  None)
+  add_arg(parser, "grnmin",   int,  None)
+  add_arg(parser, "plots",    eval, False)
   # Other fitting options:
   add_arg(parser, "joint",      eval,   False)
   add_arg(parser, "preclip",    parray, None)
@@ -135,6 +138,11 @@ def defaults(pupdict):
   # which will also set the default data types):
   if args['input'] is None:
     pt.error("Missing input.")
+
+  # Make sure 'model' is a 2D nested list:
+  if isinstance(args["model"][0], str):
+    args["model"] = [args["model"]]
+
   return args
 
 

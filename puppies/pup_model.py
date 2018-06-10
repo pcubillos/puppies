@@ -16,6 +16,7 @@ from . import stats as ps
 
 sys.path.append(os.path.realpath(os.path.dirname(__file__)
                 + "/../../modules/MCcubed"))
+import MCcubed       as mc3
 import MCcubed.fit   as mf
 import MCcubed.utils as mu
 
@@ -23,11 +24,6 @@ import MCcubed.utils as mu
 """
 this module runs the light-curve modeling, either optimization or
 Markov Chain Monte Carlo runs.
-
-There are three types of runs: {SDNR, BIC, joint}
-    BIC:   N model, 1 dataset, N mcmc
-    SDNR:  1 model, N dataset, N mcmc
-    joint: 1 model, N dataset, 1 mcmc
 """
 
 
@@ -39,11 +35,65 @@ class Model():
     self.fit  = []
     self.pup  = []
 
+  def summary(self, units="percent"):
+    if units == "percent":
+      fmt = "6.4f"
+      fac = 1e2
+      units = "({:s})".format(units)
+    elif units == "ppm":
+      fmt = "5.0f"
+      fac = 1e6
+      units = "({:s})".format(units)
+    elif units == "":
+      fmt = "8.6f"
+      fac = 1.0
+
+    depths = ["rprs", "depth", "idepth", "edepth"]
+    k = 0
+    print("\n{:6s}  {:20s}  {:s}".format("Target", "Obs", "Reduction"), end="")
+    for i in np.arange(self.npups):
+      pup = self.pup[i]
+      jmin = np.argmin(self.bic[i])
+      #obs = "".join([pup.telescope, pup.inst.name, pup.visit])
+      obs = "/".join(["Spitzer", pup.inst.name])
+      red = pup.folder[2+len(pup.root)+len(pup.ID):]
+      print("\n{:6s}  {:20s}  {:s}".format(pup.ID, obs, red))
+
+      if self.fit[0].errorlow is not None:
+        slen = 2*int(fmt[0]) + 9
+        print("\n     SDR     dBIC          {:{}s}S/N  Fit".format(units,slen))
+      else:
+        print("\n     SDR     dBIC          {:9s}  Fit".format(units))
+      for j in np.arange(self.nfits[i]):
+        fit = self.fit[k]
+        dbic = self.bic[i][j] - self.bic[i][jmin]
+        stats  = ["{:8.4f}{:9.2f}".format(self.sdr[i][j], dbic), ""]
+        models = ["+".join(fit.mnames[0]), ""]
+        s = []
+        # Depths with error bars:
+        if fit.errorlow is not None:
+          uncert = 0.5 * (fit.errorhigh-fit.errorlow)
+          for n in np.arange(fit.nparams[-1]):
+            if fit.pnames[n] in depths:
+              s += ["{:>6s}: {:{}} +/- {:{}}  {:5.1f}".format(fit.pnames[n],
+                     fac*fit.bestparams[n], fmt,
+                     fac*uncert[n], fmt,
+                     (fit.bestparams/uncert)[n])]
+        # Depths without error bars:
+        else:
+          for n in np.arange(fit.nparams[-1]):
+            if fit.pnames[n] in depths:
+              s += ["{:>6s}: {:9{}}".format(fit.pnames[n],
+                                           fac*fit.bestparams[n], fmt[1:])]
+        for n in np.arange(len(s)):
+          print("{:17s}  {:s}  {:s}".format(stats[n!=0], s[n], models[n!=0]))
+        k += 1
+
 
 class Fit():
   """
-  Fit class that contains the fitting setup for a single fit run.
-  It may apply to one or more (joint fit) pups.
+  Class that contains the fitting setup for a single fit run.
+  It may apply to one or more pups (joint fit).
   """
   def __init__(self, npups):
     self.npups     = npups
@@ -59,22 +109,26 @@ class Fit():
     self.chisq  = np.zeros(npups)
     self.rchisq = np.zeros(npups)
     # Data (filled as a 1D array with pup-concatenated non-masked data):
-    self.flux = np.zeros(0, np.double)
-    self.ferr = np.zeros(0, np.double)
+    self.flux  = np.zeros(0, np.double)
+    self.ferr  = np.zeros(0, np.double)
+    self.cferr = np.zeros(0, np.double)
     # MC3-related arrays:
     self.params = np.zeros(0, np.double)
     self.pmin   = np.zeros(0, np.double)
     self.pmax   = np.zeros(0, np.double)
     self.pstep  = np.zeros(0, np.double)
+    self.pnames = np.zeros(0, np.double)
     self.prior  = np.zeros(0, np.double)
     self.prilo  = np.zeros(0, np.double)
     self.priup  = np.zeros(0, np.double)
+    self.parstd    = None
+    self.errorlow  = None
+    self.errorhigh = None
     # Parameters indexing:
     self.nparams = [0]
     self.iparams = []
     self.ndata   = []  # Not to confuse with pup.ndata
     self.nfree   = np.zeros(npups, int)
-
 
 
 def setup(cfile, mode='turtle'):
@@ -111,14 +165,22 @@ def setup(cfile, mode='turtle'):
 
   # General variables (look only at the first entry):
   laika.folder    = config[0]["output"]
+  laika.walk      = config[0]["walk"]
   laika.nsamples  = config[0]["nsamples"]
+  laika.burnin    = config[0]["burnin"]
   laika.nchains   = config[0]["nchains"]
+  laika.nproc     = config[0]["nproc"]
+  laika.thinning  = config[0]["thinning"]
   laika.timeunits = config[0]["timeunits"]
   laika.sigrej    = config[0]["sigrej"]
+  laika.grbreak   = config[0]["grbreak"]
+  laika.grnmin    = config[0]["grnmin"]
   laika.leastsq   = config[0]["leastsq"]
   laika.optimizer = config[0]["optimizer"]
   laika.chiscale  = config[0]["chiscale"]
   laika.joint     = config[0]["joint"]
+  laika.plots     = config[0]["plots"]
+  laika.resume    = False
 
   # Total number of MCMC runs:
   if config[0]['joint']:
@@ -153,16 +215,10 @@ def setup(cfile, mode='turtle'):
 
     # Data clip-out ranges:
     clips = []
-    if len(config[j]["preclip"]) == len(config[j]["model"]):
-      preclip =  config[j]["preclip"][i]
-    else:
-      preclip = config[j]["preclip"][0]
+    preclip = config[j]["preclip"][0]
     clips.append([0, int(preclip)])
 
-    if len(config[j]["postclip"]) == len(config[j]["model"]):
-      postclip = pup.ndata - config[j]["postclip"][i]
-    else:
-      postclip = pup.ndata - config[j]["postclip"][0]
+    postclip = pup.ndata - config[j]["postclip"][0]
     clips.append([int(postclip), pup.ndata])
 
     if config[j]['interclip'] is not None:
@@ -269,14 +325,16 @@ def setup(cfile, mode='turtle'):
         fit.pmin   = pt.cat(fit.pmin,   fit.models[j][k].pmin)
         fit.pmax   = pt.cat(fit.pmax,   fit.models[j][k].pmax)
         fit.pstep  = pt.cat(fit.pstep,  fit.models[j][k].pstep)
+        fit.pnames = pt.cat(fit.pnames, fit.models[j][k].pnames)
         # Priors from config file:
         prior = np.zeros(npars)
         prilo = np.zeros(npars)
         priup = np.zeros(npars)
-        for m in np.arange(len(priorvars)):
-          if priorvars[m] in fit.models[j][k].pnames:
-            idx = fit.models[j][k].pnames.index(priorvars[m])
-            prior[idx], prilo[idx], priup[idx] = priorvals[m]
+        if priorvars is not None:
+          for m in np.arange(len(priorvars)):
+            if priorvars[m] in fit.models[j][k].pnames:
+              idx = fit.models[j][k].pnames.index(priorvars[m])
+              prior[idx], prilo[idx], priup[idx] = priorvals[m]
         fit.prior = pt.cat(fit.prior, prior)
         fit.prilo = pt.cat(fit.prilo, prilo)
         fit.priup = pt.cat(fit.priup, priup)
@@ -327,7 +385,7 @@ def setup(cfile, mode='turtle'):
   return laika
 
 
-def lcfit(cfile=None, laika=None):
+def lcfit(cfile=None, laika=None, summary=False):
   """
   Run the optimization for the lightcurves and models specified in the
   input configuration file.
@@ -372,17 +430,20 @@ def lcfit(cfile=None, laika=None):
       sdr[fit.ipup[j]].append(np.std(fit.bestfit[j]-fit.flux[idata]))
 
   for fit in laika.fit:
+    # Chi-square corrected flux error:
+    fit.cferr = np.copy(fit.ferr)
     if laika.chiscale:
       for j in np.arange(fit.npups):
         imin = np.argmin(sdr[fit.ipup[j]])
         # Scale uncertainties such reduced chi-square = 1.0
         #  (scale relative to fit with lowest SDR):
-        fit.ferr[fit.idata[j]] *= np.sqrt(laika.fit[imin].rchisq[j])
+        fit.cferr[fit.idata[j]] = fit.ferr[fit.idata[j]] \
+                                  * np.sqrt(laika.fit[imin].rchisq[j])
 
       # New Least-squares fit using modified uncertainties:
       if laika.joint:
         print("Re-calculating least-squares fit with new errors.")
-        output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
+        output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.cferr,
             indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
             prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
         fit.bestparams = output[1]
@@ -393,7 +454,7 @@ def lcfit(cfile=None, laika=None):
     for j in np.arange(fit.npups):
       idata = fit.idata[j]
       fit.bestfit[j] = model[idata]
-      chisq = np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.ferr[idata])**2)
+      chisq = np.sum(((fit.bestfit[j]-fit.flux[idata])/fit.cferr[idata])**2)
       fit.chisq += chisq
       bic[fit.ipup[j]].append(chisq + fit.nfree[j]*np.log(fit.ndata[j]))
 
@@ -406,6 +467,9 @@ def lcfit(cfile=None, laika=None):
 
   laika.sdr = sdr
   laika.bic = bic
+  if summary:
+    laika.summary("percent")
+
   return laika
 
 
@@ -429,19 +493,32 @@ def mcmc(cfile=None, laika=None):
 
   # Run optimization if requested:
   if laika.leastsq:
-    laika = lcfit(laika=laika)
-
-  # Tweak uncertainties if laika.chiscale and BIC comparison:
-  for j in np.arange(laika.npups):
-    for i in np.arange(laika.nfits[j]):
-      #sdr[i] = np.std(bestmodel-data)
-      pass
+    laika = lcfit(laika=laika, summary=False)
 
   # Run MC3's MCMC:
   for fit in laika.fit:
-    output = mf.mcmc(fit.params, evalmodel, fit.flux, fit.ferr,
-          indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
-          prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup)
+    output = mc3.mcmc(data=fit.flux, uncert=fit.cferr,
+       func=evalmodel, indparams=[fit], params=fit.params,
+       pmin=fit.pmin, pmax=fit.pmax, stepsize=fit.pstep,
+       prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
+       walk=laika.walk, nsamples=laika.nsamples, burnin=laika.burnin,
+       nchains=laika.nchains, nproc=laika.nproc, thinning=laika.thinning,
+       grtest=True, grbreak=laika.grbreak, grnmin=laika.grnmin,
+       hsize=10, kickoff='normal', log="newlog.log", plots=laika.plots,
+       parname=fit.pnames, resume=laika.resume, rms=True,
+       savefile=None, full_output=True)
+    # Store results into object:
+    fit.errorlow  = output[1]  # Low credible-interval boundary
+    fit.errorhigh = output[2]  # High credible-interval boundary
+    fit.parstd    = output[3]  # Posterior standard deviation
+
+    # Light-curve plot:
+    if laika.plots:
+      pass
+      #pp.lightcurve(fit)
+
+  # Print MCMC results:
+  laika.summary(units="percent")
 
   # Store results into a pickle file:
   pass
@@ -483,96 +560,3 @@ def evalmodel(params, fit, skip=[], update=False):
     lightcurve.append(fit0)
 
   return np.concatenate(lightcurve)
-
-
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-def runmcmc(fit, numit, walk, mode, grtest, printout, bound):
-  """
-  MCMC simulation wrapper.
-
-  Code content
-  ------------
-  - Set up parameters, limits, etc.
-  - Orthogonalize if requested
-  - Run MCMC
-  - Check for better fitting parameters.
-  - Re-run least-squares if necessary.
-  - Calculate and print acceptance rate.
-
-  Parameters
-  ----------
-  pup: List of pup instances
-  fit: List of fit instances of an pup.
-    numit: Scalar
-           Number of MCMC iterations.
-  walk: String
-        Random walk for the Markov chain:
-        'demc': differential evolution MC.
-        'mrw': Metropolis random walk.
-  mode: String
-           MCMC mode: ['burn' | 'continue' | 'final']
-  grtest: Boolean
-          Do Gelman and Rubin convergence test.
-  printout: File object for directing print statements
-  bound: Boolean
-         Use bounded-eclipse constrain for parameters (start after the
-         first frame, end before the last frame).
-  """
-  npups = len(fit)
-
-  # Recover the last burn-in state to use as starting point:
-  if mode == 'burn':
-    ninitial = 1   # Number of initial params. sets to start MCMC
-  else:
-    ninitial = laika.nchains
-
-  fitpars = np.zeros((ninitial, 0))
-  pmin, pmax, stepsize = [], [], []
-  ntotal = 0 # total number of parameters:
-  for j in np.arange(npups):
-    #fit[j].chainend  = np.atleast_2d(params[fit[j].indparams])
-    fitpars   = np.hstack((fitpars, fit[j].chainend))
-    pmin      = np.concatenate((pmin,     fit[j].pmin),      0)
-    pmax      = np.concatenate((pmax,     fit[j].pmax),      0)
-    stepsize  = np.concatenate((stepsize, fit[j].stepsize),  0)
-    ntotal += fit[j].nump
-
-  inonprior = np.where(stepsize > 0)[0]
-
-  # Fix IP mapping to bestmip if requested (for final run):
-  if mode == 'final':
-    for j in np.arange(npups):
-      if hasattr(config[j], 'isfixipmap') and config[j].isfixipmap:
-        for k in np.arange(fit.nmodels[j]):
-          if fit[j].models[k].type == 'pixmap':
-            fit[j].funcx.append([fit[j].bestmip, fit[j].binipflux,
-                                 np.zeros(len(fit[j].wbfipmask))])
-            fit[j].funcs[k] = mc.fixipmapping
-
-  # Run MCMC:
-  allparams, numaccept, bestp, bestchisq = mcmc.mcmc(fitpars, pmin, pmax,
-                              stepsize, numit, fit,
-                              laika.nchains, walk=walk,
-                              grtest=grtest, bound=bound)
-  numaccept = np.sum(numaccept)
-
-  if mode == 'final':
-    for j in range(npups):
-      # Record trace of decorrelated parameters, if any, otherwise
-      # same as fit[j].allparams
-      fit[j].allparams = np.copy(allparams[:,fit[j].indparams])
-      fit[j].bestp     = np.copy(bestp    [  fit[j].indparams])
-    # Reshape allparams joining chains for final results:
-    allp = np.zeros((ntotal, numit*laika.nchains))
-    for par in np.arange(ntotal):
-      allp[par] = allparams[:,par,:].flatten()
-    del(allparams)
-    allparams = allp
-
-  for j in np.arange(npups):
-    # Save chains end point:
-    fit[j].chainend = allparams[:,fit[j].indparams,-1]
-
-  return allparams

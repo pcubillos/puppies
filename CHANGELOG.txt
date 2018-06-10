@@ -342,4 +342,13 @@ Updated MC3 submodule.
 
 *****
 
+Got Light-curve MCMC up and running.
+Wrote a basic screen summary output.
+TBD: LC plot.
+TBD: Put LC modeling into output folder.
+TBD: Setup LC log.
+TBD: Store LC output into pickle file.
+
+*****
+
 
