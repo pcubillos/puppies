@@ -335,8 +335,11 @@ Added SDR and BIC calculations to laika object during lcfit().
 For multiple model fits per pup requesting chiscale, scale according
 to fit with lowest SDR.
 
+
+*****  Mon Jun 11 01:06:49 CEST 2018  *****
+
+Updated MC3 submodule.
+
 *****
-
-
 
 
