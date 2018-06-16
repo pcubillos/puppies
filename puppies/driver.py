@@ -2,7 +2,7 @@ import configparser
 import sys, os
 
 #import instrument as inst
-from . import spitzer as s
+from . import pup_spitzer as s
 from . import tools as pt
 
 

@@ -349,6 +349,12 @@ TBD: Put LC modeling into output folder.
 TBD: Setup LC log.
 TBD: Store LC output into pickle file.
 
+
+*****  Sat Jun 16 10:57:25 CEST 2018  *****
+
+Renamed spitzer.py to pup_spitzer.py
+
 *****
+
 
 
