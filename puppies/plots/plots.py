@@ -263,7 +263,7 @@ pos = pup.fp.pos
   plt.legend(loc='best')
 
 
-def xydensity(y, x, dy, dx, minpt=1):
+def yxdensity(y, x, dy, dx, minpt=1):
   """
 y = pup.fp.y
 x = pup.fp.x

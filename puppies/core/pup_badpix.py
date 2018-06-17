@@ -1,3 +1,8 @@
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ['badpix']
+
 import os
 import sys
 import shutil
@@ -7,11 +12,9 @@ import numpy as np
 import astropy.io.fits as fits
 import astropy.units   as u
 
-from . import tools as pt
-from . import io    as io
-from . import stats as ps
-
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../")
+from .. import tools as pt
+from .. import io    as io
+from .. import stats as ps
 
 
 def badpix(pup):

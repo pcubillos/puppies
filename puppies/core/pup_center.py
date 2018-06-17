@@ -1,3 +1,8 @@
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ["center"]
+
 import os
 import time
 import shutil
@@ -8,24 +13,17 @@ import numpy as np
 
 import astropy.io.fits as fits
 
-from . import tools  as pt
-from . import io     as io
-from . import stats  as ps
-from . import center as pc
-from . import plots  as pp
+from .. import tools  as pt
+from .. import io     as io
+from .. import stats  as ps
+from .. import center as pc
+from .. import plots  as pp
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../")
-
-"""
-CENTERING WORKFLOW
-------------------
-This beautiful piece of code consists of four sections:
-- driver: Parse inputs, loop over centering methods
-- centering: center PSF and mean image, launch multi-process over frames
-- loop: loop over frames to run center.center()
-"""
 
 def update(pup, cfile):
+  """
+  Doc me!
+  """
   # Extract inputs:
   config = configparser.ConfigParser()
   config.optionxform=str
@@ -75,11 +73,12 @@ def update(pup, cfile):
       pt.error("Missing 'psfscale' centering user input.")
 
 
-def driver(pup, cfile=None):
+def center(pup, cfile=None):
   """
-  Read the config file.
-  Update pup.
-  Loop over each centering.
+  Puppies centering driver function.
+
+  This routine takes and parses the input pup and config file,
+  and launches a loop for each requested centering method.
   """
   # Current (badpix) pup folder:
   cwd = pup.folder
@@ -117,7 +116,9 @@ def driver(pup, cfile=None):
 
 def centering(pup):
   """
-  Target position finding.
+  Compute centering on the PSF and median images, and launch
+  multiprocessing thread to compute the centering on the individual
+  frames.  Finally, add centering variables into the pup object.
   """
   # Copy, update, and reopen logfile:
   shutil.copy(pup.logfile, pup.folder)
@@ -175,13 +176,13 @@ def centering(pup):
   chunksize = int(pup.inst.nframes/pup.ncpu + 1)
   pt.msg(1, "Number of parallel CPUs: {:d}.".format(pup.ncpu), pup.log)
 
-  # Start Muti Procecess: ::::::::::::::::::::::::::::::::::::::
+  # Start Muti Procecess:
   processes = []
   for n in np.arange(pup.ncpu):
     start =  n    * chunksize # Starting index to process
     end   = (n+1) * chunksize # Ending   index to process
-    proc = mp.Process(target=center, args=(pup, start, end, #centermask,
-                         x, y, flux, sky, good))
+    proc = mp.Process(target=calc_center, args=(pup, start, end, #centermask,
+                                                x, y, flux, sky, good))
     processes.append(proc)
     proc.start()
   # Make sure all processes finish their work:
@@ -213,7 +214,7 @@ def centering(pup):
     pup.fp.r[ipos] = np.sqrt( (pup.fp.y[ipos]-ymean)**2.0
                             + (pup.fp.x[ipos]-xmean)**2.0)
 
-    # XY stats:
+    # YX stats:
     dy = np.ediff1d(pup.fp.y[igood])
     dx = np.ediff1d(pup.fp.x[igood])
     pup.yrms = np.sqrt(np.mean(dy**2))
@@ -244,9 +245,10 @@ def centering(pup):
   io.save(pup)
 
 
-def center(pup, start, end, x, y, flux, sky, good):
+def calc_center(pup, start, end, x, y, flux, sky, good):
   """
-  Doc Me!
+  Multiprocessing child routine to compute centering on a set of
+  frames.
   """
   # Initialize a Timer to report progress:
   if start == 0:  # Only for the fisrt chunk

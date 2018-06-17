@@ -1,7 +1,12 @@
-import time
-import os
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ["Spitzer"]
+
 import sys
+import os
 import re
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -12,13 +17,13 @@ import astropy.time        as at
 import astropy.units       as u
 import astropy.wcs         as wcs
 
-from . import tools as pt
-from . import io    as io
+from .. import tools as pt
+from .. import io    as io
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../")
+topdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
 
-class Pup():
+class Spitzer():
   """
   Pup class for a Spitzer data set.
   """
@@ -92,7 +97,8 @@ class Pup():
     self.inst = Instrument(inputs["instrument"])
     self.inst.npos    = int(inputs["npos"])
     self.inst.nnod    = int(inputs["nnod"])
-    self.inst.aorname = pt.parray(inputs["aorname"])
+    self.inst.aorname = pt.parray(inputs["aorname"], dtype=str)
+    print(self.inst.aorname)
     self.inst.naor    = len(self.inst.aorname)
     self.inst.datadir = inputs["data"]
 

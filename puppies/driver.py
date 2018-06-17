@@ -1,8 +1,11 @@
-import configparser
-import sys, os
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
 
-#import instrument as inst
-from . import pup_spitzer as s
+import sys
+import os
+import configparser
+
+from . import inst
 from . import tools as pt
 
 
@@ -27,7 +30,7 @@ def init(cfile):
              format(cfile))
 
   if args["telescope"] == "spitzer":
-    pup = s.Pup(args)
+    pup = inst.Spitzer(args)
   elif args["telescope"] == "cheops":
     pup = None
   elif args["telescope"] == "jwst":

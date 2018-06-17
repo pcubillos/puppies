@@ -8,14 +8,14 @@ import sys
 import time
 import numpy as np
 
-from . import tools as pt
-from . import io    as io
-from . import image as im
-from . import plots as pp
-from . import stats as ps
+from .. import tools as pt
+from .. import io    as io
+from .. import image as im
+from .. import plots as pp
+from .. import stats as ps
 
 sys.path.append(os.path.realpath(os.path.dirname(__file__)
-                + "/../../modules/MCcubed"))
+                + "/../../../modules/MCcubed"))
 import MCcubed       as mc3
 import MCcubed.fit   as mf
 import MCcubed.utils as mu

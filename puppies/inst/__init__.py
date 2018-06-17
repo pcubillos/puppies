@@ -1,23 +1,10 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['init', 'core',
-           'stats', 'tools', 'io', 'image', 'plots', 'center', 'photometry',
-           'models']
+# Commands:
+from .pup_spitzer import *
 
-# Import utility sub-packages:
-from . import tools
-from . import center
-from . import photometry
-from . import stats
-from . import io
-from . import plots
-from . import models
-
-# Initialization:
-from .driver import init
-# Core reduction modules:
-from . import core
+__all__ = pup_spitzer.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

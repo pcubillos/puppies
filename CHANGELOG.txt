@@ -354,7 +354,12 @@ TBD: Store LC output into pickle file.
 
 Renamed spitzer.py to pup_spitzer.py
 
+
+*****  Sun Jun 17 12:48:05 CEST 2018  *****
+
+Reorganized the project, adding the core and inst modules that
+contain the main reduction steps and the dataset initialization
+routines, respectively.
+
 *****
-
-
 

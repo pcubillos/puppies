@@ -1,3 +1,8 @@
+# Copyright (c) 2018 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = ["photom"]
+
 import os
 import time
 import shutil
@@ -10,11 +15,11 @@ import multiprocessing as mp
 #import psf_fit     as pf
 #import optphot     as op
 
-from . import tools as pt
-from . import io    as io
-from . import image as im
-from . import plots as pp
-from . import photometry as ph
+from .. import tools as pt
+from .. import io    as io
+from .. import image as im
+from .. import plots as pp
+from .. import photometry as ph
 
 
 def update(pup, cfile):
@@ -78,10 +83,10 @@ def update(pup, cfile):
     pup.skyout = np.repeat(pup.skyout, len(pup.photap))
 
 
-def driver(pup, cfile=None):
+def photom(pup, cfile=None):
   """
   Load the event.
-  Read the control file.
+  Read config file.
   Launch a thread for each centering run.
   """
   # Current pup folder:
@@ -175,7 +180,7 @@ def photometry(pup):
     for n in np.arange(pup.ncpu):
       start =  n    * chunksize
       end   = (n+1) * chunksize
-      proc = mp.Process(target=aphot, args=(start, end, pup, aplev, aperr,
+      proc = mp.Process(target=calc_photom, args=(start, end, pup, aplev, aperr,
                   nappix, skylev, skyerr, nskypix, nskyideal, status, good))
       processes.append(proc)
       proc.start()
@@ -298,8 +303,8 @@ def photometry(pup):
   io.save(pup)
 
 
-def aphot(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
-          nskypix, nskyideal, status, good, mute=True):
+def calc_photom(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
+                nskypix, nskyideal, status, good, mute=True):
   """
   Medium level routine that performs aperture photometry.
   Each thread from the main routine (photometry) will run do_aphot once.
