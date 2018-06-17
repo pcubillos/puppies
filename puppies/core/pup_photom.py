@@ -89,6 +89,8 @@ def photom(pup, cfile=None):
   Read config file.
   Launch a thread for each centering run.
   """
+  # Current folder:
+  here = os.getcwd()
   # Current pup folder:
   cwd = pup.folder
 
@@ -131,6 +133,9 @@ def photom(pup, cfile=None):
 
     # Launch the thread:
     photometry(puppy)
+
+  # Return to original location:
+  os.chdir(here)
   #return list_of_puppies_for_next_step
 
 

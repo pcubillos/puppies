@@ -80,7 +80,9 @@ def center(pup, cfile=None):
   This routine takes and parses the input pup and config file,
   and launches a loop for each requested centering method.
   """
-  # Current (badpix) pup folder:
+  # Current folder:
+  here = os.getcwd()
+  # Current pup folder:
   cwd = pup.folder
 
   # Load data:
@@ -111,6 +113,9 @@ def center(pup, cfile=None):
 
     # Launch the thread:
     centering(puppy)
+
+  # Return to original location:
+  os.chdir(here)
   #return list_of_puppies_for_next_step
 
 

@@ -367,4 +367,8 @@ Renamed uncd variable to uncert.
 
 *****
 
+Return to original location after running core.center() and
+core.photom().
+
+*****
 
