@@ -93,12 +93,12 @@ def photom(pup, cfile=None):
   cwd = pup.folder
 
   # Load the event data:
-  pup.datafile = pup.data
-  pup.uncdfile = pup.uncd
-  pup.maskfile = pup.mask
-  pup.data = io.load(pup.data, "data")
-  pup.uncd = io.load(pup.uncd, "uncd")
-  pup.mask = io.load(pup.mask, "mask")
+  pup.datafile   = pup.data
+  pup.uncertfile = pup.uncert
+  pup.maskfile   = pup.mask
+  pup.data   = io.load(pup.data,   "data")
+  pup.uncert = io.load(pup.uncert, "uncert")
+  pup.mask   = io.load(pup.mask,   "mask")
 
   # Pre-processing:
   if cfile is not None:
@@ -220,7 +220,7 @@ def photometry(pup):
       loc = (pup.otrim, pup.otrim)
       # Do the trim:
       img, msk, err = im.trim(pup.data[i], cen, loc, mask=pup.mask[i],
-                              uncd=pup.uncd[i])
+                              uncert=pup.uncert[i])
 
       # Center of star in the subimage:
       ctr = (pup.fp.y[i]-cen[0]+pup.otrim,
@@ -293,10 +293,10 @@ def photometry(pup):
                 str(pup.units))
 
   # Delete data arrays:
-  pup.data = pup.datafile
-  pup.uncd = pup.uncdfile
-  pup.mask = pup.maskfile
-  del(pup.datafile, pup.uncdfile, pup.maskfile)
+  pup.data   = pup.datafile
+  pup.uncert = pup.uncertfile
+  pup.mask   = pup.maskfile
+  del(pup.datafile, pup.uncertfile, pup.maskfile)
   # Print time stamp, save, and close:
   pt.msg(1, "\nFinished {:s} photometry  ({:s}).\nOutput folder: '{:s}/'.\n".
                 format(pup.centering, time.ctime(), pup.folder), pup.log)
@@ -319,7 +319,7 @@ def calc_photom(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
   y, x   = pup.fp.y, pup.fp.x
   data   = pup.data
   mask   = pup.mask
-  imer   = pup.uncd
+  imer   = pup.uncert
 
   # Recalculate star and end indexes. Care not to go out of bounds:
   end = np.amin([end, pup.inst.nframes])

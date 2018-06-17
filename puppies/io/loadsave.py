@@ -9,8 +9,6 @@ def save(pup):
 st = '/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/puppies/puppies/wa043b.nop'
 with open(st, 'wb') as f:
   pickle.dump(pup, f)
-
-# Use something like this:
   """
   if pup.data is not None:
     # Output file:
@@ -19,7 +17,7 @@ with open(st, 'wb') as f:
     info = dict()
 
     # List of variable to be saved into npz file:
-    varnames = ["data", "uncd", "mask", "head", "bdmskd", "brmskd"]
+    varnames = ["data", "uncert", "mask", "head", "bdmskd", "brmskd"]
 
     for i in np.arange(len(varnames)):
       var = getattr(pup, varnames[i])
@@ -45,7 +43,7 @@ with open(st, 'wb') as f:
 def load(file, param=None):
   """
   Load a pickle file (if param is None) or load a specified parameter
-  from a NpzFile.
+  from a Numpy npz file.
   """
   if param is None:
     with open(file, "rb") as f:

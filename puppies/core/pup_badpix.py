@@ -49,9 +49,9 @@ def badpix(pup):
   if pup.units is not None:
     pup.fluxunits = pup.fluxunits.to(u.Unit(pup.units))
 
-  data   = io.load(pup.data, "data")   * pup.fluxunits
-  uncd   = io.load(pup.uncd, "uncd")   * pup.fluxunits
-  bdmskd = io.load(pup.uncd, "bdmskd")
+  data   = io.load(pup.data,   "data")   * pup.fluxunits
+  uncert = io.load(pup.uncert, "uncert") * pup.fluxunits
+  bdmskd = io.load(pup.uncert, "bdmskd")
 
   # Mean Background Estimate, from zodi model
   pup.estbg = (np.mean(pup.fp.zodi) +
@@ -75,7 +75,7 @@ def badpix(pup):
   # Do NOT define sigma, we have a different scheme for finding baddies
   # adds Spitzer rejects: fp.nsstrej  &  our rejects: fp.nsigrej
   pt.msg(1, "Apply bad pixel masks.", pup.log)
-  pup.mask = badmask(data, uncd, pup.pmask,  pup.inst.pcrit,
+  pup.mask = badmask(data, uncert, pup.pmask,  pup.inst.pcrit,
                      bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos)
 
   ## User rejected pixels:
@@ -89,7 +89,7 @@ def badpix(pup):
 
   # Sigma rejection:
   pt.msg(1, "Sigma Rejection.", pup.log)
-  chunkbad(data, uncd, pup.mask, pup.nimpos, pup.sigma, pup.schunk, pup.fp)
+  chunkbad(data, uncert, pup.mask, pup.nimpos, pup.sigma, pup.schunk, pup.fp)
 
   pt.msg(1, 'Compute mean frame and mean sky.', pup.log)
   # Mean image per pixel per position:
@@ -113,7 +113,7 @@ def badpix(pup):
   io.save(pup)
 
 
-def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
+def badmask(data, uncert, pmask, pcrit, dmask, dcrit, fp, nimpos):
   """
   Generate a bad pixel mask from Spitzer time-series photometry data.
 
@@ -122,7 +122,7 @@ def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
   data: 3D float ndarray
      Array of shape (nframes,ny,nx), where nx and ny are the image
      dimensions, nframes is the number of images.
-  uncd: 3D float ndarray
+  uncert: 3D float ndarray
      Uncertainties of data.
   pmask: 2D integer ndarray
      Permanent bad pixel mask for the instrument.
@@ -168,7 +168,7 @@ def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
   mask &= dmaskcrit==0
 
   # Flag NaNs in the data and uncertainties:
-  finite = np.isfinite(data) & np.isfinite(uncd)
+  finite = np.isfinite(data) & np.isfinite(uncert)
   mask &= finite
 
   # Spitzer-rejected bad pixels per frame:
@@ -176,7 +176,7 @@ def badmask(data, uncd, pmask, pcrit, dmask, dcrit, fp, nimpos):
   return mask
 
 
-def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
+def chunkbad(data, uncert, mask, nimpos, sigma, szchunk, fp):
   """
   Sigma-rejection bad pixels for Spitzer Space Telescope data.
 
@@ -189,7 +189,7 @@ def chunkbad(data, uncd, mask, nimpos, sigma, szchunk, fp):
   data: 3D float ndarray
      The data to be analyzed. Of shape [nim,ny,nx], nx and ny
      are the image dimensions, nim is the maximum number of images.
-  uncd: 3D float ndarray
+  uncert: 3D float ndarray
      Uncertainties of corresponding points in data, same shape as data.
   mask: 3D byte ndarray
      Good-pixel mask (True=good, False=bad), same shape as data.

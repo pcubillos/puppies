@@ -10,7 +10,7 @@ from .  import least_asym as la
 __all__ = ["center"]
 
 def center(method, data, yxguess, trim, arad=4, asize=3,
-           mask=None, uncd=None, fitbg=True, maskstar=True,
+           mask=None, uncert=None, fitbg=True, maskstar=True,
            expand=1.0, psf=None, psfctr=None):
   """
   Use the center method to find the center of a star in data, starting
@@ -34,7 +34,7 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
                                    arad > asize
   mask: 2D ndarray
      A mask array of bad pixels. Same shape of data.
-  uncd: 2D ndarray
+  uncert: 2D ndarray
      An array containing the uncertainty values of data. Same
      shape of data.
 
@@ -63,14 +63,14 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
   >>> # Noise-less fit:
   >>> method = "lag"
   >>> yxlag, extra = c.center(method, data, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
            #expand=1.0, psf=None, psfctr=None)
   >>> method = "gauss"
   >>> yxgauss, extra = c.center(method, data, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
   >>> method = "col"
   >>> yxcol, extra = c.center(method, data, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
   >>> print("True:       {:.5f}, {:.5f}\nleast asym: {:.5f}, {:.5f}\n"
             "Gauss:      {:.5f}, {:.5f}\nCOL:        {:.5f}, {:.5f}".
             format(*center, *yxlag, *yxgauss, *yxcol))
@@ -82,13 +82,13 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
   >>> # Noise it up:
   >>> noise = np.random.normal(0.0, np.sqrt(data))
   >>> yxlag, extra = c.center(method, data+noise, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
   >>> method = "gauss"
   >>> yxgauss, extra = c.center(method, data+noise, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
   >>> method = "col"
   >>> yxcol, extra = c.center(method, data+noise, yxguess, trim, arad,
-                              asize, mask=None, uncd=None, fitbg=True)
+                              asize, mask=None, uncert=None, fitbg=True)
   >>> print("True:       {:.5f}, {:.5f}\nleast asym: {:.5f}, {:.5f}\n"
             "Gauss:      {:.5f}, {:.5f}\nCOL:        {:.5f}, {:.5f}".
             format(*center, *yxlag, *yxgauss, *yxcol))
@@ -104,8 +104,8 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
     mask = np.ones(np.shape(data), bool)
 
   # Default uncertainties: flat image
-  if uncd is None:
-    uncd = np.ones(np.shape(data))
+  if uncert is None:
+    uncert = np.ones(np.shape(data))
 
   # Trim the image if requested
   if trim != 0:
@@ -114,11 +114,11 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
     # half-size
     loc = (trim, trim)
     # Do the trim:
-    img, msk, err = im.trim(data, cen, loc, mask=mask, uncd=uncd)
+    img, msk, err = im.trim(data, cen, loc, mask=mask, uncert=uncert)
   else:
     cen = np.array([0,0])
     loc = np.rint(yxguess)
-    img, msk, err = data, mask, uncd
+    img, msk, err = data, mask, uncert
 
   # If all data is bad:
   if not np.any(msk):

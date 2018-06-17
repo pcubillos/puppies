@@ -1,7 +1,6 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-# Commands:
 from .pup_badpix import *
 from .pup_center import *
 from .pup_photom import *

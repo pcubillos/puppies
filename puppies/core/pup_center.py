@@ -84,12 +84,12 @@ def center(pup, cfile=None):
   cwd = pup.folder
 
   # Load data:
-  pup.datafile = pup.data
-  pup.uncdfile = pup.uncd
-  pup.maskfile = pup.mask
-  pup.data = io.load(pup.data, "data") * pup.fluxunits
-  pup.uncd = io.load(pup.uncd, "uncd") * pup.fluxunits
-  pup.mask = io.load(pup.mask, "mask")
+  pup.datafile   = pup.data
+  pup.uncertfile = pup.uncert
+  pup.maskfile   = pup.mask
+  pup.data   = io.load(pup.data,   "data")   * pup.fluxunits
+  pup.uncert = io.load(pup.uncert, "uncert") * pup.fluxunits
+  pup.mask   = io.load(pup.mask,   "mask")
 
   # Pre-processing:
   if cfile is not None:
@@ -235,10 +235,10 @@ def centering(pup):
   pp.yx(pup.fp.y, pup.fp.x, pup.fp.phase, pup.fp.good, pup.fp.pos, pup.folder)
 
   # Delete data arrays:
-  pup.data = pup.datafile
-  pup.uncd = pup.uncdfile
-  pup.mask = pup.maskfile
-  del(pup.datafile, pup.uncdfile, pup.maskfile)
+  pup.data   = pup.datafile
+  pup.uncert = pup.uncertfile
+  pup.mask   = pup.maskfile
+  del(pup.datafile, pup.uncertfile, pup.maskfile)
   # Print time stamp, save, and close:
   pt.msg(1, "\nFinished {:s} centering  ({:s}).\nOutput folder: '{:s}/'.\n".
                 format(pup.centering, time.ctime(), pup.folder), pup.log)
@@ -262,16 +262,16 @@ def calc_center(pup, start, end, x, y, flux, sky, good):
   end = np.amin([end, pup.inst.nframes])
   # Compute the centering in each frame:
   for i in np.arange(start, end):
-    uncd = None
+    uncert = None
     pos  = pup.fp.pos[i]
     try:
       if pup.cweights:   # weight by uncertainties in fitting?
-        uncd = pup.uncd[i]
+        uncert = pup.uncert[i]
       # Do the centering:
       position, extra = pc.center(pup.centering, data[i],
                                   pup.targpos[:,pos], pup.ctrim,
                                   pup.aradius, pup.asize,
-                                  pup.mask[i], uncd, fitbg=pup.fitbg,
+                                  pup.mask[i], uncert, fitbg=pup.fitbg,
                                   expand=pup.psfscale,
                                   psf=pup.psfim, psfctr=pup.psfctr)
       y[i], x[i] = position

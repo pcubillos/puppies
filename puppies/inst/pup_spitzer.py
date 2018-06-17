@@ -226,7 +226,7 @@ class Spitzer():
     inst.posscl = [np.abs(head['PXSCAL2']), np.abs(head['PXSCAL1'])]*u.arcsec
 
     if inst.chan != head['CHNLNUM']:  # Spitzer photometry channel
-      pt.error('Unexpected photometry channel!', self.log)
+      pt.error('Unexpected photometry channel.', self.log)
 
 
   def read(self):
@@ -239,7 +239,7 @@ class Spitzer():
     headerdtype = 'S' + str(inst.hsize)
     head   = np.zeros((inst.nframes//inst.nz), headerdtype)
     data   = np.zeros((inst.nframes, inst.ny, inst.nx), float)
-    uncd   = np.zeros((inst.nframes, inst.ny, inst.nx), float)
+    uncert = np.zeros((inst.nframes, inst.ny, inst.nx), float)
     bdmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
     brmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
 
@@ -319,7 +319,7 @@ class Spitzer():
 
         # Store data
         data  [be:en] = dataf.reshape( (inst.nz, inst.ny, inst.nx))
-        uncd  [be:en] = uncf.reshape(  (inst.nz, inst.ny, inst.nx))
+        uncert[be:en] = uncf.reshape(  (inst.nz, inst.ny, inst.nx))
         bdmskd[be:en] = bdmskf.reshape((inst.nz, inst.ny, inst.nx))
         brmskd[be:en] = brmskf.reshape((inst.nz, inst.ny, inst.nx))
         # All the single numbers per frame that we care about
@@ -419,7 +419,7 @@ class Spitzer():
 
     # Update event:
     self.data   = data
-    self.uncd   = uncd
+    self.uncert = uncert
     self.bdmskd = bdmskd
     self.brmskd = brmskd
     self.head   = head

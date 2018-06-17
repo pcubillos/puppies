@@ -3,7 +3,7 @@ import numpy as np
 __all__ = ["trim", "paste"]
 
 
-def trim(data, center, size, mask=None, uncd=None, oob=0):
+def trim(data, center, size, mask=None, uncert=None, oob=0):
   """
   Extracts a rectangular area of an image masking out of bound pixels.
 
@@ -19,8 +19,8 @@ def trim(data, center, size, mask=None, uncd=None, oob=0):
   mask: 2D ndarray
      If specified, this routine will extract the mask subimage 
      as well.
-  uncd: 2D float ndarray
-     If specified, this routine will extract the uncd subimage 
+  uncert: 2D float ndarray
+     If specified, this routine will extract the uncert subimage 
      as well.
   oob: scalar
      Value for out of bound pixels in the mask. Default is 0.
@@ -32,7 +32,7 @@ def trim(data, center, size, mask=None, uncd=None, oob=0):
   mask: 2D integer ndarray
      Extracted mask image.  Out of bound pixels have a value of oob.
   uncert: 2D float ndarray
-     Extracted uncd image.  Out of bound pixels have a value of zero.
+     Extracted uncert image.  Out of bound pixels have a value of zero.
 
   Example
   -------
@@ -96,7 +96,7 @@ def trim(data, center, size, mask=None, uncd=None, oob=0):
   ri = rgt-lelim
 
   im[lo:hi, le:ri] = data[bot:top, lft:rgt]
-  if mask is None and uncd is None:
+  if mask is None and uncert is None:
     return im
 
   ret = [im]
@@ -104,9 +104,10 @@ def trim(data, center, size, mask=None, uncd=None, oob=0):
     ma = np.zeros((2*yr+1, 2*xr+1), int) + oob
     ma[lo:hi, le:ri] = mask[bot:top, lft:rgt]
     ret.append(ma)
-  if uncd is not None:
-    un = np.zeros((2*yr+1, 2*xr+1), uncd.dtype) #+np.amax(uncd[bot:top,lft:rgt])
-    un[lo:hi, le:ri] = uncd[bot:top, lft:rgt]
+  if uncert is not None:
+    un = np.zeros((2*yr+1, 2*xr+1), uncert.dtype)
+         # + np.amax(uncert[bot:top,lft:rgt])
+    un[lo:hi, le:ri] = uncert[bot:top, lft:rgt]
     ret.append(un)
 
   return ret
