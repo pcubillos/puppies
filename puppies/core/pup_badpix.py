@@ -49,9 +49,9 @@ def badpix(pup):
   if pup.units is not None:
     pup.fluxunits = pup.fluxunits.to(u.Unit(pup.units))
 
-  data   = io.load(pup.data,   "data")   * pup.fluxunits
-  uncert = io.load(pup.uncert, "uncert") * pup.fluxunits
-  bdmskd = io.load(pup.uncert, "bdmskd")
+  data   = io.load(pup.datafile,   "data")   * pup.fluxunits
+  uncert = io.load(pup.uncertfile, "uncert") * pup.fluxunits
+  bdmskd = io.load(pup.bdmskdfile, "bdmskd")
 
   # Mean Background Estimate, from zodi model
   pup.estbg = (np.mean(pup.fp.zodi) +

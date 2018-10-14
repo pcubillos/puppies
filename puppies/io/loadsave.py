@@ -6,29 +6,27 @@ __all__ = ["save", "load"]
 
 def save(pup):
   """
-st = '/Users/patriciocubillos/Dropbox/IWF/projects/2017_puppies/puppies/puppies/wa043b.nop'
-with open(st, 'wb') as f:
-  pickle.dump(pup, f)
+  Save object into pickle file, keeping specified variables (large
+  files) into a separate npz file.
   """
-  if pup.data is not None:
-    # Output file:
-    savefile = "{:s}/{:s}.npz".format(pup.folder, pup.ID)
-    # Info to be saved:
-    info = dict()
+  # List of variable to be saved into npz file:
+  varnames = ["data", "uncert", "mask", "head", "bdmskd", "brmskd"]
+  # Output npz file:
+  savefile = "{:s}/{:s}.npz".format(pup.folder, pup.ID)
+  # Info to be saved as npz file:
+  info = dict()
 
-    # List of variable to be saved into npz file:
-    varnames = ["data", "uncert", "mask", "head", "bdmskd", "brmskd"]
+  # Check for any of those variables:
+  for i in np.arange(len(varnames)):
+    if hasattr(pup, varnames[i]):
+      info[varnames[i]] = getattr(pup, varnames[i])
+      # Store the filename of saved arrays in varname + 'file':
+      setattr(pup, "{:s}file".format(varnames[i]), savefile)
+      # Remove from pup object:
+      delattr(pup, varnames[i])
 
-    for i in np.arange(len(varnames)):
-      var = getattr(pup, varnames[i])
-      if not isinstance(var, str):
-        info[varnames[i]] = var
-        setattr(pup, varnames[i], savefile)
-
-    #if not isinstance(pup.data, str):
-    #  info["data"] = pup.data
-    #  pup.data = savefile
-
+  # Save data into npz file:
+  if len(info) > 0:
     np.savez(savefile, **info)
 
   # Need to close this FILE object:

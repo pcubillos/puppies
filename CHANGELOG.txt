@@ -370,5 +370,12 @@ Renamed uncd variable to uncert.
 Return to original location after running core.center() and
 core.photom().
 
+
+*****  Sun Oct 14 17:00:00 CEST 2018  *****
+
+Use datafile variable for the filepath to data, rather than using the
+data variable itself (same for uncert and bdmskd).
+Revamped io.save() accordingly.
+
 *****
 

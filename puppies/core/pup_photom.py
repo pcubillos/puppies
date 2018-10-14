@@ -95,12 +95,9 @@ def photom(pup, cfile=None):
   cwd = pup.folder
 
   # Load the event data:
-  pup.datafile   = pup.data
-  pup.uncertfile = pup.uncert
-  pup.maskfile   = pup.mask
-  pup.data   = io.load(pup.data,   "data")
-  pup.uncert = io.load(pup.uncert, "uncert")
-  pup.mask   = io.load(pup.mask,   "mask")
+  data   = io.load(pup.datafile,   "data")
+  uncert = io.load(pup.uncertfile, "uncert")
+  mask   = io.load(pup.maskfile,   "mask")
 
   # Pre-processing:
   if cfile is not None:
@@ -132,14 +129,14 @@ def photom(pup, cfile=None):
     os.chdir(puppy.folder)
 
     # Launch the thread:
-    photometry(puppy)
+    photometry(puppy, data, uncert, mask)
 
   # Return to original location:
   os.chdir(here)
   #return list_of_puppies_for_next_step
 
 
-def photometry(pup):
+def photometry(pup, data, uncert, mask):
   """
   Doc me.
   """
@@ -185,8 +182,9 @@ def photometry(pup):
     for n in np.arange(pup.ncpu):
       start =  n    * chunksize
       end   = (n+1) * chunksize
-      proc = mp.Process(target=calc_photom, args=(start, end, pup, aplev, aperr,
-                  nappix, skylev, skyerr, nskypix, nskyideal, status, good))
+      proc = mp.Process(target=calc_photom, args=(pup, data, uncert, mask,
+                           start, end, aplev, aperr, nappix, skylev, skyerr,
+                           nskypix, nskyideal, status, good))
       processes.append(proc)
       proc.start()
     # Make sure all processes finish their work:
@@ -225,7 +223,7 @@ def photometry(pup):
       loc = (pup.otrim, pup.otrim)
       # Do the trim:
       img, msk, err = im.trim(pup.data[i], cen, loc, mask=pup.mask[i],
-                              uncert=pup.uncert[i])
+                              uncert=uncert[i])
 
       # Center of star in the subimage:
       ctr = (pup.fp.y[i]-cen[0]+pup.otrim,
@@ -240,11 +238,11 @@ def photometry(pup):
       # Subtract the sky level:
       img -= pup.fp.skylev[i]
       # optimal photometry calculation:
-      immean, uncert, good = op.optphot(img, profile, var=err**2.0, mask=msk)
+      immean, imerr, good = op.optphot(img, profile, var=err**2.0, mask=msk)
       # FINDME: Am I not fitting the sky at the same time? I dont like this
 
       pup.fp.aplev [i] = immean
-      pup.fp.aperr [i] = uncert
+      pup.fp.aperr [i] = imerr
       pup.fp.skylev[i] = pup.fp.skylev[i]
       pup.fp.good  [i] = good
 
@@ -297,23 +295,17 @@ def photometry(pup):
   pp.background(pup.fp.skylev, pup.fp.phase, pup.fp.good, pup.folder,
                 str(pup.units))
 
-  # Delete data arrays:
-  pup.data   = pup.datafile
-  pup.uncert = pup.uncertfile
-  pup.mask   = pup.maskfile
-  del(pup.datafile, pup.uncertfile, pup.maskfile)
   # Print time stamp, save, and close:
   pt.msg(1, "\nFinished {:s} photometry  ({:s}).\nOutput folder: '{:s}/'.\n".
                 format(pup.centering, time.ctime(), pup.folder), pup.log)
   io.save(pup)
 
 
-def calc_photom(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
-                nskypix, nskyideal, status, good, mute=True):
+def calc_photom(pup, data, uncert, mask, start, end,
+                aplev, aperr, nappix, skylev, skyerr, nskypix, nskyideal,
+                status, good, mute=True):
   """
-  Medium level routine that performs aperture photometry.
-  Each thread from the main routine (photometry) will run do_aphot once.
-  do_aphot stores the values in the shared memory arrays.
+  Low level wrapper routine that runs aperture photometry on each frame.
   """
   # Initialize a Timer to report progress (use first Process):
   if start == 0:
@@ -321,10 +313,7 @@ def calc_photom(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
     #                progress=np.array([0.05, 0.1, 0.25, 0.5, 0.75, 1.1]))
     pass
 
-  y, x   = pup.fp.y, pup.fp.x
-  data   = pup.data
-  mask   = pup.mask
-  imer   = pup.uncert
+  y, x = pup.fp.y, pup.fp.x
 
   # Recalculate star and end indexes. Care not to go out of bounds:
   end = np.amin([end, pup.inst.nframes])
@@ -334,7 +323,7 @@ def calc_photom(start, end, pup, aplev, aperr, nappix, skylev, skyerr,
       # Calculate aperture photometry:
       aplev  [i], aperr  [i], nappix   [i], skylev[i], \
        skyerr[i], nskypix[i], nskyideal[i], status[i] = \
-                ph.aphot(data[i], imer[i], mask[i], y[i], x[i],
+                ph.aphot(data[i], uncert[i], mask[i], y[i], x[i],
                          pup.photap,  pup.skyin,   pup.skyout,
                          pup.skyfrac, pup.expand, pup.skymed)
       good[i] = status[i]==0  # good flag

@@ -86,12 +86,9 @@ def center(pup, cfile=None):
   cwd = pup.folder
 
   # Load data:
-  pup.datafile   = pup.data
-  pup.uncertfile = pup.uncert
-  pup.maskfile   = pup.mask
-  pup.data   = io.load(pup.data,   "data")   * pup.fluxunits
-  pup.uncert = io.load(pup.uncert, "uncert") * pup.fluxunits
-  pup.mask   = io.load(pup.mask,   "mask")
+  data   = io.load(pup.datafile,   "data")   * pup.fluxunits
+  uncert = io.load(pup.uncertfile, "uncert") * pup.fluxunits
+  mask   = io.load(pup.maskfile,   "mask")
 
   # Pre-processing:
   if cfile is not None:
@@ -112,14 +109,14 @@ def center(pup, cfile=None):
     os.chdir(puppy.folder)
 
     # Launch the thread:
-    centering(puppy)
+    centering(puppy, data, uncert, mask)
 
   # Return to original location:
   os.chdir(here)
   #return list_of_puppies_for_next_step
 
 
-def centering(pup):
+def centering(pup, data, uncert, mask):
   """
   Compute centering on the PSF and median images, and launch
   multiprocessing thread to compute the centering on the individual
@@ -186,10 +183,11 @@ def centering(pup):
   for n in np.arange(pup.ncpu):
     start =  n    * chunksize # Starting index to process
     end   = (n+1) * chunksize # Ending   index to process
-    proc = mp.Process(target=calc_center, args=(pup, start, end, #centermask,
-                                                x, y, flux, sky, good))
+    proc = mp.Process(target=calc_center, args=(pup, data, uncert, mask,
+                                           start, end, x, y, flux, sky, good))
     processes.append(proc)
     proc.start()
+
   # Make sure all processes finish their work:
   for n in np.arange(pup.ncpu):
     processes[n].join()
@@ -239,18 +237,13 @@ def centering(pup):
   # Plots:
   pp.yx(pup.fp.y, pup.fp.x, pup.fp.phase, pup.fp.good, pup.fp.pos, pup.folder)
 
-  # Delete data arrays:
-  pup.data   = pup.datafile
-  pup.uncert = pup.uncertfile
-  pup.mask   = pup.maskfile
-  del(pup.datafile, pup.uncertfile, pup.maskfile)
   # Print time stamp, save, and close:
   pt.msg(1, "\nFinished {:s} centering  ({:s}).\nOutput folder: '{:s}/'.\n".
                 format(pup.centering, time.ctime(), pup.folder), pup.log)
   io.save(pup)
 
 
-def calc_center(pup, start, end, x, y, flux, sky, good):
+def calc_center(pup, data, uncert, mask, start, end, x, y, flux, sky, good):
   """
   Multiprocessing child routine to compute centering on a set of
   frames.
@@ -261,22 +254,21 @@ def calc_center(pup, start, end, x, y, flux, sky, good):
     #                progress=np.array([0.05, 0.1, 0.2, 0.3, 0.4,  0.5,
     #                                   0.6,  0.7, 0.8, 0.9, 0.99, 1.1]))
     pass
-  data = pup.data
 
+  unc = None
   # Recalculate end, care not to go out of bounds:
   end = np.amin([end, pup.inst.nframes])
   # Compute the centering in each frame:
   for i in np.arange(start, end):
-    uncert = None
     pos  = pup.fp.pos[i]
     try:
       if pup.cweights:   # weight by uncertainties in fitting?
-        uncert = pup.uncert[i]
+        unc = uncert[i]
       # Do the centering:
       position, extra = pc.center(pup.centering, data[i],
                                   pup.targpos[:,pos], pup.ctrim,
                                   pup.aradius, pup.asize,
-                                  pup.mask[i], uncert, fitbg=pup.fitbg,
+                                  mask[i], unc, fitbg=pup.fitbg,
                                   expand=pup.psfscale,
                                   psf=pup.psfim, psfctr=pup.psfctr)
       y[i], x[i] = position
