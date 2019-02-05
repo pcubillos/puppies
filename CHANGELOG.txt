@@ -384,3 +384,7 @@ Some cosmetics.
 
 *****
 
+Added fitting and retrieval fixes from Bell's run.
+
+*****
+

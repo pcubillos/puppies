@@ -194,7 +194,7 @@ def setup(cfile, mode='turtle'):
   # Gather light-curve data:
   for j in np.arange(laika.npups):
     # Open input lightcurve:
-    pup = io.load(config[0]["input"])
+    pup = io.load(config[j]["input"])
     # Plotting number of bins:
     pup.nbins = config[j]['nbins']
 
@@ -242,11 +242,12 @@ def setup(cfile, mode='turtle'):
     # FINDME: What if the LC varies significantly from start to end?
     if laika.sigrej is not None:
       pup.mask = ps.sigrej(pup.flux, laika.sigrej, mask=pup.mask)
+      pup.mask = ps.sigrej(pup.ferr, laika.sigrej, mask=pup.mask)
 
     # Set orbital phase or days as unit of time:
     pup.timeoffset = config[j]['timeoffset']
     if laika.timeunits == 'phase':
-      pup.time = pup.fp.phase[good]
+      pup.time = pup.fp.phase[good] - pup.timeoffset
       pup.xlabel = 'Orbital phase'
       pup.timeoffset = 0.0  # No offset for phase units
     elif laika.timeunits == 'jd':
@@ -496,7 +497,12 @@ def mcmc(cfile=None, laika=None):
     laika = lcfit(laika=laika, summary=False)
 
   # Run MC3's MCMC:
-  for fit in laika.fit:
+  for k in range(len(laika.fit)):
+    fit = laika.fit[k]
+    pup = laika.pup[fit.ipup[0]] # HARDCODED ZERO (only for non-joint runs)
+    savefile = "{:s}/MCMC_{:s}{:.2f}_fit{:02d}".format(laika.folder,
+                                                 pup.centering, pup.photap, k)
+
     output = mc3.mcmc(data=fit.flux, uncert=fit.cferr,
        func=evalmodel, indparams=[fit], params=fit.params,
        pmin=fit.pmin, pmax=fit.pmax, stepsize=fit.pstep,
@@ -504,9 +510,10 @@ def mcmc(cfile=None, laika=None):
        walk=laika.walk, nsamples=laika.nsamples, burnin=laika.burnin,
        nchains=laika.nchains, nproc=laika.nproc, thinning=laika.thinning,
        grtest=True, grbreak=laika.grbreak, grnmin=laika.grnmin,
-       hsize=10, kickoff='normal', log="newlog.log", plots=laika.plots,
+       hsize=10, kickoff='normal', log="{:s}.log".format(savefile),
+       plots=laika.plots,
        parname=fit.pnames, resume=laika.resume, rms=True,
-       savefile=None, full_output=True)
+       savefile="{:s}.npz".format(savefile), full_output=True)
     # Store results into object:
     fit.errorlow  = output[1]  # Low credible-interval boundary
     fit.errorhigh = output[2]  # High credible-interval boundary
