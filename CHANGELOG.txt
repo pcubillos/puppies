@@ -377,5 +377,10 @@ Use datafile variable for the filepath to data, rather than using the
 data variable itself (same for uncert and bdmskd).
 Revamped io.save() accordingly.
 
+
+*****  Di 5. Feb 15:43:13 CET 2019  *****
+
+Some cosmetics.
+
 *****
 

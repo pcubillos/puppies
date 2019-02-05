@@ -4,12 +4,9 @@
 from .medstddev import *
 from .sigrej    import *
 
-from .medstddev import __all__
-stats_all = __all__
-from .sigrej    import __all__
-stats_all += __all__
-
-__all__ = stats_all
+from .medstddev import __all__ as mall
+from .sigrej    import __all__ as sall
+__all__ = mall + sall
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

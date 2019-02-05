@@ -111,7 +111,7 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
     weights = np.ones(data.shape, dtype=float)
     w_truth = 0
   elif weights.dtype != np.dtype('float'):
-    # Cast to a float if it is not already float
+    # Cast to a float if necessary:
     weights = np.array(weights, dtype=float)
 
   if data.dtype != 'float64':

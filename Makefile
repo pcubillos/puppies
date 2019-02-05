@@ -49,7 +49,8 @@ make_pup:
 	$(Q) python$(DIRECTIVE) setup.py build $(O)
 	@mv -f build/lib.*/*.so $(LIBDIR)
 	@rm -rf build/
-	@echo "Successful compilation.\n"
+	@echo "Successful compilation."
+	@echo ""
 
 make_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed/ && make
@@ -60,13 +61,13 @@ make_eclipse:
 
 clean_pup:
 	@rm -rf $(LIBDIR)*.so
-	@echo "Cleaned Pyrat Bay.\n"
+	@echo "Cleaned Pyrat Bay."
 
 clean_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed && make clean
-	@echo "Cleaned MC3.\n"
+	@echo "Cleaned MC3."
 
 clean_eclipse:
 	@cd $(mkfile_dir)/modules/eclipse && make clean
-	@echo "Cleaned eclipse.\n"
+	@echo "Cleaned eclipse."
 

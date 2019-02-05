@@ -17,13 +17,13 @@ def save(pup):
   info = dict()
 
   # Check for any of those variables:
-  for i in np.arange(len(varnames)):
-    if hasattr(pup, varnames[i]):
-      info[varnames[i]] = getattr(pup, varnames[i])
+  for varname in varnames:
+    if hasattr(pup, varname):
+      info[varname] = getattr(pup, varname)
       # Store the filename of saved arrays in varname + 'file':
-      setattr(pup, "{:s}file".format(varnames[i]), savefile)
+      setattr(pup, "{:s}file".format(varname), savefile)
       # Remove from pup object:
-      delattr(pup, varnames[i])
+      delattr(pup, varname)
 
   # Save data into npz file:
   if len(info) > 0:

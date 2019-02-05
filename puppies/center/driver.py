@@ -4,7 +4,6 @@ from .. import image as im
 from .  import col
 from .  import gaussian   as g
 from .  import least_asym as la
-#import least_asym  as la
 #import psf_fit     as pf # TBD
 
 __all__ = ["center"]
@@ -98,7 +97,6 @@ def center(method, data, yxguess, trim, arad=4, asize=3,
   COL:        16.08420, 16.47131
   >>> # Note, these values will change due to the random noise
   """
-
   # Default mask: all good
   if mask is None:
     mask = np.ones(np.shape(data), bool)

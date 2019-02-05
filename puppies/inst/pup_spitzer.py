@@ -98,7 +98,7 @@ class Spitzer():
     self.inst.npos    = int(inputs["npos"])
     self.inst.nnod    = int(inputs["nnod"])
     self.inst.aorname = pt.parray(inputs["aorname"], dtype=str)
-    print(self.inst.aorname)
+    #print(self.inst.aorname)
     self.inst.naor    = len(self.inst.aorname)
     self.inst.datadir = inputs["data"]
 
@@ -116,10 +116,9 @@ class Spitzer():
                                 topdir, self.inst.psf_def[self.inst.chan-1])
 
     self.inst.pmaskfile = []
-    for i in np.arange(self.inst.naor):
+    for aor in self.inst.aorname:
       self.inst.pmaskfile.append("{:s}/r{:s}/{:s}/cal/{:s}".
-        format(self.inst.datadir, self.inst.aorname[i], self.inst.channel,
-               inputs["pmaskfile"]))
+         format(self.inst.datadir, aor, self.inst.channel, inputs["pmaskfile"]))
 
     # Sigma rejection:
     self.schunk = int(inputs["schunk"])

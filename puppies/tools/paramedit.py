@@ -99,8 +99,8 @@ def loadparams(filename, mnames=None):
                format(", ".join(np.array(mnames)[missing])))
     selected = []
     # Pick the selected models:
-    for i in np.arange(len(mnames)):
-      selected.append(models[names.index(mnames[i])])
+    for model in mnames:
+      selected.append(models[names.index(model)])
     return selected
   return models
 
@@ -114,9 +114,7 @@ def saveparams(fit):
   ----------
   fit: puppies Fit() object
   """
-  for j in np.arange(fit.npups):
-    filename = fit.modelfile[j]
-
+  for filename, fitmodels in zip(fit.modelfile, fit.models):
     # If file already exists, load for default values:
     defaults, dnames = [], []
     if os.path.isfile(filename):
@@ -124,8 +122,7 @@ def saveparams(fit):
     for dmodel in defaults:
       dnames.append(dmodel.name)
 
-    for k in np.arange(fit.nmodels[j]):
-      model = fit.models[j][k]
+    for model in fitmodels:
       # Update with models from fit:
       if model.name in dnames:
         idx = dnames.index(model.name)
@@ -149,20 +146,19 @@ def writeparams(filename, models):
   models: List of puppies model() objects
      The models to write.
   """
-  f = open(filename, "w")
-  f.write(header)
-  for model in models:
-    # Model name:
-    f.write("{:s}\n".format(model.name))
-    # Parameter names, values, boundaries, and stepsizes:
-    if model.npars == 0:  # Special case:
-      f.write("CanIHazParz?\n")
-      f.write("{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n"
-              .format(0.0, 0.0, 0.0, 0.0))
-    else:
-      f.write("".join(["{:16s}".format(s) for s in model.pnames]) + "\n")
-      f.write("".join(["{:< 16.6e}".format(x) for x in model.params]) + "\n")
-      f.write("".join(["{:< 16.6e}".format(x) for x in model.pmin  ]) + "\n")
-      f.write("".join(["{:< 16.6e}".format(x) for x in model.pmax  ]) + "\n")
-      f.write("".join(["{:< 16.6e}".format(x) for x in model.pstep ]) + "\n")
-  f.close()
+  with open(filename, "w") as f:
+    f.write(header)
+    for model in models:
+      # Model name:
+      f.write("{:s}\n".format(model.name))
+      # Parameter names, values, boundaries, and stepsizes:
+      if model.npars == 0:  # Special case:
+        f.write("CanIHazParz?\n")
+        f.write("{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n""{:< 16.6e}\n"
+                .format(0.0, 0.0, 0.0, 0.0))
+      else:
+        f.write("".join(["{:16s}".format(s) for s in model.pnames]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(x) for x in model.params]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(x) for x in model.pmin  ]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(x) for x in model.pmax  ]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(x) for x in model.pstep ]) + "\n")

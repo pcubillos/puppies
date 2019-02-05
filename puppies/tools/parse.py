@@ -56,8 +56,9 @@ def parse_model(cfile, runmode="turtle"):
   if sections[0] != "MODEL":
     pt.error("Invalid section name, the first section of the config file "
              "must be named 'MODEL'.")
+
   npups = len(sections)
-  for i in np.arange(1, npups):
+  for i in range(1, npups):
     if "MODEL{:d}".format(i+1) not in sections:
       pt.error("Invalid section name, sections must be numbered "
                "in sequential order, e.g.: 'MODEL', 'MODEL2', 'MODEL3', ... ")
@@ -65,7 +66,7 @@ def parse_model(cfile, runmode="turtle"):
   # Check for required field in each pup:
   reqkeys = ["input", "model", "modelfile"]
   for key in reqkeys:
-    for i in np.arange(npups):
+    for i in range(npups):
       if not config.has_option(sections[i], key):
         pt.error("Section '{:s}' does not contain the '{:s}' key.".
                   format(sections[i], key))
@@ -74,7 +75,7 @@ def parse_model(cfile, runmode="turtle"):
   pups = []
   pups.append(dict(config.items("MODEL")))
   pups[0] = defaults(pups[0])  # Data types and defaults
-  for i in np.arange(1, npups):
+  for i in range(1, npups):
     # Copy previous entry:
     pups.append(dict(pups[i-1]))
     # Update values:
