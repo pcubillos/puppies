@@ -1,4 +1,4 @@
-# <img alt="puppies3" src="https://github.com/pcubillos/puppies/tree/aprilis/docs/logo_puppies3.png" height="60">
+# <img alt="puppies" src="https://github.com/pcubillos/puppies/tree/aprilis/docs/logo_puppies3.png" height="100">
 > PUPPIES: The Public Photometry Pipeline for Exoplanets
 
 [![Build Status](https://travis-ci.com/pcubillos/puppies.svg?branch=aprilis)](https://travis-ci.com/pcubillos/puppies)
