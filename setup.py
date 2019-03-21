@@ -8,8 +8,8 @@ from numpy import get_include
 
 topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/puppies")
-#import VERSION as ver
-import puppies as pup
+import VERSION as ver
+__version__ = f"{ver.PUP_VER}.{ver.PUP_MIN}.{ver.PUP_REV}"
 
 srcdir = topdir + '/src_c/'          # C-code source folder
 incdir = topdir + '/src_c/include/'  # Include filder with header files
@@ -34,7 +34,7 @@ for efile in files:
 
 
 setup(name         = "puppies",
-      version      = pup.__version__,
+      version      = __version__,
       author       = "Patricio Cubillos",
       author_email = "patricio.cubillos@oeaw.ac.at",
       url          = "https://github.com/pcubillos/puppies",

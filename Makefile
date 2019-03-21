@@ -28,9 +28,9 @@ LIBDIR = puppies/lib/
 mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
 
 # `make [clean]` should run `make [clean]` on all of the modules.
-all: make_pup make_mc3
+all: make_mc3 make_pup
 #  make_eclipse
-clean: clean_pup clean_mc3
+clean:clean_mc3 clean_pup
 # clean_eclipse
 
 
