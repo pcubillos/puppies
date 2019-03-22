@@ -1,3 +1,6 @@
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
 import os
 import sys
 import re
@@ -9,6 +12,8 @@ from numpy import get_include
 topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/puppies")
 import VERSION as ver
+
+
 __version__ = f"{ver.PUP_VER}.{ver.PUP_MIN}.{ver.PUP_REV}"
 
 srcdir = topdir + '/src_c/'          # C-code source folder
@@ -41,7 +46,8 @@ setup(name         = "puppies",
       packages     = setuptools.find_packages(),
       install_requires = ['numpy>=1.8.1',
                           'scipy>=0.13.3',
-                          'matplotlib>=1.3.1'],
+                          'matplotlib>=1.3.1',
+                          'astropy>=3.1'],
       license      = ["MIT"],
       description  = "Public Photometry Pipeline for Exoplanets.",
       include_dirs = inc,

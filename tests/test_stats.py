@@ -1,3 +1,6 @@
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
 import os
 import sys
 import pytest
