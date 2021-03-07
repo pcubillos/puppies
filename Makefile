@@ -1,5 +1,5 @@
-# Makefile - prepared for puppies
-#
+# Makefile for puppies project
+
 # `make` - Build and compile the puppies executable and python extension.
 # `make clean` - Remove all compiled (non-source) files that are created.
 
@@ -28,14 +28,6 @@ else
 endif
 
 
-DIRECTIVE = 
-ifdef PY3
-	ifeq ("$(origin PY3)", "command line")
-		DIRECTIVE = 3
-	endif
-endif
-
-
 # Get the location of this Makefile.
 mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
 
@@ -46,8 +38,8 @@ clean: clean_pup clean_mc3 clean_eclipse
 
 make_pup:
 	@echo "Building puppies package."
-	$(Q) python$(DIRECTIVE) setup.py build $(O)
-	@mv -f build/lib.*/*.so $(LIBDIR)
+	$(Q) python setup.py build $(O)
+	@mv -f build/lib.*/puppies/lib/*.so $(LIBDIR)
 	@rm -rf build/
 	@echo "Successful compilation."
 	@echo ""
@@ -61,7 +53,7 @@ make_eclipse:
 
 clean_pup:
 	@rm -rf $(LIBDIR)*.so
-	@echo "Cleaned Pyrat Bay."
+	@echo "Cleaned puppies."
 
 clean_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed && make clean

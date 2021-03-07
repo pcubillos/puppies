@@ -1,17 +1,19 @@
-import sys
-import os
-import configparser
-import argparse
-import numpy as np
-
-from . import tools as pt
-
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
     'parse_model',
     'parray'
     'qarray'
     ]
+
+import os
+import configparser
+import argparse
+
+import numpy as np
+
+from . import tools as pt
 
 
 def parse_model(cfile, runmode="turtle"):
@@ -130,7 +132,6 @@ def defaults(pupdict):
   add_arg(parser, "minpt", int,   4)
   add_arg(parser, "ystep", float, None)
   add_arg(parser, "xstep", float, None)
-  #add_arg(parser, "",    ,  None)
 
   # FINDME: Arguments that are not in this list will be kept as strings,
   # do I care?
@@ -170,7 +171,11 @@ def parray(string, dtype=np.double):
 
   Returns
   -------
+<<<<<<< HEAD
   arr: ndarray or 
+=======
+  arr: ndarray or
+>>>>>>> origin/aprilis
   """
   if string == 'None':
     return None
@@ -231,4 +236,3 @@ def qarray(string, dtype=np.double):
     return np.array(arr, dtype)
   except: # Else, return a string array:
     return arr
-

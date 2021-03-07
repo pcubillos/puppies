@@ -41,7 +41,7 @@ recommend the following programming guidelines:
   - **Never ever! use tabs (for any reason, just don't).**
   - Avoid hard-coding values at all cost.
   - One--two character variable names are too short to be meaningful.
-  - Indent with 2 spaces.
+  - Indent with 4 spaces.
   - Put whitespace around operators and after commas.
   - Separate lines (within a common block of code) by at most 0 whitespace lines (yes, zero).
   - Separate blocks of code by at most 1 whitespace lines.
@@ -51,7 +51,7 @@ recommend the following programming guidelines:
   - Necessary contraptions require meaningful comments.
   - Always, always make a docstring.
   - Use ``is`` to compare with ``None``, ``True``, and ``False``.
-  - Limit try clauses to the bare minimum.
+  - Limit try-except clauses to the bare minimum.
 
 Good pieces of code that do not follow these principles will
 still be gratefully accepted, but with a frowny face.

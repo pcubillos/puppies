@@ -1,6 +1,13 @@
-import os, re, sys
-from numpy import get_include
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+import os
+import sys
+import re
+import setuptools
 from setuptools import setup, Extension
+
+from numpy import get_include
 
 topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/puppies")
@@ -15,29 +22,33 @@ files = list(filter(lambda x:     re.search('.+[.]c$',     x), files))
 files = list(filter(lambda x: not re.search('[.#].+[.]c$', x), files))
 
 inc = [get_include(), incdir]
-eca = []
+eca = ['-ffast-math']
 ela = []
 
 extensions = []
-for i in range(len(files)):
-  e = Extension(files[i].rstrip(".c"),
-                sources=["{:s}{:s}".format(srcdir, files[i])],
-                include_dirs=inc,
-                extra_compile_args=eca,
-                extra_link_args=ela)
-  extensions.append(e)
+for efile in files:
+    e = Extension('puppies.lib.'+efile.rstrip(".c"),
+                  sources=["{:s}{:s}".format(srcdir, efile)],
+                  include_dirs=inc,
+                  extra_compile_args=eca,
+                  extra_link_args=ela)
+    extensions.append(e)
 
 
-setup(name         = "puppies",
-      version      = "{:d}.{:d}.{:d}".format(ver.pup_VER, ver.pup_MIN,
-                                             ver.pup_REV),
-      author       = "Patricio Cubillos",
-      author_email = "patricio.cubillos@oeaw.ac.at",
-      url          = "https://github.com/pcubillos/puppies",
-      packages     = ["puppies"],
-      license      = ["MIT"],
-      description  = "Public Photometry Pipeline for Exoplanets.",
-      include_dirs = inc,
-      #scripts      = ['MCcubed/mccubed.py'],
-      #entry_points={"console_scripts": ['foo = MCcubed.mccubed:main']},
-      ext_modules  = extensions)
+setup(
+    name = "puppies",
+    version = "{ver.pup_VER}.{ver.pup_MIN}.{ver.pup_REV}"
+    description = "The Public Photometry Pipeline for Exoplanets.",
+    author = "Patricio Cubillos",
+    author_email = "patricio.cubillos@oeaw.ac.at",
+    url = "https://github.com/pcubillos/puppies",
+    packages = setuptools.find_packages(),
+    install_requires = [
+        'numpy>=1.8.1',
+        'scipy>=0.13.3',
+        'matplotlib>=1.3.1',
+        'astropy>=3.1',
+        ],
+    license = ["MIT"],
+    include_dirs = inc,
+    ext_modules  = extensions)

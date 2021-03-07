@@ -1,11 +1,18 @@
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
+
+__all__ = [
+    "newparams",
+    "loadparams",
+    "saveparams",
+    ]
+
 import os
+
 import numpy as np
 
 from .. import models as pm
 from .  import tools  as pt
-
-
-__all__ = ["newparams", "loadparams", "saveparams"]
 
 
 header = """\
@@ -158,7 +165,7 @@ def writeparams(filename, models):
                 .format(0.0, 0.0, 0.0, 0.0))
       else:
         f.write("".join(["{:16s}".format(s) for s in model.pnames]) + "\n")
-        f.write("".join(["{:< 16.6e}".format(x) for x in model.params]) + "\n")
-        f.write("".join(["{:< 16.6e}".format(x) for x in model.pmin  ]) + "\n")
-        f.write("".join(["{:< 16.6e}".format(x) for x in model.pmax  ]) + "\n")
-        f.write("".join(["{:< 16.6e}".format(x) for x in model.pstep ]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(p) for p in model.params]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(p) for p in model.pmin  ]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(p) for p in model.pmax  ]) + "\n")
+        f.write("".join(["{:< 16.6e}".format(p) for p in model.pstep ]) + "\n")

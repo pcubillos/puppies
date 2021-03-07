@@ -1,15 +1,19 @@
-import sys
-import traceback
-import textwrap
-import numpy as np
-
-import astropy.units  as u
+# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
+# puppies is open-source software under the MIT license (see LICENSE).
 
 __all__ = ["msg", "warning", "error", "getpar", "cat"]
 
+import sys
+import traceback
+import textwrap
+
+import numpy as np
+
+import astropy.units as u
+
+
 # Warning/error banner:
 sep = 70*":"
-
 
 def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
   """
@@ -166,14 +170,5 @@ def getpar(par, units=u.dimensionless_unscaled, dtype=float):
   return value, error
 
 
-def cat(a, b):
-  """
-  Short hand version of np.concatenate.
-
-  Parameters
-  ----------
-  a, b: Sequences or ndarrays
-     Arrays to concatenate. Must have compatible shapes, see
-     help(np.concatenate)
-  """
-  return np.concatenate([a,b])
+# Short-hand for np.concatenate:
+cat = np.concatenate
