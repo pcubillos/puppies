@@ -305,7 +305,10 @@ def calc_photom(pup, data, uncert, mask, start, end,
                 aplev, aperr, nappix, skylev, skyerr, nskypix, nskyideal,
                 status, good, mute=True):
   """
-  Low level wrapper routine that runs aperture photometry on each frame.
+  Edit (fix) this docstring:
+  Medium level routine that performs aperture photometry.
+  Each thread from the main routine (photometry) will run do_aphot once.
+  do_aphot stores the values in the shared memory arrays.
   """
   # Initialize a Timer to report progress (use first Process):
   if start == 0:

@@ -38,7 +38,7 @@ def badpix(pup):
   # Julian observation date
   #pup.fp.juldat = pup.jdjf80 + pup.fp.time / 86400.0
 
-  # ::::::::::::::::::::::: FLUX CONVERSION :::::::::::::::::::::::::::::
+  # Flux conversion:
   # Do we want flux (uJy/pix) or surface brightness (MJy/sr) units?  If
   # doing photometry, convert to flux.  Since we care about relative
   # numbers, it doesn't really matter.
@@ -49,34 +49,38 @@ def badpix(pup):
   if pup.units is not None:
     pup.fluxunits = pup.fluxunits.to(u.Unit(pup.units))
 
-  data   = io.load(pup.datafile,   "data")   * pup.fluxunits
+  data = io.load(pup.datafile, "data") * pup.fluxunits
   uncert = io.load(pup.uncertfile, "uncert") * pup.fluxunits
   bdmskd = io.load(pup.bdmskdfile, "bdmskd")
+  # If line above fails, use this:
+  #bdmskd = io.load(pup.uncertfile, "bdmskd")
 
   # Mean Background Estimate, from zodi model
-  pup.estbg = (np.mean(pup.fp.zodi) +
-               np.mean(pup.fp.ism)  +
-               np.mean(pup.fp.cib)  ) * pup.fluxunits
+  pup.estbg = pup.fluxunits * (
+      np.mean(pup.fp.zodi) +
+      np.mean(pup.fp.ism)  +
+      np.mean(pup.fp.cib)  )
 
   # Get permanent bad pixel mask.
   if not os.path.exists(pup.inst.pmaskfile[0]):
-    pt.error('Permanent Bad pixel mask not found!', pup.log)
+      pt.error('Permanent Bad pixel mask not found!', pup.log)
   else:
-    hdu = fits.open(pup.inst.pmaskfile[0])
-    if hdu[0].header['bitpix'] == -32:  # if data type is float
-      hdu[0].scale(type='int16')        # cast it down to int16
-    pup.pmask = hdu[0].data
+      hdu = fits.open(pup.inst.pmaskfile[0])
+      if hdu[0].header['bitpix'] == -32:  # if data type is float
+          hdu[0].scale(type='int16')        # cast it down to int16
+      pup.pmask = hdu[0].data
 
-  # IRS FIX: IRS data contains the blue peak subarray while its
-  #          pmask contains the whole array
+  # IRS hard-coded fix: IRS data contains the blue peak subarray while its
+  # pmask contains the whole array
   if pup.inst.chan == 5:
-    pup.pmask = pup.pmask[3:59,86:127]  # (Hard coding)
+      pup.pmask = pup.pmask[3:59,86:127]
 
   # Do NOT define sigma, we have a different scheme for finding baddies
   # adds Spitzer rejects: fp.nsstrej  &  our rejects: fp.nsigrej
   pt.msg(1, "Apply bad pixel masks.", pup.log)
-  pup.mask = badmask(data, uncert, pup.pmask,  pup.inst.pcrit,
-                     bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos)
+  pup.mask = badmask(
+      data, uncert, pup.pmask,  pup.inst.pcrit,
+      bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos)
 
   ## User rejected pixels:
   #if pup.userrej != None:

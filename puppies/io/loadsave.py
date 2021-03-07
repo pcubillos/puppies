@@ -1,29 +1,32 @@
 import pickle
 import numpy as np
 
-__all__ = ["save", "load"]
+__all__ = [
+    "save",
+    "load",
+    ]
 
 
 def save(pup):
   """
-  Save object into pickle file, keeping specified variables (large
-  files) into a separate npz file.
+  Save object into pickle file keeping specified variables into a
+  separate npz file.
   """
   # List of variable to be saved into npz file:
   varnames = ["data", "uncert", "mask", "head", "bdmskd", "brmskd"]
   # Output npz file:
   savefile = "{:s}/{:s}.npz".format(pup.folder, pup.ID)
-  # Info to be saved as npz file:
+  # Info to be saved:
   info = dict()
 
   # Check for any of those variables:
   for varname in varnames:
-    if hasattr(pup, varname):
-      info[varname] = getattr(pup, varname)
-      # Store the filename of saved arrays in varname + 'file':
-      setattr(pup, "{:s}file".format(varname), savefile)
-      # Remove from pup object:
-      delattr(pup, varname)
+      if hasattr(pup, varname):
+          info[varname] = getattr(pup, varname)
+          # Store the filename of saved arrays in varname + 'file':
+          setattr(pup, f"{varname}file", savefile)
+          # Remove from pup object:
+          delattr(pup, varname)
 
   # Save data into npz file:
   if len(info) > 0:
@@ -35,7 +38,7 @@ def save(pup):
 
   # Pickle save:
   with open("{:s}/{:s}.p".format(pup.folder, pup.ID), "wb") as f:
-    pickle.dump(pup, f)
+      pickle.dump(pup, f)
 
 
 def load(file, param=None):

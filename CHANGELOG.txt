@@ -386,5 +386,8 @@ Some cosmetics.
 
 Added fitting and retrieval fixes from Bell's run.
 
-*****
+
+*****  Sun Mar 7 22:37:09 CET 2021  *****
+
+Synced with WASP-12b version.
 

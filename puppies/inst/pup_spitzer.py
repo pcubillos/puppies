@@ -1,12 +1,15 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ["Spitzer"]
+__all__ = [
+    "Spitzer"
+    ]
 
 import sys
 import os
 import re
 import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,7 +21,7 @@ import astropy.units       as u
 import astropy.wcs         as wcs
 
 from .. import tools as pt
-from .. import io    as io
+from .. import io as io
 
 topdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
