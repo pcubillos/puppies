@@ -1,7 +1,11 @@
 # Copyright (c) 2018-2019 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ["newparams", "loadparams", "saveparams"]
+__all__ = [
+    "newparams",
+    "loadparams",
+    "saveparams",
+    ]
 
 import os
 
@@ -11,7 +15,7 @@ from .. import models as pm
 from .  import tools  as pt
 
 
-HEADER = """\
+header = """\
 # This file lists the models and their parameters.  The parameters are
 # presented in a table headed by the name of each model. Column headers
 # are unique to each model, but rows follow a standard format:
@@ -150,7 +154,7 @@ def writeparams(filename, models):
      The models to write.
   """
   with open(filename, "w") as f:
-    f.write(HEADER)
+    f.write(header)
     for model in models:
       # Model name:
       f.write("{:s}\n".format(model.name))

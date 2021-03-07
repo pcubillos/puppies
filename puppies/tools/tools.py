@@ -12,6 +12,9 @@ import numpy as np
 import astropy.units as u
 
 
+# Warning/error banner:
+sep = 70*":"
+
 def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
   """
   Conditional message printing to screen.

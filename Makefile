@@ -8,10 +8,16 @@
 #      make VERBOSE=1
 # This will display the exact commands being used for building, etc.
 
+# To enforce compilation with Python3 append "PY3=1" to the make command:
+#      make PY3=1
+
+LIBDIR = puppies/lib/
+
 # Set verbosity
 #
 Q = @
 O = > /dev/null
+
 ifdef VERBOSE
 	ifeq ("$(origin VERBOSE)", "command line")
 		Q =
@@ -21,17 +27,13 @@ else
 	MAKEFLAGS += --no-print-directory
 endif
 
-LIBDIR = puppies/lib/
-
 
 # Get the location of this Makefile.
 mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
 
 # `make [clean]` should run `make [clean]` on all of the modules.
-all: make_mc3 make_pup
-#  make_eclipse
-clean:clean_mc3 clean_pup
-# clean_eclipse
+all: make_pup make_mc3 make_eclipse
+clean: clean_pup clean_mc3 clean_eclipse
 
 
 make_pup:

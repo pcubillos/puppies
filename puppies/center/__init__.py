@@ -1,11 +1,17 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-from .tools     import *
-from .parse     import *
-from .paramedit import *
+from . import gaussian
+from .least_asym import *
+from .col        import *
+from .driver     import *
 
-__all__ = tools.__all__ + parse.__all__ + paramedit.__all__
+from .least_asym import __all__ as lall
+from .col        import __all__ as call
+from .driver     import __all__ as dall
+
+__all__ = ["gaussian"] + lall + call + dall
+
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

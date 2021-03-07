@@ -1,11 +1,10 @@
 # Copyright (c) 2018 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-from .tools     import *
-from .parse     import *
-from .paramedit import *
+# Commands:
+from .pup_spitzer import *
 
-__all__ = tools.__all__ + parse.__all__ + paramedit.__all__
+__all__ = pup_spitzer.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

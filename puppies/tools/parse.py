@@ -1,9 +1,12 @@
 # Copyright (c) 2018-2019 Patricio Cubillos and contributors.
 # puppies is open-source software under the MIT license (see LICENSE).
 
-__all__ = ['parse_model', 'parray']
+__all__ = [
+    'parse_model',
+    'parray'
+    'qarray'
+    ]
 
-import sys
 import os
 import configparser
 import argparse
@@ -97,7 +100,7 @@ def defaults(pupdict):
   # Required option:
   add_arg(parser, "input",     str,    None)
   add_arg(parser, "model",     parray, None)
-  add_arg(parser, "modelfile", parray, None)
+  add_arg(parser, "modelfile", qarray, None)
   add_arg(parser, "output",    str,    None)
   add_arg(parser, "runmode",   str,    None)
   # Optimization options:
@@ -168,7 +171,11 @@ def parray(string, dtype=np.double):
 
   Returns
   -------
+<<<<<<< HEAD
+  arr: ndarray or 
+=======
   arr: ndarray or
+>>>>>>> origin/aprilis
   """
   if string == 'None':
     return None
@@ -180,6 +187,43 @@ def parray(string, dtype=np.double):
   else:
     string = [string]
     flatten = True
+
+  arr = []
+  for s in string:
+    arr.append(s.split())
+
+  if flatten:  # Input is 1D
+    arr = arr[0]
+
+  try:    # If they can be converted into doubles, do it:
+    return np.array(arr, dtype)
+  except: # Else, return a string array:
+    return arr
+
+
+def qarray(string, dtype=np.double):
+  """
+  Convert a string containin a list of white-space-separated and/or
+  newline-separated values into a numpy array or list.
+
+  Parameters
+  ----------
+  string: String
+
+  Returns
+  -------
+  arr: ndarray or
+  """
+  if string == 'None':
+    return None
+
+  # Multiple lines:
+  #if string.find('\n') >= 0:
+  #  string = string.split('\n')
+  #  flatten = False
+  #else:
+  string = [string]
+  flatten = True
 
   arr = []
   for s in string:
