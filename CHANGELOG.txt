@@ -396,3 +396,7 @@ Synced with WASP-12b version.
 
 Sorted out files in stats module.
 
+*****
+
+Added __version__ variable into VERSION.py
+
