@@ -407,3 +407,7 @@ model.
 Fixed a few other bugs to get the pupppies package to import without
 breaking.
 
+*****
+
+Got setup.py up to speed, puppies is now installable.
+

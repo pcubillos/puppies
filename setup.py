@@ -1,5 +1,5 @@
-# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
 import os
 import sys
@@ -9,39 +9,38 @@ from setuptools import setup, Extension
 
 from numpy import get_include
 
-topdir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(topdir + "/puppies")
-import VERSION as ver
+sys.path.append(os.path.join(os.path.dirname(__file__), 'puppies'))
+from VERSION import __version__
 
-srcdir = topdir + '/src_c/'          # C-code source folder
-incdir = topdir + '/src_c/include/'  # Include filder with header files
 
-files = os.listdir(srcdir)
-# This will filter the results for just the c files:
-files = list(filter(lambda x:     re.search('.+[.]c$',     x), files))
-files = list(filter(lambda x: not re.search('[.#].+[.]c$', x), files))
+srcdir = 'src_c/'          # C-code source folder
+incdir = 'src_c/include/'  # Include filder with header files
+
+cfiles = os.listdir(srcdir)
+cfiles = list(filter(lambda x: re.search('.+[.]c$', x), cfiles))
+cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
 
 inc = [get_include(), incdir]
 eca = ['-ffast-math']
 ela = []
 
-extensions = []
-for efile in files:
-    e = Extension('puppies.lib.'+efile.rstrip(".c"),
-                  sources=["{:s}{:s}".format(srcdir, efile)],
-                  include_dirs=inc,
-                  extra_compile_args=eca,
-                  extra_link_args=ela)
-    extensions.append(e)
+extensions = [
+    Extension(
+        'puppies.lib.' + cfile.rstrip('.c'),
+        sources=[f'{srcdir}{cfile}'],
+        include_dirs=inc,
+        extra_compile_args=eca,
+        extra_link_args=ela)
+    for cfile in cfiles
+    ]
 
 
 setup(
-    name = "puppies",
-    version = "{ver.pup_VER}.{ver.pup_MIN}.{ver.pup_REV}"
-    description = "The Public Photometry Pipeline for Exoplanets.",
-    author = "Patricio Cubillos",
-    author_email = "patricio.cubillos@oeaw.ac.at",
-    url = "https://github.com/pcubillos/puppies",
+    name = 'puppies',
+    version = __version__,
+    author = 'Patricio Cubillos',
+    author_email = 'patricio.cubillos@oeaw.ac.at',
+    url = 'https://github.com/pcubillos/puppies',
     packages = setuptools.find_packages(),
     install_requires = [
         'numpy>=1.8.1',
@@ -49,6 +48,9 @@ setup(
         'matplotlib>=1.3.1',
         'astropy>=3.1',
         ],
-    license = ["MIT"],
+    include_package_data=True,
+    license = 'MIT',
+    description = 'The Public Photometry Pipeline for Exoplanets',
     include_dirs = inc,
-    ext_modules  = extensions)
+    ext_modules = extensions,
+    )
