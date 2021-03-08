@@ -391,3 +391,8 @@ Added fitting and retrieval fixes from Bell's run.
 
 Synced with WASP-12b version.
 
+
+*****  Mon Mar 8 21:39:18 CET 2021  *****
+
+Sorted out files in stats module.
+
