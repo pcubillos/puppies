@@ -47,7 +47,7 @@ setup(
         'scipy>=0.13.3',
         'matplotlib>=1.3.1',
         'astropy>=3.1',
-        'mc3>=3.0.5',
+        'mc3>=3.0.6',
         ],
     include_package_data=True,
     license = 'MIT',

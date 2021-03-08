@@ -426,3 +426,7 @@ Removed CONTRIBUTING.md
 
 Added pyproject.toml file.
 
+*****
+
+Updated mc3 required version to 3.0.6.
+
