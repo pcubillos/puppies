@@ -3,8 +3,8 @@
 
 __all__ = [
     'parse_model',
-    'parray'
-    'qarray'
+    'parray',
+    'qarray',
     ]
 
 import os

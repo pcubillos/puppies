@@ -400,3 +400,10 @@ Sorted out files in stats module.
 
 Added __version__ variable into VERSION.py
 
+*****
+
+Added ophase.py into models module with orbital-phase lightcurve
+model.
+Fixed a few other bugs to get the pupppies package to import without
+breaking.
+
