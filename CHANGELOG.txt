@@ -422,3 +422,7 @@ Added .readthedocs.yml file.
 Updated docs conf.py and other docs.
 Removed CONTRIBUTING.md
 
+*****
+
+Added pyproject.toml file.
+
