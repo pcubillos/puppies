@@ -416,3 +416,9 @@ Got setup.py up to speed, puppies is now installable.
 Removed MCcubed submodule.
 Added mc3 requirement.
 
+*****
+
+Added .readthedocs.yml file.
+Updated docs conf.py and other docs.
+Removed CONTRIBUTING.md
+

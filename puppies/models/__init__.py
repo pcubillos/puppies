@@ -1,5 +1,5 @@
-# Copyright (c) 2018 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
 import os
 import sys
@@ -7,7 +7,7 @@ import sys
 from .mandeltr import *
 from .ophase import *
 from .ramps import *
-from .aor import *
+#from .aor import *
 from .bliss import *
 sys.path.append(
     os.path.dirname(os.path.realpath(__file__)) + "/../../modules/eclipse/")
@@ -17,7 +17,7 @@ from .mandeltr import __all__ as mtall
 from .ophase import __all__ as oall
 from eclipse import __all__ as eall
 from .ramps import __all__ as rall
-from .aor import __all__ as aall
+#from .aor import __all__ as aall
 from .bliss import __all__ as biall
 
 __all__ = (
@@ -27,7 +27,7 @@ __all__ = (
     + oall
     # Ramps:
     + rall
-    + aall
+    #+ aall
     # Pixel maps:
     + biall
     )
