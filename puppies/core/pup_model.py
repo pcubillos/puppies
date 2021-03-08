@@ -1,28 +1,29 @@
-# Copyright (c) 2018 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
-__all__ = ["setup", "lcfit", "mcmc", "evalmodel"]
+__all__ = [
+    "setup",
+    "lcfit",
+    "mcmc",
+    "evalmodel",
+    ]
 
-import os
-import sys
 import time
+
 import numpy as np
+import mc3
+import mc3.fit as mf
+import mc3.utils as mu
 
 from .. import tools as pt
-from .. import io    as io
+from .. import io as io
 from .. import image as im
 from .. import plots as pp
 from .. import stats as ps
 
-sys.path.append(os.path.realpath(os.path.dirname(__file__)
-                + "/../../../modules/MCcubed"))
-import MCcubed       as mc3
-import MCcubed.fit   as mf
-import MCcubed.utils as mu
-
 
 """
-this module runs the light-curve modeling, either optimization or
+This module runs the light-curve modeling, either optimization or
 Markov Chain Monte Carlo runs.
 """
 

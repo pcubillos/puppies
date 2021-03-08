@@ -1,15 +1,17 @@
-import sys
-import os
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
+
+__all__ = [
+    "yx",
+    "background",
+    "rawflux",
+    ]
+
 import matplotlib.pyplot as plt
 import numpy as np
+import mc3.utils as mu
 
 from .. import stats as ps
-
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
-sys.path.append(rootdir + "/modules/MCcubed/")
-import MCcubed.utils as mu
-
-__all__ =["yx", "background", "rawflux"]
 
 
 def yx(y, x, phase=None, good=None, pos=None, folder=None):
