@@ -440,4 +440,7 @@ Fixed some bugs related to mc3 dependency.
 
 Updated LICENSE.
 
+*****
+
+PEP8ed puppies/driver.py.
 
