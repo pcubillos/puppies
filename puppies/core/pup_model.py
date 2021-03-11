@@ -12,8 +12,7 @@ import time
 
 import numpy as np
 import mc3
-import mc3.fit as mf
-import mc3.utils as mu
+import mc3.stats as ms
 
 from .. import tools as pt
 from .. import io as io
@@ -375,7 +374,7 @@ def setup(cfile, mode='turtle'):
       uncert = pup.ferr[fit.mask[j]]
       time   = pup.time[fit.mask[j]]
       binsize = int(fit.ndata[j]/pup.nbins)
-      binflux, binferr, bintime = mu.binarray(data, uncert, time, binsize)
+      binflux, binferr, bintime = ms.bin_array(data, uncert, time, binsize)
       fit.binflux[j], fit.binferr[j], fit.bintime[j] = binflux, binferr, bintime
 
     # Print summary of fit:
@@ -409,14 +408,15 @@ def lcfit(cfile=None, laika=None, summary=False):
   sdr = [[] for n in np.arange(laika.npups)]
   bic = [[] for n in np.arange(laika.npups)]
 
-  lm = laika.optimizer == "lm"
   # Run MC3 least-squares fit:
   print("Calculating least-squares fit.")
   for fit in laika.fit:
     # Optimization:
-    output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.ferr,
-        indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
-        prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
+    output = mc3.fit(
+        fit.flux, fit.ferr, evalmodel, fit.params, indparams=[fit],
+        pstep=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+        prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
+        leastsq=laika.optimizer)
 
     # Evaluate model using current values:
     fit.bestparams = output[1]
@@ -445,9 +445,11 @@ def lcfit(cfile=None, laika=None, summary=False):
       # New Least-squares fit using modified uncertainties:
       if laika.joint:
         print("Re-calculating least-squares fit with new errors.")
-        output = mf.modelfit(fit.params, evalmodel, fit.flux, fit.cferr,
-            indparams=[fit], stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
-            prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup, lm=lm)
+        output = mc3.fit(
+            fit.flux, fit.cferr, evalmodel, fit.params, indparams=[fit],
+            stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+            prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
+            lm=laika.optimizer)
         fit.bestparams = output[1]
 
     # Store best-fitting parameters:
