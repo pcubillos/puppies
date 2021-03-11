@@ -1,16 +1,26 @@
-# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
-__all__ = ["msg", "warning", "error", "getpar", "cat"]
+__all__ = [
+    'ROOT',
+    "msg",
+    "warning",
+    "error",
+    "getpar",
+    "cat",
+    ]
 
+from pathlib import Path
 import sys
-import traceback
 import textwrap
+import traceback
 
 import numpy as np
 
 import astropy.units as u
 
+
+ROOT = str(Path(__file__).parents[2]) + '/'
 
 # Warning/error banner:
 sep = 70*":"

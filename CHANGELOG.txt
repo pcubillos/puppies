@@ -444,3 +444,15 @@ Updated LICENSE.
 
 PEP8ed puppies/driver.py.
 
+*****
+
+Added ROOT constant into tools module with puppies root location.
+
+*****
+
+Get puppies.init() going:
+- driver.py
+  is driver.run() used?
+inst
+tools
+
