@@ -468,3 +468,7 @@ Renamed inst module to instruments.
 
 PEP8ed pup_badpix.py.
 
+*****
+
+PEP8ed stats.py.
+
