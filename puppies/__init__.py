@@ -1,5 +1,5 @@
-# Copyright (c) 2018 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
 __all__ = [
     'init',

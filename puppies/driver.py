@@ -3,7 +3,7 @@
 
 import configparser
 
-from . import inst
+from . import instruments as inst
 from . import tools as pt
 
 
@@ -44,7 +44,7 @@ def run(args):
     if runmode[0] == "load":
         pup = s.Pup(args)
     else:
-        pup = ls.load(args["pickle"]) # Load object
+        pup = io.load(args["pickle"])
         update(pup)
 
     for i in np.arange(nsteps):

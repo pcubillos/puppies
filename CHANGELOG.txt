@@ -460,3 +460,7 @@ Renamed io/loadsave.py to io/io.py
 
 PEP8ed io.py.
 
+*****
+
+Renamed inst module to instruments.
+
