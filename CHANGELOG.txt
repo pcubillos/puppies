@@ -472,3 +472,7 @@ PEP8ed pup_badpix.py.
 
 PEP8ed stats.py.
 
+*****
+
+Moved update() from pup_center.py to io.py.
+
