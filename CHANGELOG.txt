@@ -436,3 +436,8 @@ Updated mc3 required version to 3.0.6.
 Removed eclipse submodule, replaced with source files.
 Fixed some bugs related to mc3 dependency.
 
+*****
+
+Updated LICENSE.
+
+
