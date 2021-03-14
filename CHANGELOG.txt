@@ -485,3 +485,7 @@ PEP8ed pup_center.py.
 
 Updated logo and README files.
 
+*****
+
+Added pup entry point.
+

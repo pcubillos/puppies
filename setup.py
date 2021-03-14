@@ -53,5 +53,6 @@ setup(
     license = 'MIT',
     description = 'The Public Photometry Pipeline for Exoplanets',
     include_dirs = inc,
+    entry_points={'console_scripts': ['pup = puppies.__main__:main']},
     ext_modules = extensions,
     )
