@@ -480,3 +480,8 @@ Moved update() from pup_center.py to io.py.
 
 PEP8ed pup_center.py.
 
+
+*****  Sun Mar 14 20:17:18 CET 2021  *****
+
+Updated logo and README files.
+
