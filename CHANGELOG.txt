@@ -496,3 +496,7 @@ Refactored io.update to process whatever is passed on in the config
 file, regardless of the step.  Do not set defaults.  Moved checks
 into the respective steps.
 
+*****
+
+PEP8ed pup_photom.py and got it working.
+

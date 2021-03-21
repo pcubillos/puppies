@@ -9,7 +9,7 @@ __all__ = [
 
 import matplotlib.pyplot as plt
 import numpy as np
-import mc3.utils as mu
+import mc3
 
 from .. import stats as ps
 
@@ -137,87 +137,88 @@ def background(skylev, phase=None, good=None, folder=None, units='units'):
 
 
 def rawflux(flux, ferr, phase=None, good=None, folder=None,
-            sigrej=None, binsize=None, units='units'):
-  """
-  Make raw flux plots (all individual frames, all frames without
-  outliers, and binned frames).
+    sigrej=None, binsize=None, units='units'):
+    """
+    Make raw flux plots (all individual frames, all frames without
+    outliers, and binned frames).
 
-  Parameters
-  ----------
-  flux: 1D float ndarray
-     Frames flux values.
-  ferror: 1D float ndarray
-     Frames flux uncertainties.
-  phase: 1D float ndarray
-     Frames orbital phase.
-  good: 1D bool ndarray
-     Good frame mask.
-  folder: String
-     Folder where to store the output plots.
-  sigrej: 1D float array
-     Sigma rejection threshold.
-  binsize: Integer
-     Binning bin size (defaulted to 400 points per orbit).
-  units: String
-     Flux units.
-  """
-  if phase is None:
-    phase = np.arange(len(y), int)
+    Parameters
+    ----------
+    flux: 1D float ndarray
+       Frames flux values.
+    ferror: 1D float ndarray
+       Frames flux uncertainties.
+    phase: 1D float ndarray
+       Frames orbital phase.
+    good: 1D bool ndarray
+       Good frame mask.
+    folder: String
+       Folder where to store the output plots.
+    sigrej: 1D float array
+       Sigma rejection threshold.
+    binsize: Integer
+       Binning bin size (defaulted to 400 points per orbit).
+    units: String
+       Flux units.
+    """
+    if phase is None:
+        phase = np.arange(len(y), int)
 
-  # X-axis' range:
-  dt = np.ptp(phase[good])
-  xran = np.amin(phase[good]) - 0.025*dt, np.amax(phase[good]) + 0.025*dt
+    # X-axis' range:
+    dt = np.ptp(phase[good])
+    xran = np.amin(phase[good]) - 0.025*dt, np.amax(phase[good]) + 0.025*dt
 
-  ms = 3.0
-  plt.figure(504)
-  plt.clf()
-  ax = plt.subplot(111)
-  plt.plot(phase[ good], flux[ good], ".", color="b",      zorder=1, ms=ms)
-  yran = ax.get_ylim()
-  plt.plot(phase[~good], flux[~good], ".", color="orange", zorder=0, ms=ms)
-  plt.ylim(yran)
-  plt.xlim(xran)
-  plt.ylabel("Raw flux ({:s})".format(units))
-  plt.xlabel('Orbital phase')
+    ms = 3.0
+    plt.figure(504)
+    plt.clf()
+    ax = plt.subplot(111)
+    plt.plot(phase[ good], flux[ good], ".", color="b",      zorder=1, ms=ms)
+    yran = ax.get_ylim()
+    plt.plot(phase[~good], flux[~good], ".", color="orange", zorder=0, ms=ms)
+    plt.ylim(yran)
+    plt.xlim(xran)
+    plt.ylabel("Raw flux ({:s})".format(units))
+    plt.xlabel('Orbital phase')
 
-  if folder is not None:
-    plt.savefig(folder + "/raw_flux.png")
+    if folder is not None:
+      plt.savefig(folder + "/raw_flux.png")
 
-  # Mask out outliers and get yran:
-  if sigrej is None:
-    sigrej = [5,5,5]
-  mask = ps.sigrej(flux, sigrej, mask=np.copy(good))
-  plt.clf()
-  ax = plt.subplot(111)
-  plt.plot(flux[mask])
-  yran = ax.get_ylim()
+    # Mask out outliers and get yran:
+    if sigrej is None:
+        sigrej = [5,5,5]
+    mask = ps.sigrej(flux, sigrej, mask=np.copy(good))
+    plt.clf()
+    ax = plt.subplot(111)
+    plt.plot(flux[mask])
+    yran = ax.get_ylim()
 
-  # Replot with the narrower yran:
-  plt.clf()
-  plt.plot(phase[ good], flux[ good], ".", color="b",      zorder=1, ms=ms)
-  plt.plot(phase[~good], flux[~good], ".", color="orange", zorder=0, ms=ms)
-  plt.ylim(yran)
-  plt.xlim(xran)
-  plt.ylabel("Raw flux without outliers ({:s})".format(units))
-  plt.xlabel('Orbital phase')
-  if folder is not None:
-    plt.savefig(folder + "/raw_flux_zoom.png")
+    # Replot with the narrower yran:
+    plt.clf()
+    plt.plot(phase[ good], flux[ good], ".", color="b",      zorder=1, ms=ms)
+    plt.plot(phase[~good], flux[~good], ".", color="orange", zorder=0, ms=ms)
+    plt.ylim(yran)
+    plt.xlim(xran)
+    plt.ylabel("Raw flux without outliers ({:s})".format(units))
+    plt.xlabel('Orbital phase')
+    if folder is not None:
+        plt.savefig(folder + "/raw_flux_zoom.png")
 
-  # Binned flux:
-  if binsize is None:
-    # Draw 400 points per orbit:
-    binsize = int(np.sum(good)/dt / 400.0)
-  binflux, binunc, binphase = mu.binarray(flux[good], ferr[good],
-                                          phase[good], binsize)
+    # Binned flux:
+    if binsize is None:
+        # Draw 400 points per orbit:
+        binsize = int(np.sum(good)/dt / 400.0)
+    binflux, binunc = mc3.stats.bin_array(
+        flux[good], binsize, ferr[good])
+    binphase = mc3.stats.bin_array(phase[good], binsize)
 
-  plt.clf()
-  ax = plt.subplot(111)
-  plt.errorbar(binphase, binflux, binunc, fmt="bo")
-  plt.xlim(xran)
-  plt.ylabel("Binned raw flux ({:s})".format(units))
-  plt.xlabel('Orbital phase')
-  if folder is not None:
-    plt.savefig(folder + "/raw_flux_binned.png")
+    plt.clf()
+    ax = plt.subplot(111)
+    plt.errorbar(binphase, binflux, binunc, fmt="bo")
+    plt.xlim(xran)
+    plt.ylabel("Binned raw flux ({:s})".format(units))
+    plt.xlabel('Orbital phase')
+    if folder is not None:
+        plt.savefig(folder + "/raw_flux_binned.png")
 
 
 def yxflux():
