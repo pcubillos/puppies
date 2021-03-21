@@ -41,6 +41,20 @@ def center(pup, cfile=None):
     if cfile is not None:
         io.update(pup, cfile)
 
+    # Check all necessary inputs are provided:
+    if "centering" not in pup.inputs.keys():
+        pt.error("Missing 'centering' user input.")
+
+    if "lag" in pup.centering:
+        if pup.aradius == 0 or pup.asize == 0:
+            pt.error("Missing 'aradius' or 'asize' least-asymmetry inputs")
+        if os.path.isfile(pup.psf) and (pup.psfarad == 0 or pup.psfasize == 0):
+            pt.error("Missing 'psfaradius' or 'psfasize' least-asymmetry inputs")
+
+    if "psffit" in pup.centering:
+        if pup.psfscale == 0:
+            pt.error("Missing 'psfscale' centering user input.")
+
     nruns = len(pup.centering)
     # Loop over each run:
     for i in range(nruns):

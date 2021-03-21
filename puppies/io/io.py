@@ -77,44 +77,72 @@ def update(pup, cfile):
     args = dict(config.items("PUPPIES"))
 
     pup.inputs.update(args)
-    pt.msg(1, f"Updated user parameters: {list(args.keys())}")
+    pt.msg(1, f"Updated parameters: {list(args.keys())}")
 
-    # Set defaults for centering parameters:
-    pup.inputs.setdefault("ncpu", "1")
-    pup.inputs.setdefault("ctrim", "8")
-    pup.inputs.setdefault("fitbg", "True")
-    pup.inputs.setdefault("cweights", "False")
-    pup.inputs.setdefault("aradius", "0")
-    pup.inputs.setdefault("asize", "0")
-    pup.inputs.setdefault("psftrim", "0")
-    pup.inputs.setdefault("psfarad", "0")
-    pup.inputs.setdefault("psfasize", "0")
-    pup.inputs.setdefault("psfscale", "0")
+    # I don't really need this, don't I?:
+    inputs = {
+        "ncpu": "1",
+        # Centering:
+        "ctrim": "8",
+        "fitbg": "True",
+        "cweights": "False",
+        "aradius": "0",
+        "asize": "0",
+        "psftrim": "0",
+        "psfarad": "0",
+        "psfasize": "0",
+        "psfscale": "0",
+        # Photometry:
+        "skyfrac": "0.1",
+        "skymed": "False",
+        "expand": "1",
+        "psfexpand": "1",
+        "otrim": "10",
+        }
 
-    # Check all necessary inputs are provided:
-    if "centering" not in pup.inputs.keys():
-        pt.error("Missing 'centering' user input.")
+    # General:
+    if 'ncpu' in args:
+        pup.ncpu = int(args["ncpu"])
 
-    pup.centering = pt.parray(pup.inputs["centering"])
-    pup.ncpu = int( pup.inputs["ncpu"])
-    pup.ctrim = int( pup.inputs["ctrim"])
-    pup.cweights = bool(pup.inputs["cweights"])
-    pup.fitbg = bool(pup.inputs["fitbg"])
-    pup.aradius = int( pup.inputs["aradius"])
-    pup.asize = int( pup.inputs["asize"])
-    pup.psftrim = int( pup.inputs["psftrim"])
-    pup.psfarad = int( pup.inputs["psfarad"])
-    pup.psfasize = int( pup.inputs["psfasize"])
-    pup.psfscale = int( pup.inputs["psfscale"])
+    # Centering:
+    if 'centering' in args:
+        pup.centering = pt.parray(args["centering"])
+    if 'ctrim' in args:
+        pup.ctrim = int(args["ctrim"])
+    if 'cweights' in args:
+        pup.cweights = bool(args["cweights"])
+    if 'fitbg' in args:
+        pup.fitbg = bool(args["fitbg"])
+    if 'aradius' in args:
+        pup.aradius = int(args["aradius"])
+    if 'asize' in args:
+        pup.asize = int(args["asize"])
+    if 'psftrim' in args:
+        pup.psftrim = int(args["psftrim"])
+    if 'psfarad' in args:
+        pup.psfarad = int(args["psfarad"])
+    if 'psfasize' in args:
+        pup.psfasize = int(args["psfasize"])
+    if 'psfscale' in args:
+        pup.psfscale = int(args["psfscale"])
 
-    if "lag" in pup.centering:
-        if pup.aradius == 0 or pup.asize == 0:
-            pt.error("Missing 'aradius' or 'asize' least-asymmetry inputs.")
-        if os.path.isfile(pup.psf):
-            if pup.psfarad == 0 or pup.psfasize == 0:
-                pt.error("Missing 'psfaradius' or 'psfasize' least-asymmetry inputs.")
-
-    if "psffit" in pup.centering:
-        if pup.psfscale == 0:
-            pt.error("Missing 'psfscale' centering user input.")
+    # Photometry:
+    if 'photap' in args:
+        pup.photap = pt.parray(args["photap"])
+    if 'skyin' in args:
+        pup.skyin = pt.parray(args["skyin"], float)
+    if 'skyout' in args:
+        pup.skyout = pt.parray(args["skyout"], float)
+    if 'ncpu' in args:
+        pup.ncpu = int(args["ncpu"])
+    if 'skyfrac' in args:
+        pup.skyfrac = float(args["skyfrac"])
+    if 'skymed' in args:
+        pup.skymed = bool(args["skymed"])
+    if 'expand' in args:
+        pup.expand = int(args["expand"])
+    if 'psfexpand' in args:
+        pup.psfexpand = int(args["psfexpand"])
+    if 'otrim' in args:
+        pup.otrim = int(args["otrim"])
 

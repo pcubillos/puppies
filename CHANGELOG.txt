@@ -489,3 +489,10 @@ Updated logo and README files.
 
 Added pup entry point.
 
+
+*****  Sun Mar 21 16:40:37 CET 2021  *****
+
+Refactored io.update to process whatever is passed on in the config
+file, regardless of the step.  Do not set defaults.  Moved checks
+into the respective steps.
+
