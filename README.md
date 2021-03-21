@@ -1,5 +1,5 @@
-# <img alt="puppies" src="https://raw.githubusercontent.com/pcubillos/puppies/aprilis/docs/logo_puppies_texted.png" height="275">
-> The **Pu**blic **P**hotometry **Pi**peline for **Ex**oplanets
+# <img alt="puppies" src="https://raw.githubusercontent.com/pcubillos/puppies/aprilis/docs/logo_puppies_texted.png" height="250">
+> The **Pu**blic **P**hotometry **Pi**peline for **E**xoplanet**s**
 
 [![Build Status](https://travis-ci.com/pcubillos/puppies.svg?branch=aprilis)](https://travis-ci.com/pcubillos/puppies)
 [![Documentation Status](https://readthedocs.org/projects/puppies/badge/?version=latest)](https://puppies.readthedocs.io/en/latest/?badge=latest)

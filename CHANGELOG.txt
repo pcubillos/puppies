@@ -500,3 +500,7 @@ into the respective steps.
 
 PEP8ed pup_photom.py and got it working.
 
+*****
+
+Tweaked README file.
+
