@@ -515,3 +515,8 @@ Added image module into main package.
 PEP8ed pup_model.py.
 Got light-curve fitting and retrieval running.
 
+*****
+
+Updated docs adding getting started and draft of WASP43b eclipse
+worked example.
+

@@ -3,11 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-puppies: Public Photometry Pipeline for Exoplanets
-==================================================
+puppies: The Public Photometry Pipeline for Exoplanets
+======================================================
 
-:Author:       Patricio Cubillos and contributors (see :ref:`team`)
-:Contact:      `patricio.cubillos[at]oeaw.ac.at`_
+|Build Status|  |docs|  |PyPI|  |conda|  |License|
+
+-------------------------------------------------------------------
+
+:Author:       Patricio Cubillos (see :ref:`team`)
+:Contact:      `pcubillos[at]fulbrightmail.org`_
 :Organizations: `Space Research Institute (IWF)`_
 :Web Site:     https://github.com/pcubillos/puppies
 :Date:         |today|
@@ -22,7 +26,7 @@ What is puppies?
 Contributors
 ============
 
-- `Patricio Cubillos`_ (IWF) `patricio.cubillos[at]oeaw.ac.at`_
+- `Patricio Cubillos`_ (IWF) `pcubillos[at]fulbrightmail.org`_
 
 Documentation
 =============
@@ -30,6 +34,8 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
+   getstarted
+   wasp43b_eclipse
    contributing
    license
 
@@ -37,12 +43,12 @@ Be Kind
 =======
 
 Please reference this paper if you found ``puppies`` useful for your research:
-  `Cubillos et al. (2018): Astronomic Socialism V: Photometry`_, in preparation.
+  `Cubillos et al. (2021): The Public Photometry Pipeline for Exoplanets`_, Prima Aprilis.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
 
-  Patricio Cubillos (`patricio.cubillos[at]oeaw.ac.at`_)
+  Patricio Cubillos (`pcubillos[at]fulbrightmail.org`_)
 
 ``puppies`` is open-source open-development software under the MIT license :ref:`license`.
 
@@ -54,6 +60,27 @@ Thank you for using ``puppies``!
 
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
-.. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
+.. _pcubillos[at]fulbrightmail.org: pcubillos@fulbrightmail.org
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
-.. _Cubillos et al. (2018)\: Astronomic Socialism V\: Photometry: http://pcubillos.github.io/puppies
+.. _Cubillos et al. (2021)\: The Public Photometry Pipeline for Exoplanets: https://github.com/pcubillos/puppies
+
+.. |Build Status| image:: https://travis-ci.com/pcubillos/puppies.svg?branch=master
+   :target: https://travis-ci.com/pcubillos/puppies
+
+.. |docs| image:: https://readthedocs.org/projects/puppies/badge/?version=latest
+    :target: https://puppies.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/exo_puppies.svg
+    :target: https://pypi.org/project/exo_puppies/
+    :alt: Latest Version
+
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/puppies.svg
+    :target: https://anaconda.org/conda-forge/puppies
+
+.. |License| image:: https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue
+    :target: https://pcubillos.github.io/puppies.html
+
+.. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.0000000.svg
+    :target: https://doi.org/10.5281/zenodo.0000000
+
