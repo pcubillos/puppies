@@ -510,3 +510,8 @@ Tweaked README file.
 PEP8ed image module.
 Added image module into main package.
 
+*****
+
+PEP8ed pup_model.py.
+Got light-curve fitting and retrieval running.
+

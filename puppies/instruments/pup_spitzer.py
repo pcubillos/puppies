@@ -460,7 +460,7 @@ class Spitzer():
             plt.figure(101, (8,6))
             plt.clf()
             plt.imshow(
-                self.data[i], interpolation='nearest', origin='ll',
+                self.data[i], interpolation='nearest', origin='lower',
                 cmap=plt.cm.viridis)
             plt.plot(self.srcest[1,pos], self.srcest[0,pos],'k+', ms=12, mew=2)
             plt.xlim(-0.5, inst.nx-0.5)
