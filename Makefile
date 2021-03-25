@@ -32,8 +32,8 @@ endif
 mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
 
 # `make [clean]` should run `make [clean]` on all of the modules.
-all: make_pup make_mc3 make_eclipse
-clean: clean_pup clean_mc3 clean_eclipse
+all: make_pup
+clean: clean_pup
 
 
 make_pup:
@@ -44,22 +44,7 @@ make_pup:
 	@echo "Successful compilation."
 	@echo ""
 
-make_mc3:
-	@cd $(mkfile_dir)/modules/MCcubed/ && make
-
-make_eclipse:
-	@cd $(mkfile_dir)/modules/eclipse/ && make
-
-
 clean_pup:
 	@rm -rf $(LIBDIR)*.so
 	@echo "Cleaned puppies."
-
-clean_mc3:
-	@cd $(mkfile_dir)/modules/MCcubed && make clean
-	@echo "Cleaned MC3."
-
-clean_eclipse:
-	@cd $(mkfile_dir)/modules/eclipse && make clean
-	@echo "Cleaned eclipse."
 

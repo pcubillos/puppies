@@ -531,3 +531,7 @@ Moved all figures to puppies/docs/figures/ folder.
 PEP8ed a bunch of files.
 Updated copyright headers.
 
+*****
+
+Updated Makefile (do I even need this file anymore [question mark])
+
