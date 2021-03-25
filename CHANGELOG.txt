@@ -520,3 +520,9 @@ Got light-curve fitting and retrieval running.
 Updated docs adding getting started and draft of WASP43b eclipse
 worked example.
 
+*****
+
+Moved all figures to puppies/docs/figures/ folder.
+Added pup_marker.py with code to enable pup matplotlib markers.
+Updated getting started with pup-marker example.
+
