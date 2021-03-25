@@ -1,11 +1,10 @@
-# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
 import os
 import sys
 import pytest
 
-import numpy as np
 import astropy.units as u
 
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'

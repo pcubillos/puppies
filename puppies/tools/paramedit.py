@@ -1,10 +1,10 @@
-# Copyright (c) 2018-2019 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
 __all__ = [
-    "newparams",
-    "loadparams",
-    "saveparams",
+    'newparams',
+    'loadparams',
+    'saveparams',
     ]
 
 import os
@@ -31,85 +31,87 @@ header = """\
 
 
 def newparams(filename):
-  """
-  Create new modelparams text file with all currently-available
-  models and their default values.
+    """
+    Create new modelparams text file with all currently-available
+    models and their default values.
 
-  Parameters
-  ----------
-  filename: String
-     File where to save the model parameters.
-  """
-  # Make list of models:
-  models = []
-  for modelname in pm.__all__:
-    models.append(eval("pm.{:s}()".format(modelname)))
-  # Save to file:
-  writeparams(filename, models)
+    Parameters
+    ----------
+    filename: String
+       File where to save the model parameters.
+    """
+    # Make list of models:
+    models = []
+    for modelname in pm.__all__:
+        models.append(eval("pm.{:s}()".format(modelname)))
+    # Save to file:
+    writeparams(filename, models)
 
 
 def loadparams(filename, mnames=None):
-  """
-  Load up the info from a model-parameters file, extract models and
-  values (params, bounds, and stepsizes).  If mnames is not None,
-  return only the specified models.
+    """
+    Load up the info from a model-parameters file, extract models and
+    values (params, bounds, and stepsizes).  If mnames is not None,
+    return only the specified models.
 
-  Parameters
-  ----------
-  filename: String
-     Parameters file to load.
-  mnames: List of strings
-     List of model names to extract parameters.
+    Parameters
+    ----------
+    filename: String
+       Parameters file to load.
+    mnames: List of strings
+       List of model names to extract parameters.
 
-  Returns
-  -------
-  models: List of model objects
-     The requested models, initialized with filename values.
-  """
-  all_models = pm.__all__
+    Returns
+    -------
+    models: List of model objects
+       The requested models, initialized with filename values.
+    """
+    all_models = pm.__all__
 
-  with open(filename, "r") as f:
-    lines = f.readlines()
-  # Skip header:
-  i = 0
-  while lines[i].startswith("#") or lines[i].strip() == "":
-    i += 1
+    with open(filename, "r") as f:
+        lines = f.readlines()
+    # Skip header:
+    i = 0
+    while lines[i].startswith("#") or lines[i].strip() == "":
+        i += 1
 
-  # Update models' parameters with info from file:
-  names, models = [], []
-  while i < len(lines):
-    modelname = lines[i].strip()
-    if modelname not in all_models:
-      print("Listed model ({:s}) is not in the list of available models.".
-            format(modelname))
-      i += 6
-      continue
-    m = eval("pm.{:s}()".format(modelname))
-    try:
-      m.params[:] = np.array(lines[i+2].split(), np.double)
-      m.pmin  [:] = np.array(lines[i+3].split(), np.double)
-      m.pmax  [:] = np.array(lines[i+4].split(), np.double)
-      m.pstep [:] = np.array(lines[i+5].split(), np.double)
-      names.append(modelname)
-      models.append(m)
-    except:
-      pt.error("Incorrect number of parameters for model '{:s}'. This model"
-               "should take {:d} parameters.".format(modelname, m.npars))
-    i += 6
+    # Update models' parameters with info from file:
+    names, models = [], []
+    while i < len(lines):
+        modelname = lines[i].strip()
+        if modelname not in all_models:
+            print("Listed model ({:s}) is not in the list of available models.".
+                format(modelname))
+            i += 6
+            continue
+        m = eval("pm.{:s}()".format(modelname))
+        try:
+            m.params[:] = np.array(lines[i+2].split(), np.double)
+            m.pmin  [:] = np.array(lines[i+3].split(), np.double)
+            m.pmax  [:] = np.array(lines[i+4].split(), np.double)
+            m.pstep [:] = np.array(lines[i+5].split(), np.double)
+            names.append(modelname)
+            models.append(m)
+        except:
+            pt.error(
+                f"Incorrect number of parameters for model '{modelname}'. "
+                f"This model should take {m.npars} parameters")
+        i += 6
 
-  # Select models if requested:
-  if mnames is not None:
-    missing = ~np.in1d(mnames, names)
-    if np.any(missing):
-      pt.error("Some of the requested models ({:s}) are not in the "
-               "list of available light curve models.".
-               format(", ".join(np.array(mnames)[missing])))
-    selected = []
-    # Pick the selected models:
-    for model in mnames:
-      selected.append(models[names.index(model)])
-    return selected
-  return models
+    # Select models if requested:
+    if mnames is not None:
+        missing = ~np.in1d(mnames, names)
+        if np.any(missing):
+            pt.error(
+                "Some of the requested models ({:s}) are not in the "
+                "list of available light curve models.".
+                format(", ".join(np.array(mnames)[missing])))
+        selected = []
+        # Pick the selected models:
+        for model in mnames:
+            selected.append(models[names.index(model)])
+        return selected
+    return models
 
 
 def saveparams(fit):

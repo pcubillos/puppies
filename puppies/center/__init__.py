@@ -1,23 +1,23 @@
-# Copyright (c) 2018 Patricio Cubillos and contributors.
-# puppies is open-source software under the MIT license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# puppies is open-source software under the MIT license (see LICENSE)
 
-from . import gaussian
 from .least_asym import *
-from .col        import *
-from .driver     import *
+from .center_of_light import *
+from .driver import *
+from . import gaussian
 
-from .least_asym import __all__ as lall
-from .col        import __all__ as call
-from .driver     import __all__ as dall
-
-__all__ = ["gaussian"] + lall + call + dall
-
+__all__ = (
+      least_asym.__all__
+    + center_of_light.__all__
+    + driver.__all__
+    + ["gaussian"]
+    )
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
     if not ((varname.startswith('__') and varname.endswith('__')) or
-            varname in __all__ ):
+            varname in __all__):
         del locals()[varname]
 del(varname)
 

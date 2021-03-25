@@ -522,7 +522,12 @@ worked example.
 
 *****
 
-Moved all figures to puppies/docs/figures/ folder.
 Added pup_marker.py with code to enable pup matplotlib markers.
 Updated getting started with pup-marker example.
+Moved all figures to puppies/docs/figures/ folder.
+
+*****
+
+PEP8ed a bunch of files.
+Updated copyright headers.
 

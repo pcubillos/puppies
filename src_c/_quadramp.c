@@ -1,3 +1,6 @@
+// Copyright (c) 2021 Patricio Cubillos
+// puppies is open-source software under the MIT license (see LICENSE)
+
 #include<Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include<numpy/arrayobject.h>
