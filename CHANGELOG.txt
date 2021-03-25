@@ -504,3 +504,9 @@ PEP8ed pup_photom.py and got it working.
 
 Tweaked README file.
 
+
+*****  Do 25. Mär 11:46:27 CET 2021  *****
+
+PEP8ed image module.
+Added image module into main package.
+

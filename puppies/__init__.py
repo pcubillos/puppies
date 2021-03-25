@@ -6,6 +6,7 @@ __all__ = [
     'core',
     'stats',
     'tools',
+    'image',
     'io',
     'plots',
     'center',
@@ -18,6 +19,7 @@ from . import tools
 from . import center
 from . import photometry
 from . import stats
+from . import image
 from . import io
 from . import plots
 from . import models
