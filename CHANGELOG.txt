@@ -535,3 +535,7 @@ Updated copyright headers.
 
 Updated Makefile (do I even need this file anymore [question mark])
 
+*****
+
+Bumped puppies version to 0.2.0.
+

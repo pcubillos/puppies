@@ -3,7 +3,7 @@
 
 # puppies Version:
 PUP_VER =  0  # Major version
-PUP_MIN =  1  # Minor version
+PUP_MIN =  2  # Minor version
 PUP_REV =  0  # Revision
 
 __version__ = f'{PUP_VER}.{PUP_MIN}.{PUP_REV}'
