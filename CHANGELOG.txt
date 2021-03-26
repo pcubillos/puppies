@@ -539,3 +539,8 @@ Updated Makefile (do I even need this file anymore [question mark])
 
 Bumped puppies version to 0.2.0.
 
+
+*****  Fr 26. Mär 10:22:20 CET 2021  *****
+
+Updated MANIFEST.in file.
+
