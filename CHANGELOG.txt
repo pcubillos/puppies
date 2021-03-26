@@ -544,3 +544,7 @@ Bumped puppies version to 0.2.0.
 
 Updated MANIFEST.in file.
 
+*****
+
+Updated setup.py, set lon_description text, set name to exo_puppies
+(since puppies is already taken on PyPI), and updated email.
