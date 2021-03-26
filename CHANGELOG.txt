@@ -553,3 +553,7 @@ Updated setup.py, set lon_description text, set name to exo_puppies
 
 Retracted puppies version to 0.2.0a1 (to align with PyPI release).
 
+*****
+
+Updated pyproject.toml file to consider python>3.7 versions.
+
