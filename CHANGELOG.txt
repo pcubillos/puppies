@@ -548,3 +548,8 @@ Updated MANIFEST.in file.
 
 Updated setup.py, set lon_description text, set name to exo_puppies
 (since puppies is already taken on PyPI), and updated email.
+
+*****
+
+Retracted puppies version to 0.2.0a1 (to align with PyPI release).
+
