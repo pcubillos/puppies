@@ -32,15 +32,15 @@ ramp: 1D float ndarray                                              \n\
 static PyObject *gauss2D(PyObject *self, PyObject *args){
     PyArrayObject *array;
     double
-        height=0.0,
-        background=0.0,
+        height,
+        background,
         x0, y0, x_sigma, y_sigma;
     int i, j, ny, nx;
     npy_intp dims[2];
 
     if (!PyArg_ParseTuple(
              args,
-             "iidddd|dd",
+             "iidddddd",
              &ny, &nx, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
         return NULL;
 
