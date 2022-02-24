@@ -627,4 +627,7 @@ in PyModuleDef of the file.
 Bringing _bilinint.c back.
 Previous commit did not break...
 
+*****
+
+Bringing _disk.c back.
 

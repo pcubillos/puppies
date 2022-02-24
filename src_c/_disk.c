@@ -45,54 +45,50 @@ Examples                                                             \n\
 
 
 static PyObject *disk(PyObject *self, PyObject *args){
-  double radius;
-  PyArrayObject *d, *center, *size;
-  npy_intp dims[2];
-  int status, ndisk;
+    double radius;
+    PyArrayObject *d, *center, *size;
+    npy_intp dims[2];
+    int status, ndisk;
 
-  if (!PyArg_ParseTuple(args, "dOO", &radius, &center, &size))
-      return NULL;
+    if (!PyArg_ParseTuple(args, "dOO", &radius, &center, &size))
+        return NULL;
 
-  /* Allocate output array: */
-  dims[0] = INDi(size,0);
-  dims[1] = INDi(size,1);
-  d = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  /* Compute disk mask:     */
-  cdisk(d, radius, INDd(center,0), INDd(center,1), dims[0], dims[1],
+    /* Allocate output array: */
+    dims[0] = INDi(size,0);
+    dims[1] = INDi(size,1);
+    d = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    /* Compute disk mask:     */
+    cdisk(
+        d, radius, INDd(center,0), INDd(center,1),
+        dims[0], dims[1],
         &status, &ndisk);
 
-  return Py_BuildValue("Nii", d, status, ndisk);
+    return Py_BuildValue("Nii", d, status, ndisk);
 }
 
 
 /* Module's doc string */
-PyDoc_STRVAR(diskmod__doc__, "Circular disk image.");
+PyDoc_STRVAR(disk_mod__doc__, "Circular disk image.");
 
 
 static PyMethodDef disk_methods[] = {
     {"disk", disk, METH_VARARGS, disk__doc__},
-    {NULL,   NULL, 0,            NULL}
+    {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT, "disk", diskmod__doc__, -1, disk_methods
+    PyModuleDef_HEAD_INIT,
+    "_disk",
+    disk_mod__doc__,
+    -1,
+    disk_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_disk (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+PyObject *PyInit__disk (void) {
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
-
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void initdisk(void){
-  Py_InitModule3("disk", disk_methods, diskmod__doc__);
-  import_array();
-}
-#endif

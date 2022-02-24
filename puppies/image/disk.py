@@ -3,15 +3,15 @@
 
 __all__ = [
     'disk',
-    ]
+]
 
 import sys
 
 import numpy as np
 
-from ..tools import ROOT
+from puppies.tools import ROOT
 sys.path.append(f"{ROOT}puppies/lib")
-#import disk as d
+import _disk as d
 
 
 def disk(radius, center, size, status=False, ndisk=False):

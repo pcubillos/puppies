@@ -28,6 +28,7 @@ cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
 # Debugging:
 cfiles = [
     '_asymmetry.c',
+    '_disk.c',
     '_mandeltr.c',
     '_bilinint.c',
     '_eclipse.c',

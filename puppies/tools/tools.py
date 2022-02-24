@@ -8,7 +8,7 @@ __all__ = [
     "error",
     "getpar",
     "cat",
-    ]
+]
 
 import os
 from pathlib import Path
@@ -21,6 +21,7 @@ import numpy as np
 import astropy.units as u
 
 
+# Path to ROOT folder of the package:
 ROOT = str(Path(__file__).parents[2]) + os.path.sep
 
 # Warning/error banner:
