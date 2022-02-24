@@ -592,3 +592,6 @@ Renamed gauss.c to _gauss.c
 Prevented deprecation warning with
 scipy.ndimage.interpolation.map_coordinates
 
+*****
+
+Corrected includes in C source files.

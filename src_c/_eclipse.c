@@ -70,48 +70,50 @@ static PyObject *mandelecl(PyObject *self, PyObject *args){
 
   if(depth == 0){
       for(i=0; i<dims[0]; i++){
-        INDd(eclipse, i) = flux;
+          INDd(eclipse, i) = flux;
       }
       return Py_BuildValue("N", eclipse);
-    }
+  }
 
   /* Time of contact points: */
   t1 = midpt - width/2;
 
   if ((t1+ting) < midpt)
-    t2 = t1 + ting;
+      t2 = t1 + ting;
   else
-    t2 = midpt;
+      t2 = midpt;
 
   t4 = midpt + width/2;
   if ((t4-tegr) > midpt)
-    t3 = t4 - tegr;
+      t3 = t4 - tegr;
   else
-    t3 = midpt;
+      t3 = midpt;
 
   p = sign(depth) * sqrt(fabs(depth));
 
   for(i=0; i<dims[0]; i++){
-    INDd(eclipse,i) = 1.0;
-    /* Out of eclipse: */
-    if (INDd(t,i) < t1 || INDd(t,i) > t4){
-      INDd(eclipse,i) += depth;
-    }
-    /* Totality:       */
-    else if (INDd(t,i) >= t2  &&  INDd(t,i) <= t3){
-    }
-    /* Eq. (1) of Mandel & Agol (2002) for ingress/egress:  */
-    else if (p != 0){
-      if (INDd(t,i) > t1  &&  INDd(t,i) < t2){
-        z  = -2*p*(INDd(t,i)-t1)/ting + 1 + p;
+      INDd(eclipse,i) = 1.0;
+      /* Out of eclipse: */
+      if (INDd(t,i) < t1 || INDd(t,i) > t4){
+          INDd(eclipse,i) += depth;
       }
-      else{ /* (INDd(t,i) > t3  &&  INDd(t,i) < t4)         */
-        z  =  2*p*(INDd(t,i)-t3)/tegr + 1 - p;
+      /* Totality: */
+      else if (INDd(t,i) >= t2  &&  INDd(t,i) <= t3){
       }
-      INDd(eclipse,i) += depth - sign(depth)/M_PI * (p*p*k0(p,z) + k1(p,z)
-                                      - sqrt(z*z - 0.25*pow(1+z*z-p*p,2)));
-    }
-    INDd(eclipse,i) *= flux;
+      /* Eq. (1) of Mandel & Agol (2002) for ingress/egress: */
+      else if (p != 0){
+          if (INDd(t,i) > t1  &&  INDd(t,i) < t2){
+              z = -2*p*(INDd(t,i)-t1)/ting + 1 + p;
+          }
+          else{ /* (INDd(t,i) > t3  &&  INDd(t,i) < t4) */
+              z =  2*p*(INDd(t,i)-t3)/tegr + 1 - p;
+          }
+          INDd(eclipse,i) +=
+              depth
+              - sign(depth)/M_PI * (
+                  p*p*k0(p,z) + k1(p,z) - sqrt(z*z - 0.25*pow(1+z*z-p*p,2)));
+      }
+      INDd(eclipse,i) *= flux;
   }
 
   return Py_BuildValue("N", eclipse);
