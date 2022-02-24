@@ -586,3 +586,9 @@ Fixed bug with version.py filename.
 *****
 
 Renamed gauss.c to _gauss.c
+
+*****
+
+Prevented deprecation warning with
+scipy.ndimage.interpolation.map_coordinates
+

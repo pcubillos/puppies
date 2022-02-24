@@ -7,7 +7,7 @@ __all__ = [
 
 import sys
 import numpy as np
-from scipy.ndimage.interpolation import map_coordinates
+from scipy.ndimage import map_coordinates
 
 from . import gaussian as g
 from . import center_of_light as col
