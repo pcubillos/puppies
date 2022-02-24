@@ -46,8 +46,8 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
              &ny, &nx, &y0, &x0))
         return NULL;
 
-    if (height == 0.0)
-        height = 1.0 / (2.0 * 3.141592653589793 * y_sigma * x_sigma);
+    //if (height == 0.0)
+    //    height = 1.0 / (2.0 * 3.141592653589793 * y_sigma * x_sigma);
 
     dims[0] = ny;
     dims[1] = nx;
