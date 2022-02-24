@@ -562,3 +562,7 @@ Updated pyproject.toml file to consider python>3.7 versions.
 
 Updated requirements.
 
+*****
+
+Updated pyproject.toml to use oldest-supported-numpy dependency.
+
