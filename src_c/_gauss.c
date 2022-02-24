@@ -34,7 +34,7 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
     double
         height=0.0,
         background=0.0,
-        x0, y0, x_sigma=1.0, y_sigma=1.0;
+        x0, y0, x_sigma, y_sigma;
     int i, j, ny, nx;
     npy_intp dims[2];
 
@@ -42,8 +42,8 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
              args,
              //"iidddddd",
              //&ny, &nx, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
-             "iidd",
-             &ny, &nx, &y0, &x0))
+             "iidddd",
+             &ny, &nx, &y0, &x0, &y_sigma, &x_sigma))
         return NULL;
 
     //if (height == 0.0)
