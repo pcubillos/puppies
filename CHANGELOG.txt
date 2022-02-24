@@ -653,3 +653,8 @@ One step closed, get names of functions as they should be.
 
 Getting closer.
 
+*****
+
+OK, it's either the name of PyMethodDef gauss_methods
+or something inside the gauss2D function.
+
