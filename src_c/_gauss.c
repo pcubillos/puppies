@@ -1,7 +1,7 @@
 // Copyright (c) 2021 Patricio Cubillos
 // puppies is open-source software under the MIT license (see LICENSE)
 
-#include "Python.h"
+#include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <math.h>
@@ -75,28 +75,23 @@ PyDoc_STRVAR(gauss__doc__, "2D Gaussian function.");
 
 static PyMethodDef gauss_methods[] = {
     {"gauss2D", gauss2D, METH_VARARGS, gauss2D__doc__},
-    {NULL,    NULL,  0,            NULL}
+    {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT, "gauss", gauss__doc__, -1, gauss_methods
+    PyModuleDef_HEAD_INIT,
+    "_gauss",
+     gauss__doc__,
+     -1,
+     gauss_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_gauss (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+PyObject *PyInit__gauss (void) {
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
 
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void initgauss(void){
-  Py_InitModule3("gauss", gauss_methods, gauss__doc__);
-  import_array();
-}
-#endif

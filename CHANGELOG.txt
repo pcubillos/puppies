@@ -583,3 +583,6 @@ Updated version.py file and setup.py.
 
 Fixed bug with version.py filename.
 
+*****
+
+Renamed gauss.c to _gauss.c
