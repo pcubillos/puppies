@@ -8,87 +8,70 @@
 
 #include "ind.h"
 
-/* Function's doc string */
-PyDoc_STRVAR(gauss2D__doc__,
-"Compute a 2D Gaussian array.                                        \n\
-                                                                     \n\
-Parameters                                                           \n\
-----------                                                           \n\
-ny: Integer                                                          \n\
-   Size of the first dimension of the 2D output array.               \n\
-nx: Integer                                                          \n\
-   Size of the second dimension of the 2D output array.              \n\
-y0: Float                                                            \n\
-   Center of the Gaussian along the first dimension with respect to  \n\
-   the origin at the first pixel.                                    \n\
-x0: Float                                                            \n\
-   Center of the Gaussian along the second dimension with respect to \n\
-   the origin at the first pixel.                                    \n\
-sigmay: Float                                                        \n\
-   Gaussian standard deviation along the first dimension.            \n\
-sigmax: Float                                                        \n\
-   Gaussian standard deviation along the second dimension.           \n\
-height: Float                                                        \n\
-   Value of the Gaussian at (y0,x0).  If left as zero, set the height\n\
-   such that the integral of the array equals one.                   \n\
-background: Float                                                    \n\
-   Constant added value added to each pixel in the output array      \n\
-   (zero by default).                                                \n\
-                                                                     \n\
-Returns                                                              \n\
--------                                                              \n\
-mat: 2D float ndarray                                                \n\
-   A 2D Gaussian array of shape (ny,nx).");
+
+PyDoc_STRVAR(gauss__doc__,
+"Exponential model.                                                 \n\
+                                                                    \n\
+Parameters                                                          \n\
+----------                                                          \n\
+params: 1D float ndarray                                            \n\
+   Model parameters:                                                \n\
+     goal: goal as t tends to infinity.                             \n\
+     r1: exponential rate.                                          \n\
+     r0: exponential time offset.                                   \n\
+     pm: Set to +/- 1.0 to get a decaying/rising exponential.       \n\
+t: 1D float ndarray                                                 \n\
+   Array of time/phase points.                                      \n\
+                                                                    \n\
+Returns                                                             \n\
+-------                                                             \n\
+ramp: 1D float ndarray                                              \n\
+   Exponential ramp.");
 
 
-/* The wrapper to the underlying C function */
-static PyObject *gauss2D(PyObject *self, PyObject *args){
-    double x0, y0, sigmax, sigmay, background=0, height=0.0;
-    PyArrayObject *mat;
-    npy_intp dims[2];
-    int i, j, nx, ny;
+static PyObject *expramp(PyObject *self, PyObject *args){
+    PyArrayObject *t, *ramp, *params;
+    double goal, r0, r1, pm;
+    int i;
+    npy_intp dims[1];
 
-    if (!PyArg_ParseTuple(
-            args,
-            "iidddd|dd",
-            &ny, &nx, &y0, &x0, &sigmay, &sigmax, &height, &background))
+    if (!PyArg_ParseTuple(args, "OO", &params, &t))
         return NULL;
 
-    if (height == 0.0)
-        height = 1.0 / (2.0 * 3.141592653589793 * sigmay * sigmax);
+    goal = INDd(params,0);
+    r1 = INDd(params,1);
+    r0 = INDd(params,2);
+    pm = INDd(params,3);
 
-    dims[0] = ny;
-    dims[1] = nx;
-    mat = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    dims[0] = (int)PyArray_DIM(t,0);
+    ramp = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
-    for (j=0; j<ny; j++){
-        for (i=0; i<nx; i++){
-            IND2d(mat,j,i) =
-                height * exp(
-                    -0.5*(pow((j-y0)/sigmay, 2.0) + pow((i-x0)/sigmax, 2.0)))
-                + background;
-        }
-    }
-    return Py_BuildValue("N", mat);
+    for(i=0; i<dims[0]; i++)
+        INDd(ramp,i) = goal + pm*exp(-r1*INDd(t,i) + r0);
+
+    return Py_BuildValue("N", ramp);
 }
 
 
 /* Module's doc string */
-PyDoc_STRVAR(gauss__doc__, "2D Gaussian function.");
+PyDoc_STRVAR(
+    gauss_mod__doc__,
+    "2D Gaussian function.");
 
 
-static PyMethodDef gauss_methods[] = {
-    {"gauss2D", gauss2D, METH_VARARGS, gauss2D__doc__},
+static PyMethodDef expramp_methods[] = {
+    {"gauss2D", expramp, METH_VARARGS, gauss__doc__},
     {NULL, NULL, 0, NULL}
 };
+
 
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "_gauss",
-     gauss__doc__,
-     -1,
-     gauss_methods
+    gauss_mod__doc__,
+    -1,
+    expramp_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
@@ -98,4 +81,3 @@ PyObject *PyInit__gauss (void) {
     import_array();
     return module;
 }
-

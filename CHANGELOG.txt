@@ -639,3 +639,9 @@ Bringing _aphot.c back.
 
 Bringing _gauss.c back. The final one, will it break...
 
+*****
+
+Attempt number one at approaching a passing gauss test.
+Replaced gauss2D code with exponential ramp.
+Work in progress.
+
