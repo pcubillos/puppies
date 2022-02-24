@@ -135,7 +135,7 @@ static PyMethodDef mandeltr_methods[] = {
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "mandeltr",
+    "_mandeltr",
     mandeltr_mod__doc__,
     -1,
     mandeltr_methods

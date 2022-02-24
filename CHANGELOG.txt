@@ -622,3 +622,9 @@ Bringing _mandeltr.c back.
 This one shoulf break because there no preceeding underscore
 in PyModuleDef of the file.
 
+*****
+
+Bringing _bilinint.c back.
+Previous commit did not break...
+
+
