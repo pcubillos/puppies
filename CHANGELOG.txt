@@ -658,3 +658,8 @@ Getting closer.
 OK, it's either the name of PyMethodDef gauss_methods
 or something inside the gauss2D function.
 
+*****
+
+It seems that the problem is the content of the function.
+Reverting edits.
+
