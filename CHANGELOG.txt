@@ -604,3 +604,7 @@ Debugging edits to figure out problem with C code.
 
 Bringing (renamed) _asymmetry.c back.
 
+*****
+
+Bringing _expramp.c back.
+
