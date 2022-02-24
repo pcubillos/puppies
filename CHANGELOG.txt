@@ -631,3 +631,7 @@ Previous commit did not break...
 
 Bringing _disk.c back.
 
+*****
+
+Bringing _aphot.c back.
+

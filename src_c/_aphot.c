@@ -260,170 +260,171 @@ Examples                                                                \n\
 
 /* The wrapper to the underlying C function */
 static PyObject *aphot(PyObject *self, PyObject *args){
-  PyArrayObject *image,  *uncert, *gpmask,               /* Inputs   */
-                *idata, *iunc, *imask,                   /* Expanded */
-                *indisk, *outdisk, *stardisk, *idealim;  /* Disks    */
+    PyArrayObject *image,  *uncert, *gpmask,               /* Inputs   */
+                  *idata, *iunc, *imask,                   /* Expanded */
+                  *indisk, *outdisk, *stardisk, *idealim;  /* Disks    */
 
-  double xctr,  yctr,  photap,  skyin,  skyout, skyfrac, /* Inputs   */
-         ixctr, iyctr, iphotap, iskyin, iskyout,         /* Expanded */
-         aplev=0.0, aperr=0.0, apvar=0.0,
-         napix, skylev, skylevunc, nsky, nskyideal;      /* Outputs  */
+    double xctr,  yctr,  photap,  skyin,  skyout, skyfrac, /* Inputs   */
+           ixctr, iyctr, iphotap, iskyin, iskyout,         /* Expanded */
+           aplev=0.0, aperr=0.0, apvar=0.0,
+           napix, skylev, skylevunc, nsky, nskyideal;      /* Outputs  */
 
-  int diskstatus, ndiskin, ndiskout, ndiskap,            /* Utils    */
-      i, j, nx, ny, mx, my, expand, med, isis, dummy,
-      xmin, xmax, ymin, ymax,
-      naper=0, nskypix=0, nmask=0, nbad=0, nskyipix, status=0;
+    int diskstatus, ndiskin, ndiskout, ndiskap,            /* Utils    */
+        i, j, nx, ny, mx, my, expand, med, isis, dummy,
+        xmin, xmax, ymin, ymax,
+        naper=0, nskypix=0, nmask=0, nbad=0, nskyipix, status=0;
 
-  npy_intp dims[2];
+    npy_intp dims[2];
 
-  if (!PyArg_ParseTuple(args, "OOOddddddii", &image, &uncert, &gpmask,
-        &yctr, &xctr, &photap, &skyin, &skyout, &skyfrac, &expand, &med))
-    return NULL;
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOddddddii",
+            &image, &uncert, &gpmask, &yctr, &xctr,
+            &photap, &skyin, &skyout, &skyfrac,
+            &expand, &med))
+        return NULL;
 
-  /* Dimensions of the input 2D array: */
-  ny = (int)PyArray_DIM(image, 0);
-  nx = (int)PyArray_DIM(image, 1);
+    /* Dimensions of the input 2D array: */
+    ny = (int)PyArray_DIM(image, 0);
+    nx = (int)PyArray_DIM(image, 1);
 
-  /* Work only around the target:      */
-  ymin = MAX(0,  (int)(round(yctr)-skyout-2));
-  xmin = MAX(0,  (int)(round(xctr)-skyout-2));
-  ymax = MIN(ny, (int)(round(yctr)+skyout+2));
-  xmax = MIN(nx, (int)(round(xctr)+skyout+2));
-  ny = ymax - ymin;
-  nx = xmax - xmin;
+    /* Work only around the target:      */
+    ymin = MAX(0,  (int)(round(yctr)-skyout-2));
+    xmin = MAX(0,  (int)(round(xctr)-skyout-2));
+    ymax = MIN(ny, (int)(round(yctr)+skyout+2));
+    xmax = MIN(nx, (int)(round(xctr)+skyout+2));
+    ny = ymax - ymin;
+    nx = xmax - xmin;
 
-  /* Interpolation:   */
-  my = dims[0] = ny + (ny-1)*(expand-1);
-  mx = dims[1] = nx + (nx-1)*(expand-1);
-  idata = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-  iunc  = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-  imask = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  cresize(     idata, image,  expand, ymin, xmin, my, mx);
-  cresize(     iunc,  uncert, expand, ymin, xmin, my, mx);
-  resize_mask(imask, gpmask, expand,  ymin, xmin, my, mx);
+    /* Interpolation:   */
+    my = dims[0] = ny + (ny-1)*(expand-1);
+    mx = dims[1] = nx + (nx-1)*(expand-1);
+    idata = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    iunc  = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    imask = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    cresize(idata, image,  expand, ymin, xmin, my, mx);
+    cresize(iunc,  uncert, expand, ymin, xmin, my, mx);
+    resize_mask(imask, gpmask, expand,  ymin, xmin, my, mx);
 
-  /* Expand lengths:  */
-  iphotap = photap      * expand;
-  iskyin  = skyin       * expand;
-  iskyout = skyout      * expand;
-  iyctr   = (yctr-ymin) * expand;
-  ixctr   = (xctr-xmin) * expand;
+    /* Expand lengths:  */
+    iphotap = photap * expand;
+    iskyin  = skyin * expand;
+    iskyout = skyout * expand;
+    iyctr = (yctr-ymin) * expand;
+    ixctr = (xctr-xmin) * expand;
 
-  /* Make disks:      */
-  indisk   = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  outdisk  = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  stardisk = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  cdisk(indisk,   iskyin,  iyctr, ixctr, my, mx, &diskstatus, &ndiskin);
-  cdisk(outdisk,  iskyout, iyctr, ixctr, my, mx, &diskstatus, &ndiskout);
-  cdisk(stardisk, iphotap, iyctr, ixctr, my, mx, &diskstatus, &ndiskap);
+    /* Make disks:      */
+    indisk   = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    outdisk  = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    stardisk = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    cdisk(indisk,   iskyin,  iyctr, ixctr, my, mx, &diskstatus, &ndiskin);
+    cdisk(outdisk,  iskyout, iyctr, ixctr, my, mx, &diskstatus, &ndiskout);
+    cdisk(stardisk, iphotap, iyctr, ixctr, my, mx, &diskstatus, &ndiskap);
 
-  /* Allocate useful data in 1D arrays: */
-  double skydata[ndiskout-ndiskin];
-  double  skyerr[ndiskout-ndiskin];
+    /* Allocate useful data in 1D arrays: */
+    double skydata[ndiskout-ndiskin];
+    double  skyerr[ndiskout-ndiskin];
 
-  for   (j=0; j<my; j++)
-    for (i=0; i<mx; i++){
-      /* Pixels in annulus:             */
-      if (IND2b(outdisk,j,i) && !IND2b(indisk,j,i) ){
-        if (!isnan(IND2d(idata,j,i)) &&
-            !isinf(IND2d(idata,j,i)) &&
-            IND2b(imask,j,i)){
-          nskypix++;
-          skydata[nskypix] = IND2d(idata,j,i);
-          skyerr [nskypix] = IND2d(iunc, j,i);
+    for (j=0; j<my; j++)
+        for (i=0; i<mx; i++){
+            /* Pixels in annulus:             */
+            if (IND2b(outdisk,j,i) && !IND2b(indisk,j,i) ){
+                if (!isnan(IND2d(idata,j,i)) &&
+                      !isinf(IND2d(idata,j,i)) &&
+                      IND2b(imask,j,i)){
+                    nskypix++;
+                    skydata[nskypix] = IND2d(idata,j,i);
+                    skyerr [nskypix] = IND2d(iunc, j,i);
+                }
+            }
+            /* Pixels in aperture:            */
+            if (IND2b(stardisk,j,i)){
+                if (!IND2b(imask,j,i))
+                    nmask++;
+                if (isnan(IND2d(idata,j,i)) || isinf(IND2d(idata,j,i)))
+                    nbad++;
+                else{
+                    aplev += IND2d(idata,j,i);
+                    apvar += IND2d(iunc, j,i)*IND2d(iunc,j,i);
+                    naper++;
+                }
+            }
         }
-      }
-      /* Pixels in aperture:            */
-      if (IND2b(stardisk,j,i)){
-        if (!IND2b(imask,j,i))
-          nmask++;
-        if (isnan(IND2d(idata,j,i)) || isinf(IND2d(idata,j,i)))
-          nbad++;
-        else{
-          aplev += IND2d(idata,j,i);
-          apvar += IND2d(iunc, j,i)*IND2d(iunc,j,i);
-          naper++;
-        }
-      }
-    }
-  Py_XDECREF(idata); Py_XDECREF(iunc); Py_XDECREF(imask);
-  Py_XDECREF(indisk); Py_XDECREF(outdisk); Py_XDECREF(stardisk);
+    Py_XDECREF(idata); Py_XDECREF(iunc); Py_XDECREF(imask);
+    Py_XDECREF(indisk); Py_XDECREF(outdisk); Py_XDECREF(stardisk);
 
-  /* Re-scaled number of pixels in sky: */
-  napix = 1.0*naper  /(expand*expand);
-  nsky  = 1.0*nskypix/(expand*expand);
+    /* Re-scaled number of pixels in sky: */
+    napix = 1.0*naper  /(expand*expand);
+    nsky  = 1.0*nskypix/(expand*expand);
 
-  /* Ideal sky calculation:             */
-  isis = (int)(2*ceil(iskyout) + 3);             /* ideal sky image size */
-  iyctr = fmod(iyctr,1.0) + ceil(iskyout) + 1.0; /* ideal sky center y   */
-  ixctr = fmod(ixctr,1.0) + ceil(iskyout) + 1.0; /* ideal sky center x   */
+    /* Ideal sky calculation:             */
+    isis = (int)(2*ceil(iskyout) + 3);             /* ideal sky image size */
+    iyctr = fmod(iyctr,1.0) + ceil(iskyout) + 1.0; /* ideal sky center y   */
+    ixctr = fmod(ixctr,1.0) + ceil(iskyout) + 1.0; /* ideal sky center x   */
 
-  dims[0] = dims[1] = isis;
-  idealim = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
-  /* Number of pixels in sky annulus:   */
-  cdisk(idealim, iskyout, iyctr, ixctr, isis, isis, &dummy, &nskyipix);
-  nskyideal = (double)nskyipix;
-  cdisk(idealim, iskyin,  iyctr, ixctr, isis, isis, &dummy, &nskyipix);
-  nskyideal = (nskyideal - nskyipix) / (expand*expand);
-  Py_XDECREF(idealim);
+    dims[0] = dims[1] = isis;
+    idealim = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_BOOL);
+    /* Number of pixels in sky annulus:   */
+    cdisk(idealim, iskyout, iyctr, ixctr, isis, isis, &dummy, &nskyipix);
+    nskyideal = (double)nskyipix;
+    cdisk(idealim, iskyin,  iyctr, ixctr, isis, isis, &dummy, &nskyipix);
+    nskyideal = (nskyideal - nskyipix) / (expand*expand);
+    Py_XDECREF(idealim);
 
-  /* Mean/median sky level: */
-  skylev = meanerr(&skydata[0], &skyerr[0], nskypix, &skylevunc, &dummy);
-  skylevunc *= expand;
-  if (med)
-    skylev = median(&skydata[0], nskypix);
+    /* Mean/median sky level: */
+    skylev = meanerr(&skydata[0], &skyerr[0], nskypix, &skylevunc, &dummy);
+    skylevunc *= expand;
+    if (med)
+        skylev = median(&skydata[0], nskypix);
 
-  /* Photometry:    */
-  aplev = (aplev - skylev*naper)/(expand*expand);
-  aperr = sqrt(apvar + naper*skylevunc*skylevunc)/expand;
+    /* Photometry:    */
+    aplev = (aplev - skylev*naper)/(expand*expand);
+    aperr = sqrt(apvar + naper*skylevunc*skylevunc)/expand;
 
-  /* Status report: */
-  if (nbad > 0)                    /* NaNs or Inf pixels in aperture     */
-    status |= 1;
-  if (naper == 0)                  /* No good pixels in aperture         */
-    status |= 2;
-  if (nmask > 0)                   /* Masked pixels in aperture          */
-    status |= 4;
-  if (diskstatus)                  /* Out of bounds aperture             */
-    status |= 8;
-  if (nsky < skyfrac * nskyideal)  /* Sky fraction condition unfulfilled */
-    status |= 16;
-  if (nskypix == 0)                /* No good pixels in sky              */
-    status |= 32;
+    /* Status report: */
+    if (nbad > 0)  /* NaNs or Inf pixels in aperture     */
+        status |= 1;
+    if (naper == 0)  /* No good pixels in aperture         */
+        status |= 2;
+    if (nmask > 0)  /* Masked pixels in aperture          */
+        status |= 4;
+    if (diskstatus)  /* Out of bounds aperture             */
+        status |= 8;
+    if (nsky < skyfrac * nskyideal)  /* Sky fraction condition unfulfilled */
+        status |= 16;
+    if (nskypix == 0)  /* No good pixels in sky              */
+        status |= 32;
 
-  return Py_BuildValue("[d,d,d,d,d,d,d,i]", aplev, aperr, napix, skylev,
-           skylevunc, nsky, nskyideal, status);
+    return Py_BuildValue(
+        "[d,d,d,d,d,d,d,i]",
+        aplev, aperr, napix, skylev, skylevunc, nsky, nskyideal, status);
 }
 
 
 /* Module's doc string */
-PyDoc_STRVAR(aphotmod__doc__, "Aperture photometry C extension.");
+PyDoc_STRVAR(
+    aphot_mod__doc__,
+    "Aperture photometry C extension.");
 
 /* A list of all the methods defined by this module.        */
 static PyMethodDef aphot_methods[] = {
-    {"aphot",  aphot, METH_VARARGS, aphot__doc__},
-    {NULL,     NULL,   0,            NULL}      /* sentinel */
+    {"aphot", aphot, METH_VARARGS, aphot__doc__},
+    {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT, "aphot", aphotmod__doc__, -1, aphot_methods
+    PyModuleDef_HEAD_INIT,
+    "_aphot",
+    aphot_mod__doc__,
+    -1,
+    aphot_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_aphot (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+PyObject *PyInit__aphot (void){
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
-
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void initaphot(void){
-  Py_InitModule3("aphot", aphot_methods, aphotmod__doc__);
-  import_array();
-}
-#endif

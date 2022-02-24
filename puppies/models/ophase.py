@@ -4,9 +4,8 @@ import numpy as np
 
 import puppies.tools as pt
 sys.path.append(f'{pt.ROOT}puppies/lib')
-# Debugging:
-#import _mandeltr as mt
-#import _eclipse as ecl
+import _mandeltr as mt
+import _eclipse as ecl
 
 __all__ = ["orbit"]
 

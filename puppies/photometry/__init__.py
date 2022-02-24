@@ -6,8 +6,7 @@ import os
 
 from puppies.tools import ROOT
 sys.path.append(f'{ROOT}puppies/lib')
-# Debugging:
-#from aphot import aphot
+from _aphot import aphot
 
 __all__ = ["aphot"]
 
