@@ -570,3 +570,8 @@ Updated pyproject.toml to use oldest-supported-numpy dependency.
 
 Added .travis.yml file.
 
+*****
+
+Added .gitignore in puppies/lib/
+Removed Makefile.
+

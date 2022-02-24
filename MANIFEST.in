@@ -1,7 +1,6 @@
 include CHANGELOG.txt
 include LICENSE
 include MANIFEST.in
-include Makefile
 include README.md
 include pyproject.toml
 include requirements.txt
