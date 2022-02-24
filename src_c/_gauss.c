@@ -31,27 +31,27 @@ ramp: 1D float ndarray                                              \n\
 
 static PyObject *gauss2D(PyObject *self, PyObject *args){
     PyArrayObject
-        *array, *t, *params;
-    double background, r0, r1, pm;
-    int i;
+        *array, *params;
+    double background, r0, r1;
+    int i, j, ny, nx;
     npy_intp dims[2];
 
-    if (!PyArg_ParseTuple(args, "OO", &params, &t))
+    if (!PyArg_ParseTuple(args, "iiO", &ny, &nx, &params))
         return NULL;
 
     background = INDd(params,0);
     r1 = INDd(params,1);
     r0 = INDd(params,2);
-    pm = INDd(params,3);
 
-    dims[0] = (int)PyArray_DIM(t,0);
-    dims[1] = (int)PyArray_DIM(t,0);
+    dims[0] = ny;
+    dims[1] = nx;
     array = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
 
-    for(i=0; i<dims[0]; i++)
-        IND2d(array,i,i) =
-            background
-            + pm*exp(-r1*INDd(t,i) + r0);
+    for(j=0; j<ny; j++)
+        for(i=0; i<nx; i++)
+            IND2d(array,j,i) =
+                background
+                + exp(-0.5 * pow(i*1.0, 2.0) + r0);
 
     return Py_BuildValue("N", array);
 }
@@ -63,7 +63,7 @@ PyDoc_STRVAR(
     "2D Gaussian function.");
 
 
-static PyMethodDef expramp_methods[] = {
+static PyMethodDef gauss_methods[] = {
     {"gauss2D", gauss2D, METH_VARARGS, gauss2D__doc__},
     {NULL, NULL, 0, NULL}
 };
@@ -75,12 +75,12 @@ static struct PyModuleDef moduledef = {
     "_gauss",
     gauss_mod__doc__,
     -1,
-    expramp_methods
+    gauss_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit__gauss (void) {
+PyObject *PyInit__gauss (void){
     PyObject *module = PyModule_Create(&moduledef);
     import_array();
     return module;
