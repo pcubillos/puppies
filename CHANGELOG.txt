@@ -689,3 +689,7 @@ Removed height calculation.
 
 Added y_sigma and x_sigma into the PyArg_ParseTuple.
 
+*****
+
+Added height and backgroun into optional PyArg_ParseTuple.
+

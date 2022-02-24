@@ -40,10 +40,8 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
 
     if (!PyArg_ParseTuple(
              args,
-             //"iidddddd",
-             //&ny, &nx, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
-             "iidddd",
-             &ny, &nx, &y0, &x0, &y_sigma, &x_sigma))
+             "iidddd|dd",
+             &ny, &nx, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
         return NULL;
 
     //if (height == 0.0)
