@@ -575,3 +575,7 @@ Added .travis.yml file.
 Added .gitignore in puppies/lib/
 Removed Makefile.
 
+*****
+
+Updated version.py file and setup.py.
+

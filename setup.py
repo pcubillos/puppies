@@ -2,7 +2,6 @@
 # puppies is open-source software under the MIT license (see LICENSE)
 
 import os
-import sys
 import re
 from datetime import date
 import setuptools
@@ -10,11 +9,16 @@ from setuptools import setup, Extension
 
 from numpy import get_include
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'puppies'))
-from VERSION import __version__
+
+def get_version(package):
+    """Return package version as listed in __version__ in version.py"""
+    path = os.path.join(os.path.dirname(__file__), package, 'version.py')
+    with open(path, "rb") as f:
+        init_py = f.read().decode("utf-8")
+    return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
 
-srcdir = 'src_c/'          # C-code source folder
+srcdir = 'src_c/'  # C-code source folder
 incdir = 'src_c/include/'  # Include filder with header files
 
 cfiles = os.listdir(srcdir)
@@ -67,7 +71,7 @@ The Public Photometry Pipeline for Exoplanets
 
 setup(
     name = 'exo_puppies',
-    version = __version__,
+    version = get_version('puppies'),
     author = 'Patricio Cubillos',
     author_email = 'pcubillos@fulbrightmail.org',
     url = 'https://github.com/pcubillos/puppies',
@@ -87,4 +91,4 @@ setup(
     long_description_content_type="text/x-rst",
     entry_points={'console_scripts': ['pup = puppies.__main__:main']},
     ext_modules = extensions,
-    )
+)
