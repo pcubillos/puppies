@@ -23,7 +23,7 @@ from . import image
 from . import io
 from . import plots
 from . import models
-from .VERSION import __version__
+from .version import __version__
 
 # Initialization:
 from .driver import init

@@ -579,3 +579,7 @@ Removed Makefile.
 
 Updated version.py file and setup.py.
 
+*****
+
+Fixed bug with version.py filename.
+
