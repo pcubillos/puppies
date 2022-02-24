@@ -9,8 +9,8 @@ import sys
 import numpy as np
 
 from ..tools import ROOT
-sys.path.append(f"{ROOT}/puppies/lib")
-import _bilinint as bli
+sys.path.append(f"{ROOT}puppies/lib")
+#import _bilinint as bli
 
 
 class bliss():

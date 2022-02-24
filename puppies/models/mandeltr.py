@@ -2,9 +2,10 @@ import sys
 import os
 import numpy as np
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(topdir + "/puppies/lib")
-import _mandeltr as mt
+from puppies.tools import ROOT
+sys.path.append(f'{ROOT}puppies/lib')
+# Debugging:
+#import _mandeltr as mt
 
 
 __all__ = ["mandeltr"]

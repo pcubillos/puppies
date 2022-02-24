@@ -11,9 +11,10 @@ import os
 import sys
 import numpy as np
 
-libdir = os.path.realpath(os.path.dirname(__file__) + "/../lib")
-sys.path.append(libdir)
-import _eclipse as ecl
+from puppies.tools import ROOT
+sys.path.append(f'{ROOT}puppies/lib')
+# Debugging:
+#import _eclipse as ecl
 
 
 class Ecl(object):

@@ -4,9 +4,10 @@
 import sys
 import os
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(topdir + "/puppies/lib")
-from aphot import aphot
+from puppies.tools import ROOT
+sys.path.append(f'{ROOT}puppies/lib')
+# Debugging:
+#from aphot import aphot
 
 __all__ = ["aphot"]
 

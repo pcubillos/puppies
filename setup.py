@@ -19,11 +19,14 @@ def get_version(package):
 
 
 srcdir = 'src_c/'  # C-code source folder
-incdir = 'src_c/include/'  # Include filder with header files
+incdir = 'src_c/include/'  # Include folder with header files
 
 cfiles = os.listdir(srcdir)
 cfiles = list(filter(lambda x: re.search('.+[.]c$', x), cfiles))
 cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
+
+# Debugging:
+cfiles = ['_quadramp.c',]
 
 inc = [get_include(), incdir]
 eca = ['-ffast-math']

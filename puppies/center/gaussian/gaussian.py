@@ -5,9 +5,10 @@ import scipy.optimize as so
 
 from ... import image as im
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../../..")
-sys.path.append(topdir + "/puppies/lib")
-import _gauss as g
+from puppies.tools import ROOT
+sys.path.append(f'{ROOT}puppies/lib')
+# Debugging:
+#import _gauss as g
 
 __all__ = ["gaussian", "guess", "fit"]
 

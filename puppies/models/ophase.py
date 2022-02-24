@@ -2,12 +2,11 @@ import sys
 import os
 import numpy as np
 
-topdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(topdir + "/puppies/lib")
-import _mandeltr as mt
-
-sys.path.append(topdir + "/modules/eclipse/eclipse/lib")
-import _eclipse as ecl
+import puppies.tools as pt
+sys.path.append(f'{pt.ROOT}puppies/lib')
+# Debugging:
+#import _mandeltr as mt
+#import _eclipse as ecl
 
 __all__ = ["orbit"]
 

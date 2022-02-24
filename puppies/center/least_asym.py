@@ -13,8 +13,8 @@ from . import gaussian as g
 from . import center_of_light as col
 
 from ..tools import ROOT
-sys.path.append(f"{ROOT}/puppies/lib")
-import asymmetry as a
+sys.path.append(f"{ROOT}puppies/lib")
+#import asymmetry as a
 
 
 def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,

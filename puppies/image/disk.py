@@ -10,8 +10,8 @@ import sys
 import numpy as np
 
 from ..tools import ROOT
-sys.path.append(f"{ROOT}/puppies/lib")
-import disk as d
+sys.path.append(f"{ROOT}puppies/lib")
+#import disk as d
 
 
 def disk(radius, center, size, status=False, ndisk=False):

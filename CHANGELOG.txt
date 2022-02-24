@@ -595,3 +595,8 @@ scipy.ndimage.interpolation.map_coordinates
 *****
 
 Corrected includes in C source files.
+
+*****
+
+Debugging edits to figure out problem with C code.
+

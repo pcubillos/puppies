@@ -12,9 +12,11 @@ import numpy as np
 
 from ..tools import ROOT
 sys.path.append(f"{ROOT}/puppies/lib")
-import _linramp as lr
+# Debugging:
+#import _linramp as lr
 import _quadramp as qr
-import _expramp as er
+#import _expramp as er
+
 
 
 class Ramp(object):

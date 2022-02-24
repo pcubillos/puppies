@@ -10,6 +10,7 @@ __all__ = [
     "cat",
     ]
 
+import os
 from pathlib import Path
 import sys
 import textwrap
@@ -20,7 +21,7 @@ import numpy as np
 import astropy.units as u
 
 
-ROOT = str(Path(__file__).parents[2]) + '/'
+ROOT = str(Path(__file__).parents[2]) + os.path.sep
 
 # Warning/error banner:
 sep = 70*":"
