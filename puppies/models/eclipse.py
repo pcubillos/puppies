@@ -4,7 +4,7 @@
 __all__ = [
     "eclipse",
     "mandelecl",
-    ]
+]
 
 
 import os
@@ -13,8 +13,7 @@ import numpy as np
 
 from puppies.tools import ROOT
 sys.path.append(f'{ROOT}puppies/lib')
-# Debugging:
-#import _eclipse as ecl
+import _eclipse as ecl
 
 
 class Ecl(object):
