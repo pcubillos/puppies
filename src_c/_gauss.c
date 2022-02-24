@@ -31,7 +31,7 @@ ramp: 1D float ndarray                                              \n\
 
 static PyObject *gauss2D(PyObject *self, PyObject *args){
     PyArrayObject *array;
-    double background, height, r0, r1;
+    double background, height;
     double
         //height=0.0,
         //background=0.0,
@@ -39,7 +39,10 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
     int i, j, ny, nx;
     npy_intp dims[2];
 
-    if (!PyArg_ParseTuple(args, "iidd", &ny, &nx, &y0, &x0))
+    if (!PyArg_ParseTuple(
+             args,
+             "iidddddd",
+             &ny, &nx, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
         return NULL;
 
     background = 0.0;
@@ -54,17 +57,16 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
     //            background
     //            + exp(-0.5 * pow((j-y0)/y_sigma, 2.0));
 
-    for(i=0; i<dims[0]; i++)
+    for(i=0; i<nx; i++)
         IND2d(array,i,i) =
             background
-            + exp(-r1*background + y0);
+            + exp(-0.5*(y0*y0 + x0*x0));
 
     return Py_BuildValue("N", array);
 
 }
 
 
-/* Module's doc string */
 PyDoc_STRVAR(
     gauss_mod__doc__,
     "2D Gaussian function.");
