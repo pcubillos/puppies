@@ -7,10 +7,13 @@ from ... import image as im
 
 from puppies.tools import ROOT
 sys.path.append(f'{ROOT}puppies/lib')
-# Debugging:
-#import _gauss as g
+import _gauss as g
 
-__all__ = ["gaussian", "guess", "fit"]
+__all__ = [
+    "gaussian",
+    "guess",
+    "fit",
+]
 
 
 def gaussian(size, center, sigma, height=0.0, background=0.0):

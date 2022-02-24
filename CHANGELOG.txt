@@ -635,3 +635,7 @@ Bringing _disk.c back.
 
 Bringing _aphot.c back.
 
+*****
+
+Bringing _gauss.c back. The final one, will it break...
+

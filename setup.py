@@ -30,6 +30,7 @@ cfiles = [
     '_asymmetry.c',
     '_aphot.c',
     '_disk.c',
+    '_gauss.c',
     '_mandeltr.c',
     '_bilinint.c',
     '_eclipse.c',

@@ -43,29 +43,33 @@ mat: 2D float ndarray                                                \n\
 
 /* The wrapper to the underlying C function */
 static PyObject *gauss2D(PyObject *self, PyObject *args){
-  double x0, y0, sigmax, sigmay, background=0, height=0.0;
-  PyArrayObject *mat;
-  npy_intp dims[2];
-  int i, j, nx, ny;
+    double x0, y0, sigmax, sigmay, background=0, height=0.0;
+    PyArrayObject *mat;
+    npy_intp dims[2];
+    int i, j, nx, ny;
 
-  if (!PyArg_ParseTuple(args, "iidddd|dd", &ny, &nx, &y0, &x0, &sigmay,
-                                           &sigmax, &height, &background))
-      return NULL;
+    if (!PyArg_ParseTuple(
+            args,
+            "iidddd|dd",
+            &ny, &nx, &y0, &x0, &sigmay, &sigmax, &height, &background))
+        return NULL;
 
-  if (height == 0.0)
-    height = 1.0 / (2.0 * 3.141592653589793 * sigmay * sigmax);
+    if (height == 0.0)
+        height = 1.0 / (2.0 * 3.141592653589793 * sigmay * sigmax);
 
-  dims[0] = ny;
-  dims[1] = nx;
-  mat = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    dims[0] = ny;
+    dims[1] = nx;
+    mat = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
 
-  for   (j=0; j<ny; j++){
-    for (i=0; i<nx; i++){
-      IND2d(mat,j,i) = height * exp(-0.5*(pow((j-y0)/sigmay, 2.0) +
-                                         pow((i-x0)/sigmax, 2.0))) + background;
+    for (j=0; j<ny; j++){
+        for (i=0; i<nx; i++){
+            IND2d(mat,j,i) =
+                height * exp(
+                    -0.5*(pow((j-y0)/sigmay, 2.0) + pow((i-x0)/sigmax, 2.0)))
+                + background;
+        }
     }
-  }
-  return Py_BuildValue("N", mat);
+    return Py_BuildValue("N", mat);
 }
 
 
