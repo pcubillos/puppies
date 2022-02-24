@@ -600,3 +600,7 @@ Corrected includes in C source files.
 
 Debugging edits to figure out problem with C code.
 
+*****
+
+Bringing (renamed) _asymmetry.c back.
+

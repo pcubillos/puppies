@@ -26,7 +26,10 @@ cfiles = list(filter(lambda x: re.search('.+[.]c$', x), cfiles))
 cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
 
 # Debugging:
-cfiles = ['_quadramp.c',]
+cfiles = [
+    '_asymmetry.c',
+    '_quadramp.c',
+]
 
 inc = [get_include(), incdir]
 eca = ['-ffast-math']
