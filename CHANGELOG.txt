@@ -672,3 +672,8 @@ Try changing stuff in the PyArg_ParseTuple().
 
 So far so good. Updated the rest of the PyArg_ParseTuple variables.
 
+*****
+
+Broken again. Reverted PyArg_ParseTuple edits.
+Updated for loops.
+
