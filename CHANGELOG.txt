@@ -616,3 +616,9 @@ Bringing _linramp.c back.
 
 Bringing _eclipse.c back.
 
+*****
+
+Bringing _mandeltr.c back.
+This one shoulf break because there no preceeding underscore
+in PyModuleDef of the file.
+

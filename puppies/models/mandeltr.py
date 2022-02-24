@@ -4,8 +4,7 @@ import numpy as np
 
 from puppies.tools import ROOT
 sys.path.append(f'{ROOT}puppies/lib')
-# Debugging:
-#import _mandeltr as mt
+import _mandeltr as mt
 
 
 __all__ = ["mandeltr"]
