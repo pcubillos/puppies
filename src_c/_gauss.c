@@ -9,7 +9,7 @@
 #include "ind.h"
 
 
-PyDoc_STRVAR(gauss__doc__,
+PyDoc_STRVAR(gauss2D__doc__,
 "Exponential model.                                                 \n\
                                                                     \n\
 Parameters                                                          \n\
@@ -29,27 +29,31 @@ ramp: 1D float ndarray                                              \n\
    Exponential ramp.");
 
 
-static PyObject *expramp(PyObject *self, PyObject *args){
-    PyArrayObject *t, *ramp, *params;
-    double goal, r0, r1, pm;
+static PyObject *gauss2D(PyObject *self, PyObject *args){
+    PyArrayObject
+        *array, *t, *params;
+    double background, r0, r1, pm;
     int i;
-    npy_intp dims[1];
+    npy_intp dims[2];
 
     if (!PyArg_ParseTuple(args, "OO", &params, &t))
         return NULL;
 
-    goal = INDd(params,0);
+    background = INDd(params,0);
     r1 = INDd(params,1);
     r0 = INDd(params,2);
     pm = INDd(params,3);
 
     dims[0] = (int)PyArray_DIM(t,0);
-    ramp = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    dims[1] = (int)PyArray_DIM(t,0);
+    array = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
 
     for(i=0; i<dims[0]; i++)
-        INDd(ramp,i) = goal + pm*exp(-r1*INDd(t,i) + r0);
+        IND2d(array,i,i) =
+            background
+            + pm*exp(-r1*INDd(t,i) + r0);
 
-    return Py_BuildValue("N", ramp);
+    return Py_BuildValue("N", array);
 }
 
 
@@ -60,7 +64,7 @@ PyDoc_STRVAR(
 
 
 static PyMethodDef expramp_methods[] = {
-    {"gauss2D", expramp, METH_VARARGS, gauss__doc__},
+    {"gauss2D", gauss2D, METH_VARARGS, gauss2D__doc__},
     {NULL, NULL, 0, NULL}
 };
 
