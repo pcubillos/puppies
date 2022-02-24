@@ -10,10 +10,9 @@ __all__ = [
 import sys
 import numpy as np
 
-from ..tools import ROOT
+from puppies.tools import ROOT
 sys.path.append(f"{ROOT}/puppies/lib")
-# Debugging:
-#import _linramp as lr
+import _linramp as lr
 import _quadramp as qr
 import _expramp as er
 

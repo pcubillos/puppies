@@ -27,57 +27,53 @@ ramp: 1D float ndarray                                            \n\
 
 
 static PyObject *linramp(PyObject *self, PyObject *args){
-  PyArrayObject *t, *ramp, *params;
-  double r1, r0, t0;
-  int i;
-  npy_intp dims[1];
+    PyArrayObject *t, *ramp, *params;
+    double r1, r0, t0;
+    int i;
+    npy_intp dims[1];
 
-  if(!PyArg_ParseTuple(args, "OO", &params, &t))
-    return NULL;
+    if(!PyArg_ParseTuple(args, "OO", &params, &t))
+        return NULL;
 
-  r1 = INDd(params,0);
-  r0 = INDd(params,1);
-  t0 = INDd(params,2);
+    r1 = INDd(params,0);
+    r0 = INDd(params,1);
+    t0 = INDd(params,2);
 
-  dims[0] = (int)PyArray_DIM(t,0);
-  ramp = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    dims[0] = (int)PyArray_DIM(t,0);
+    ramp = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
-  for(i=0; i<dims[0]; i++)
-    INDd(ramp,i) = r1*(INDd(t,i)-t0) + r0;
+    for(i=0; i<dims[0]; i++)
+        INDd(ramp,i) = r1*(INDd(t,i)-t0) + r0;
 
-  return Py_BuildValue("N", ramp);
+    return Py_BuildValue("N", ramp);
 }
 
 
 /* Module's doc string */
-PyDoc_STRVAR(linrampmod__doc__, "1D linear function.");
+PyDoc_STRVAR(
+    linramp_mod__doc__,
+    "1D linear function.");
 
 
 static PyMethodDef linramp_methods[] = {
-  {"linramp", linramp, METH_VARARGS, linramp__doc__},
-  {NULL,      NULL,    0,            NULL}
+    {"linramp", linramp, METH_VARARGS, linramp__doc__},
+    {NULL, NULL, 0, NULL}
 };
 
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT, "linramp", linrampmod__doc__, -1, linramp_methods
+    PyModuleDef_HEAD_INIT,
+    "_linramp",
+    linramp_mod__doc__,
+    -1,
+    linramp_methods
 };
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
 PyObject *PyInit__linramp (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
-
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void init_linramp(void){
-  Py_InitModule3("linramp", linramp_methods, linrampmod__doc__);
-  import_array();
-}
-#endif
