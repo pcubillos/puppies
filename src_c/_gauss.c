@@ -34,7 +34,7 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
     double
         height=0.0,
         background=0.0,
-        x0, y0, x_sigma, y_sigma;
+        x0, y0, x_sigma=1.0, y_sigma=1.0;
     int i, j, ny, nx;
     npy_intp dims[2];
 
@@ -46,22 +46,19 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
              &ny, &nx, &y0, &x0))
         return NULL;
 
+    if (height == 0.0)
+        height = 1.0 / (2.0 * 3.141592653589793 * y_sigma * x_sigma);
 
     dims[0] = ny;
     dims[1] = nx;
     array = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
 
-    //for(j=0; j<ny; j++)
-    //    for(i=0; i<nx; i++)
-    //        IND2d(array,j,i) =
-    //            background
-    //            + exp(-0.5 * pow((j-y0)/y_sigma, 2.0));
-
     for(j=0; j<ny; j++)
         for(i=0; i<nx; i++)
             IND2d(array,j,i) =
                 background
-                + height*exp(-0.5*(y0*y0 + x0*x0));
+                + height * exp(-0.5*(
+                    pow((j-y0)/y_sigma, 2.0) + pow((i-x0)/x_sigma, 2.0)));
 
     return Py_BuildValue("N", array);
 
