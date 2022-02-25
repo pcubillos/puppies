@@ -31,25 +31,17 @@ ramp: 1D float ndarray                                              \n\
 
 static PyObject *gauss2D(PyObject *self, PyObject *args){
     PyArrayObject *array;
-    double
-        height=0.0,
-        background=0.0,
-        x0, y0, x_sigma, y_sigma;
+    double height, background, x0, y0, x_sigma, y_sigma;
     int i, j, ny, nx;
-    npy_intp dims[2];
 
     if (!PyArg_ParseTuple(
              args,
-             "iidddd",
-             &ny, &nx, &y0, &x0, &y_sigma, &x_sigma))
+             "Odddddd",
+             &array, &y0, &x0, &y_sigma, &x_sigma, &height, &background))
         return NULL;
 
-    //if (height == 0.0)
-    //    height = 1.0 / (2.0 * 3.141592653589793 * y_sigma * x_sigma);
-
-    dims[0] = ny;
-    dims[1] = nx;
-    array = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    ny = (int)PyArray_DIM(array,0);
+    nx = (int)PyArray_DIM(array,1);
 
     for(j=0; j<ny; j++)
         for(i=0; i<nx; i++)
@@ -58,7 +50,7 @@ static PyObject *gauss2D(PyObject *self, PyObject *args){
                 + height * exp(-0.5*(
                     pow((j-y0)/y_sigma, 2.0) + pow((i-x0)/x_sigma, 2.0)));
 
-    return Py_BuildValue("N", array);
+    return Py_BuildValue("");
 
 }
 

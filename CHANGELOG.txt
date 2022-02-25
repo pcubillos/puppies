@@ -693,3 +693,7 @@ Added y_sigma and x_sigma into the PyArg_ParseTuple.
 
 Added height and backgroun into optional PyArg_ParseTuple.
 
+*****
+
+Try now changing the input arguments, receive array, edit in place.
+
