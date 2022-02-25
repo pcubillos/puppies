@@ -697,3 +697,7 @@ Added height and backgroun into optional PyArg_ParseTuple.
 
 Try now changing the input arguments, receive array, edit in place.
 
+*****
+
+What if, packing the inputs in an array.
+
