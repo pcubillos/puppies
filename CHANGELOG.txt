@@ -705,6 +705,10 @@ What if, packing the inputs in an array.
 *****  Tue Mar 15 23:55:10 CET 2022  *****
 
 There is absolutely no reason why this keeps failing.
+I'm giving up. Wrote code in the python module.
 Removed src_c/_gauss.c entirely.
 
+*****
+
+Fixed bug with relative import.
 

@@ -1,13 +1,15 @@
+__all__ = [
+    'orbit',
+]
+
 import sys
 import os
 import numpy as np
 
-import puppies.tools as pt
-sys.path.append(f'{pt.ROOT}puppies/lib')
+from ..tools import ROOT
+sys.path.append(f'{ROOT}puppies/lib')
 import _mandeltr as mt
 import _eclipse as ecl
-
-__all__ = ["orbit"]
 
 
 def orbital_phase(params, time):
