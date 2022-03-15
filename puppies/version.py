@@ -2,4 +2,4 @@
 # puppies is open-source software under the MIT license (see LICENSE)
 
 # puppies Version:
-__version__ = '0.2.0a1'
+__version__ = '0.2.0a2'

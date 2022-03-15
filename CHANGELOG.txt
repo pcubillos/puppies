@@ -712,3 +712,7 @@ Removed src_c/_gauss.c entirely.
 
 Fixed bug with relative import.
 
+*****
+
+Updated puppies version to 0.2.0a2.
+
