@@ -1,22 +1,17 @@
-import os
-import sys
-import numpy as np
-import scipy.optimize as so
-
-from ... import image as im
-
-from puppies.tools import ROOT
-sys.path.append(f'{ROOT}puppies/lib')
-import _gauss as g
-
 __all__ = [
     "gaussian",
     "guess",
     "fit",
 ]
 
+import sys
+import numpy as np
+import scipy.optimize as so
 
-def gaussian(size, center, sigma, height=0.0, background=0.0):
+from ... import image as im
+
+
+def gaussian(size, center, sigma, height=None, background=0.0):
     """
     Compute a 2D Gaussian function plus a background.
 
@@ -30,7 +25,7 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
     center: 1D float tuple/ndarray
         (y,x) center location of the Gaussian function.
     height: float
-        The height of the Gaussian at center.  If height is zero,
+        The height of the Gaussian at center.  If None,
         set height such that the integral of the Gaussian equals one.
     background: float
         Constant factor to add to the output array.
@@ -38,10 +33,10 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
     Returns
     -------
     gauss: 2D float ndarray
-      A 2D Gaussian function give by:
-           f(x,y) = 1.0/(2*pi*sigmay*sigmax) *
-                    exp(-0.5 * (((y-ycenter)/sigmay)**2 +
-                               ((y-ycenter)/sigmay)**2 )) + background
+        A 2D Gaussian function give by:
+        f(x,y) =
+            height * exp(-0.5*(((y-y0)/y_sigma)**2 + ((x-x0)/x_sigma)**2))
+            + background
 
     Examples
     --------
@@ -49,44 +44,48 @@ def gaussian(size, center, sigma, height=0.0, background=0.0):
     >>> import puppies.center.gaussian as g
 
     >>> # Make 2D Gaussian (Y, X):
-    >>> size   = 50, 80
-    >>> center =  30, 60
-    >>> sigma  =  5,  6.5
+    >>> size = 50, 80
+    >>> center = 30.0, 45.0
+    >>> sigma = 5.0, 6.5
     >>> gauss = g.gaussian(size, center, sigma)
     >>> plt.figure(0)
     >>> plt.clf()
-    >>> plt.imshow(gauss, origin="lower left", interpolation="nearest")
+    >>> plt.imshow(gauss, origin="lower", interpolation="nearest")
     >>> plt.title('2D Gaussian')
     >>> plt.xlabel('X')
     >>> plt.ylabel('Y')
 
     >>> # Gaussian integrates to 1:
-    >>> size   = 100, 100
-    >>> center =  50, 50
-    >>> sigma  =  10, 10
+    >>> size = 100, 100
+    >>> center = 50.0, 50.0
+    >>> sigma = 10.0, 10.0
     >>> gauss = g.gaussian(size, center, sigma)
     >>> print(np.sum(gauss))
-    0.999998828706
+    0.9999988287058696
     """
     # Unpack and cast input arguments:
     ny, nx = np.array(size, dtype=int)
+
     if np.ndim(center) == 0:
         y0 = x0 = float(center)
     else:
         y0, x0 = np.array(center, dtype=float)
-    if np.ndim(sigma) == 0:
-        sigmay = sigmax = float(sigma)
-    else:
-        sigmay, sigmax = np.array(sigma, dtype=float)
 
-    if height == 0.0:
+    if np.ndim(sigma) == 0:
+        x_sigma = y_sigma = float(sigma)
+    else:
+        y_sigma, x_sigma = np.array(sigma, dtype=float)
+
+    if height is None:
         height = 1.0 / (2.0 * np.pi * y_sigma * x_sigma)
 
-    # Evaluate the Gaussian:
-    gauss = np.zeros((ny,nx))
-    g.gauss2D(gauss, y0, x0, sigmay, sigmax, float(height), float(background))
-
-    return gauss
+    # The Gaussian:
+    y_arr, x_arr = np.mgrid[0:ny, 0:nx]
+    gauss = np.exp(-0.5*(
+        ((y_arr-y0)/y_sigma)**2.0 +
+        ((x_arr-x0)/x_sigma)**2.0
+    ))
+    return height*gauss + background
 
 
 def guess(data, mask=None, yxguess=None):

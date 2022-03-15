@@ -18,25 +18,14 @@ def get_version(package):
     return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
 
-srcdir = 'src_c/'  # C-code source folder
-incdir = 'src_c/include/'  # Include folder with header files
+# Folders containing C source and header files:
+srcdir = 'src_c/'
+incdir = 'src_c/include/'
 
-cfiles = os.listdir(srcdir)
-cfiles = list(filter(lambda x: re.search('.+[.]c$', x), cfiles))
-cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
-
-# Debugging:
+# Collect all .c files in src_dir:
 cfiles = [
-    '_asymmetry.c',
-    '_aphot.c',
-    '_disk.c',
-    '_gauss.c',
-    '_mandeltr.c',
-    '_bilinint.c',
-    '_eclipse.c',
-    '_expramp.c',
-    '_linramp.c',
-    '_quadramp.c',
+    c_file for c_file in os.listdir(srcdir)
+    if c_file.endswith('.c') and not c_file.startswith('#')
 ]
 
 inc = [get_include(), incdir]
@@ -51,7 +40,7 @@ extensions = [
         extra_compile_args=eca,
         extra_link_args=ela)
     for cfile in cfiles
-    ]
+]
 
 long_description = f"""
 .. image:: https://raw.githubusercontent.com/pcubillos/puppies/aprilis/docs/figures/logo_puppies_texted.png
