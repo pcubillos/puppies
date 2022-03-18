@@ -1,5 +1,10 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
+
+__all__ = [
+    'init',
+    'run',
+]
 
 import configparser
 
@@ -29,7 +34,7 @@ def init(cfile):
 
     if args["telescope"] == "spitzer":
         pup = inst.Spitzer(args)
-    elif args["telescope"] == "cheops":
+    elif args["telescope"] == "hst":
         pup = None
     elif args["telescope"] == "jwst":
         pup = None
@@ -38,6 +43,9 @@ def init(cfile):
 
 
 def run(args):
+    """
+    Hello, this is doc.
+    """
     runmode = pt.parray(args["runmode"])
     nsteps = len(runmode)
 

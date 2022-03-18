@@ -1,16 +1,16 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    "Spitzer"
-    ]
+    "Spitzer",
+]
 
 import os
 import re
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
-
 import astropy.constants as ac
 import astropy.coordinates as coord
 import astropy.io.fits as fits
@@ -28,17 +28,8 @@ class Spitzer():
     Pup class for a Spitzer data set.
     """
     def __init__(self, args):
-        self.initpars(args)
-        self.calc()
-        self.read()
-        self.check()
-        io.save(self)
-
-
-    def initpars(self, args):
         # Put user inputs into the Pup object:
         self.inputs = inputs = args
-        # Event:
         self.planetname = inputs["planetname"]
         self.ID = inputs["ID"]
 
@@ -46,22 +37,23 @@ class Spitzer():
         self.root = inputs["root"]
         if self.root == "default":
             self.root = os.getcwd()
-        if not os.path.exists(self.root):
-            pt.error(f"Output root folder does not exists ('{self.root}').")
+        root_path = Path(self.root).expanduser().resolve()
 
-        self.folder = self.root + "/" + self.ID
+        if not root_path.exists():
+            pt.error(f"Root folder does not exists: '{self.root}'.")
+
+        self.folder = root_path / self.ID
         if not os.path.exists(self.folder):
-            os.mkdir(self.folder)
+            self.folder.mkdir()
         os.chdir(self.folder)
 
         # Make file to store running log:
         self.logfile = f"{self.folder}/{self.ID}.log"
-        self.log = open(self.logfile, "w")
-        pt.msg(
-            1, f"\nStarting new Puppies project in '{self.folder}'.", self.log)
+        self.log = log = pt.Log(self.logfile)
+        log.msg(f"\nStarting new Puppies project in '{self.folder}'.")
 
         # Parse Parameters:
-        ra  = inputs["ra"].split()
+        ra = inputs["ra"].split()
         dec = inputs["dec"].split()
         self.ra  = coord.Angle(ra[0],  unit=u.Unit(ra[1]))
         self.dec = coord.Angle(dec[0], unit=u.Unit(dec[1]))
@@ -89,50 +81,51 @@ class Spitzer():
 
         self.uephtime = float(ephemeris[1]) # * u.d
 
-        self.rprs2 = (self.rplanet/self.rstar)**2
+        self.rprs2 = (self.rplanet/self.rstar)**2.0
         self.urprs2 = 2*self.rprs2 * np.sqrt(
-            (self.urplanet/self.rplanet)**2 + (self.urstar/self.rstar)**2)
+            (self.urplanet/self.rplanet)**2 +
+            (self.urstar/self.rstar)**2
+        )
 
         self.units = u.Unit(inputs["units"])
 
         # Instrument-specific:
-        self.inst = Instrument(inputs["instrument"])
-        self.inst.npos = int(inputs["npos"])
-        self.inst.nnod = int(inputs["nnod"])
-        self.inst.aorname = pt.parray(inputs["aorname"], dtype=str)
-        #print(self.inst.aorname)
-        self.inst.naor = len(self.inst.aorname)
-        self.inst.datadir = inputs["data"]
+        inst = self.inst = Instrument(inputs["instrument"])
+        inst.npos = int(inputs["npos"])
+        inst.nnod = int(inputs["nnod"])
+        inst.aorname = pt.parray(inputs["aorname"], dtype=str)
+        inst.naor = len(self.inst.aorname)
+        inst.datadir = inputs["data"]
 
         # Ancilliary files:
         self.kurucz = inputs["kurucz"]
 
-        self.filter = f"{ROOT}/inputs/spitzer/filter/{self.inst.default_filter}"
+        self.filter = f"{ROOT}/inputs/spitzer/filter/{inst.default_filter}"
         if inputs["filter"] != "default":
             self.filter = inputs["filter"]
 
-        self.psf = f"{ROOT}/inputs/spitzer/psf/{self.inst.default_psf}"
+        self.psf = f"{ROOT}/inputs/spitzer/psf/{inst.default_psf}"
         if inputs["psf"] != "default":
             self.psf = inputs["psf"]
 
-        self.inst.pmaskfile = []
-        for aor in self.inst.aorname:
-            self.inst.pmaskfile.append(
-                f'{self.inst.datadir}/r{aor}/{self.inst.channel}/'
-                f'cal/{inputs["pmaskfile"]}')
+        inst.pmaskfile = []
+        for aor in inst.aorname:
+            inst.pmaskfile.append(
+                f'{inst.datadir}/r{aor}/{inst.channel}/'
+                f'cal/{inputs["pmaskfile"]}'
+        )
 
         # Sigma rejection:
         self.schunk = int(inputs["schunk"])
         self.sigma = pt.parray(inputs["sigma"], float)
 
 
-    def calc(self):
-        inst = self.inst
-        inst.nexpid  = np.zeros(inst.naor, np.int)
+        # Now do some calculations:
+        inst.nexpid = np.zeros(inst.naor, np.int)
 
         # compile patterns: lines ending with each suffix
-        bcdpattern    = re.compile("(.+" + inst.bcdsuf    + ")\n")
-        bdmskpattern  = re.compile("(.+" + inst.bdmsksuf  + ")\n")
+        bcdpattern = re.compile("(.+" + inst.bcdsuf + ")\n")
+        bdmskpattern = re.compile("(.+" + inst.bdmsksuf  + ")\n")
         bdmsk2pattern = re.compile("(.+" + inst.bdmsksuf2 + ")\n")
 
         # Make list of files in each AOR:
@@ -155,7 +148,7 @@ class Spitzer():
             elif bdmsk2pattern.findall(framesstring) != []:
                 inst.masksuf = inst.bdmsksuf2
             else:
-                pt.error("No mask files found.", self.log)
+                log.error("No mask files found.")
 
             first_bcd = inst.bcdfiles[-1][0]
             last_bcd = inst.bcdfiles[-1][-1]
@@ -208,20 +201,19 @@ class Spitzer():
         inst.nframes = inst.nfiles * inst.nz
 
         # interval between exposure starts
-        try:
+        inst.framtime = 0.0
+        if 'FRAMTIME' in head:
             inst.framtime = head['FRAMTIME']
-        except:
-            inst.framtime = 0.0
+
         # effective exposure time
-        try:
+        inst.exptime = None
+        if 'EXPTIME' in head:
             inst.exptime = head['EXPTIME']
-        except:
-            inst.exptime = None
+
         # e/DN conversion
-        try:
+        inst.gain = None
+        if 'GAIN' in head:
             inst.gain = head['GAIN']
-        except:
-            inst.gain = None
 
         inst.sscver = head["CREATOR"]   # Spitzer pipeline
         inst.bunit = u.Unit(head['BUNIT'])  # Units of image data
@@ -232,19 +224,15 @@ class Spitzer():
             [np.abs(head['PXSCAL2']), np.abs(head['PXSCAL1'])] * u.arcsec
 
         if inst.chan != head['CHNLNUM']:  # Spitzer photometry channel
-            pt.error('Unexpected photometry channel.', self.log)
+            log.error('Unexpected photometry channel.')
 
 
-    def read(self):
-        """
-        Read a set of IRAC AORs, (or IRAC Subarray AORs), sorting by dither
-        position, if any.
-        """
+        # Read the data now:
         inst = self.inst
         # Allocate space for returned arrays:
-        headerdtype = 'S' + str(inst.hsize)
-        head   = np.zeros((inst.nframes//inst.nz), headerdtype)
-        data   = np.zeros((inst.nframes, inst.ny, inst.nx), float)
+        headerdtype = f'S{inst.hsize}'
+        head = np.zeros((inst.nframes//inst.nz), headerdtype)
+        data = np.zeros((inst.nframes, inst.ny, inst.nx), float)
         uncert = np.zeros((inst.nframes, inst.ny, inst.nx), float)
         bdmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
         brmskd = np.zeros((inst.nframes, inst.ny, inst.nx), int)
@@ -263,10 +251,10 @@ class Spitzer():
             1886.0: 4,
             2106.5: 5,
             1864.5: 6,
-            }
+        }
 
         # Write to log first line:
-        pt.msg(1, "\nEvent data:\n  aor  expid  dcenum   pos", self.log)
+        log.msg("\nEvent data:\n  aor  expid  dcenum   pos")
 
         # pattern to find     expid      dcenum
         pattern = re.compile("_([0-9]{4})_([0-9]{4})_")
@@ -274,19 +262,19 @@ class Spitzer():
         x_hcrs = np.zeros(inst.nframes)
         y_hcrs = np.zeros(inst.nframes)
         z_hcrs = np.zeros(inst.nframes)
-        time   = np.zeros(inst.nframes) * u.d
+        time = np.zeros(inst.nframes) * u.d
 
         # Obtain data
         for aor in range(inst.naor):
             bcddir = f"{inst.datadir}/r{inst.aorname[aor]}/{inst.channel}/bcd/"
-            bcd   = inst.bcdfiles[aor]
+            bcd = inst.bcdfiles[aor]
             for i in range(len(bcd)):
                 bcdfile = os.path.realpath(bcddir + bcd[i])
                 # Read data
                 try:
                     dataf, bcdhead = fits.getdata(bcdfile, header=True)
                 except: # If a file doesn't exist, skip to next file.
-                    pt.warning(1, f"BCD file not found: {bcdfile}", self.log)
+                    log.warning(f"BCD file not found: {bcdfile}")
                     continue
 
                 try: # Read uncertainity and mask files
@@ -316,22 +304,23 @@ class Spitzer():
                     brmskf = -np.ones((inst.nz, inst.ny, inst.nx), np.int)
 
                 # Find dither position
-                try:
+                pos = 0  # No dither position in stare data
+                if 'DITHPOS' in bcdhead:
                     pos = bcdhead['DITHPOS'] - 1
-                except:
-                    pos = 0  # No dither position in stare data
+
                 if inst.name == 'irs':
                     pos = expid % inst.npos
                 elif inst.name == 'mips':
                     nod = expid % inst.nnod
                     pos = nod * inst.nscyc + mirind[bcdhead['CSM_PRED']]
 
-                be = nframes           # begining
-                en = nframes + inst.nz # end
+                # Current beginning and end:
+                be = nframes
+                en = nframes + inst.nz
 
                 # Store data
-                data[be:en] = dataf.reshape( (inst.nz, inst.ny, inst.nx))
-                uncert[be:en] = uncf.reshape(  (inst.nz, inst.ny, inst.nx))
+                data[be:en] = dataf.reshape((inst.nz, inst.ny, inst.nx))
+                uncert[be:en] = uncf.reshape((inst.nz, inst.ny, inst.nx))
                 bdmskd[be:en] = bdmskf.reshape((inst.nz, inst.ny, inst.nx))
                 brmskd[be:en] = brmskf.reshape((inst.nz, inst.ny, inst.nx))
                 # All the single numbers per frame that we care about
@@ -343,7 +332,8 @@ class Spitzer():
                 fp.subarn[be:en] = np.arange(inst.nz)
                 time[be:en] = (
                     bcdhead['MJD_OBS'] * u.d
-                    + inst.framtime * (0.5 + np.arange(inst.nz)) * u.s)
+                    + inst.framtime * (0.5 + np.arange(inst.nz)) * u.s
+                )
                 x_hcrs[be:en] = bcdhead['SPTZR_X']
                 y_hcrs[be:en] = bcdhead['SPTZR_Y']
                 z_hcrs[be:en] = bcdhead['SPTZR_Z']
@@ -394,7 +384,7 @@ class Spitzer():
                 nframes += inst.nz
 
                 # Print to log and screen:
-                pt.msg(1, f"{aor:4d}{expid:7d}{dcenum:7d}{pos:7d}", self.log)
+                log.msg(f"{aor:4d}{expid:7d}{dcenum:7d}{pos:7d}")
 
         # Observation mid time:
         fp.time = at.Time(time, format="mjd", scale="utc")
@@ -402,7 +392,8 @@ class Spitzer():
         fp.loc = coord.SkyCoord(
             x_hcrs*u.km, y_hcrs*u.km, z_hcrs*u.km,
             frame='hcrs', obstime=fp.time,
-            representation='cartesian').transform_to(coord.ICRS)
+            representation_type='cartesian',
+        ).transform_to(coord.ICRS)
 
         target = coord.SkyCoord(self.ra, self.dec).cartesian
         # Light-time travel from observatory (Spitzer) to barycenter:
@@ -443,11 +434,7 @@ class Spitzer():
         self.nimpos = nimpos
 
 
-    def check(self):
-        """
-        Doc me.
-        """
-        inst = self.inst
+        # Now some final checks:
         # Source estimated position:
         self.srcest = np.zeros((2, inst.npos))
         for p in range(inst.npos):
@@ -475,54 +462,54 @@ class Spitzer():
 
         # Throw a warning if the source estimate position lies outside of
         # the image.
-        if (np.any(self.srcest[1,:] < 0)
-              or np.any(self.srcest[1,:] > inst.nx)
-              or np.any(self.srcest[0,:] < 0)
-              or np.any(self.srcest[0,:] > inst.ny)):
-            pt.warning(1, "Source RA-DEC position lies out of bounds.", self.log)
+        out_of_bounds = (
+            np.any(self.srcest[1,:] < 0)
+            or np.any(self.srcest[1,:] > inst.nx)
+            or np.any(self.srcest[0,:] < 0)
+            or np.any(self.srcest[0,:] > inst.ny)
+        )
+        if out_of_bounds:
+            log.warning("Source RA-DEC position lies out of bounds.")
 
-        pt.msg(1,
+        log.msg(
             f"\nSummary:\nTarget:     {self.planetname}\n"
-            f"Event name: {self.ID}", self.log)
-        pt.msg(1, f"Spitzer pipeline version: {inst.sscver}", self.log)
-        pt.msg(1,
-            f"AOR files: {inst.aorname}\nExposures per AOR: {inst.nexpid}",
-            self.log)
-        pt.msg(1,
+            f"Event name: {self.ID}\n"
+            f"Spitzer pipeline version: {inst.sscver}\n"
+            f"AOR files: {inst.aorname}\nExposures per AOR: {inst.nexpid}\n"
             f"Number of target positions: {inst.npos}\n"
-            f"Target guess position (pixels):\n {self.srcest}", self.log)
-        pt.msg(1,
+            f"Target guess position (pixels):\n {self.srcest}\n"
             f"Frames per position: {self.nimpos}\n"
-            f"Read a total of {sum(self.nimpos):d} frames.\n", self.log)
+            f"Read a total of {sum(self.nimpos):d} frames.\n"
+        )
 
         print("Ancil Files:")
         if not os.path.isfile(inst.pmaskfile[0]):
-            pt.warning(1, 
-                f"Permanent mask file not found ('{inst.pmaskfile[0]}').",
-                self.log)
+            log.warning(
+                f"Permanent mask file not found ('{inst.pmaskfile[0]}').")
         else:
-            pt.msg(1,
-                f"Permanent mask file: '{inst.pmaskfile[0]}'", self.log, 2)
+            log.msg(f"Permanent mask file: '{inst.pmaskfile[0]}'")
 
         if not os.path.isfile(self.kurucz):
-            pt.warning(1, f"Kurucz file not found ('{self.kurucz}').", self.log)
+            log.warning(f"Kurucz file not found ('{self.kurucz}').")
         else:
-            pt.msg(1, f"Kurucz file: '{self.kurucz}'", self.log, 2)
+            log.msg(f"Kurucz file: '{self.kurucz}'")
 
         if not os.path.isfile(self.filter):
-            pt.warning(1, f"Filter file not found ('{self.filter}').", self.log)
+            log.warning(f"Filter file not found ('{self.filter}').")
         else:
-            pt.msg(1, f"Filter file: '{self.filter}'", self.log, 2)
+            log.msg(f"Filter file: '{self.filter}'")
 
         if not os.path.isfile(self.psf):
-            pt.warning(1, f"PSF file not found ('{self.psf}').", self.log)
+            log.warning(f"PSF file not found ('{self.psf}').")
         else:
-            pt.msg(1, f"PSF file: '{self.psf}'", self.log, 2)
+            log.msg(f"PSF file: '{self.psf}'", indent=2)
 
         if self.inst.exptime is None:
-            pt.warning(1, "Exposure time undefined.", self.log)
+            log.warning("Exposure time undefined.")
         if self.inst.gain is None:
-            pt.warning(1, "Gain undefined.", self.log)
+            log.warning("Gain undefined.")
+
+        io.save(self)
 
 
 class Instrument:
@@ -593,6 +580,7 @@ class Instrument:
             # 4 (decimal 16) since uncerts are high and flux is low in top
             # row, which has this flag
             # irsa.ipac.caltech.edu/data/SPITZER/docs/irac/iracinstrumenthandbook/56
+            self.dcrit = np.long(32560)
             # 2** 4   saturation corrected in pipeline
             # 2** 5   muxbleed in ch 1, 2; bandwidth effect in ch 3, 4
             # 2** 8   crosstalk flag
@@ -603,7 +591,6 @@ class Instrument:
             # 2**13   saturated (not corrected in pipeline),
             #          or predicted to be saturated in long HDR frames
             # 2**14   data bad and/or missing
-            self.dcrit = np.long(32560)
 
         else:
             # irsa.ipac.caltech.edu/data/SPITZER/docs/mips/mipsinstrumenthandbook/68/
@@ -624,7 +611,8 @@ class Instrument:
             "irac3_filter.dat",
             "irac3_filter.dat",
             "irs-blue_filter.dat",
-            "mips-24um_filter.dat"]
+            "mips-24um_filter.dat",
+        ]
         self.default_filter = default_filters[self.chan-1]
 
         default_psfs = [

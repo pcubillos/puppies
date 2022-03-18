@@ -720,3 +720,9 @@ Updated puppies version to 0.2.0a2.
 
 Changed license to GNU GPL v2.
 
+
+*****  Fri Mar 18 21:35:35 CET 2022  *****
+
+Housekeeping.
+pup_spitzer.py is running clean.
+
