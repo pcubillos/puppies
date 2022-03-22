@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'badpix',
-    ]
+]
 
 import os
 import shutil
@@ -24,17 +24,16 @@ def badpix(pup):
     """
     # Move to output folder:
     os.chdir(pup.folder)
-    pup.folder += "/badpix"
+    pup.folder /= 'badpix'
     if not os.path.exists(pup.folder):
         os.mkdir(pup.folder)
     os.chdir(pup.folder)
 
     # Copy, update, and reopen logfile:
     shutil.copy(pup.logfile, pup.folder)
-    pup.logfile = pup.folder + "/" + pup.ID + ".log"
-    pup.log = open(pup.logfile, "a")
-    pt.msg(1, f"\n\n{70*':'}\nStarting bad pixel masking ({time.ctime()})\n\n",
-        pup.log)
+    pup.logfile = pup.folder / f"{pup.ID}.log"
+    log = pup.log = pt.Log(pup.logfile, append=True)
+    log.msg(f"\n\n{log.sep}\nStarting bad pixel masking ({time.ctime()})\n\n")
 
     # Julian observation date
     #pup.fp.juldat = pup.jdjf80 + pup.fp.time / 86400.0
@@ -59,11 +58,12 @@ def badpix(pup):
     pup.estbg = pup.fluxunits * (
         np.mean(pup.fp.zodi) +
         np.mean(pup.fp.ism)  +
-        np.mean(pup.fp.cib)  )
+        np.mean(pup.fp.cib)
+    )
 
     # Get permanent bad pixel mask.
     if not os.path.exists(pup.inst.pmaskfile[0]):
-        pt.error('Permanent Bad pixel mask not found!', pup.log)
+        log.error('Permanent Bad pixel mask not found!')
     else:
         hdu = fits.open(pup.inst.pmaskfile[0])
         if hdu[0].header['bitpix'] == -32:  # if data type is float
@@ -77,10 +77,11 @@ def badpix(pup):
 
     # Do NOT define sigma, we have a different scheme for finding baddies
     # adds Spitzer rejects: fp.nsstrej  &  our rejects: fp.nsigrej
-    pt.msg(1, "Apply bad pixel masks.", pup.log)
+    log.msg("Apply bad pixel masks.")
     pup.mask = badmask(
         data, uncert, pup.pmask,  pup.inst.pcrit,
-        bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos)
+        bdmskd, pup.inst.dcrit, pup.fp, pup.nimpos,
+    )
 
     ## User rejected pixels:
     #if pup.userrej != None:
@@ -92,10 +93,10 @@ def badpix(pup):
     #  pup.fp.userrej = np.zeros((pup.npos, pup.maxnimpos))
 
     # Sigma rejection:
-    pt.msg(1, "Sigma Rejection.", pup.log)
+    log.msg("Sigma Rejection.")
     chunkbad(data, uncert, pup.mask, pup.nimpos, pup.sigma, pup.schunk, pup.fp)
 
-    pt.msg(1, 'Compute mean frame and mean sky.', pup.log)
+    log.msg('Compute mean frame and mean sky.')
     # Mean image per pixel per position:
     pup.meanim = np.zeros((pup.inst.npos, pup.inst.ny, pup.inst.nx))
     for pos in range(pup.inst.npos):
@@ -112,9 +113,9 @@ def badpix(pup):
     # Apply sigma rejection on medsky here?
 
     # Print time elapsed and close log:
-    pt.msg(1,
+    log.msg(
         f"\nFinished bad-pixel masking  ({time.ctime()})."
-        f"\nOutput folder: '{pup.folder}'.\n", pup.log)
+        f"\nOutput folder: '{pup.folder}'.\n")
     io.save(pup)
 
 

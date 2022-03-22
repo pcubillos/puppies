@@ -1,10 +1,10 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # puppies is open-source software under the MIT license (see LICENSE)
 
 __all__ = [
     'medstd',
     'sigrej',
-    ]
+]
 
 import numpy as np
 
@@ -91,7 +91,7 @@ def medstd(data, mask=None, median=False, axis=0):
 
 
 def sigrej(data, sigma, mask=None, axis=0, retival=False,
-           retmean=False, retstd=False, retmedian=False, retmedstd=False):
+    retmean=False, retstd=False, retmedian=False, retmedstd=False):
     r"""
     Flag outlying points in a data set using sigma rejection.
 
@@ -159,7 +159,7 @@ def sigrej(data, sigma, mask=None, axis=0, retival=False,
     dims = list(np.shape(data))
     nsig = np.size(sigma)
     if nsig == 0:
-        nsig  = 1
+        nsig = 1
         sigma = [sigma]
 
     if mask is None:
@@ -169,12 +169,14 @@ def sigrej(data, sigma, mask=None, axis=0, retival=False,
     del(dims[axis])
     ival = np.zeros((2, nsig) + tuple(dims))
 
-    for s in np.arange(nsig):
+    for s in range(nsig):
         # Get median and median std:
         ival[1,s], ival[0,s] = medstd(data, mask, axis=axis, median=True)
         # Update mask
-        mask *= ( (data >= ival[0,s] - sigma[s] * ival[1,s]) &
-                  (data <= ival[0,s] + sigma[s] * ival[1,s]) )
+        mask *= (
+            (data >= ival[0,s] - sigma[s] * ival[1,s]) &
+            (data <= ival[0,s] + sigma[s] * ival[1,s])
+        )
 
     # the return arrays
     ret = (mask,)
@@ -184,7 +186,7 @@ def sigrej(data, sigma, mask=None, axis=0, retival=False,
     # final calculations
     if retmean or retstd:
         count = np.sum(mask, axis=axis)
-        mean  = np.nansum(data*mask, axis=axis)
+        mean = np.nansum(data*mask, axis=axis)
 
         # calculate only where there are good pixels
         goodvals = np.isfinite(mean) * (count>0)
@@ -194,7 +196,7 @@ def sigrej(data, sigma, mask=None, axis=0, retival=False,
             mean[np.where(goodvals)] /= count[np.where(goodvals)]
 
         if retstd:
-            resid  = (data-mean)*mask
+            resid = (data-mean) * mask
             stddev = np.sqrt(np.sum(resid**2, axis=axis)/(count - 1))
             if np.ndim(stddev) == 0:
                 if count == 1:

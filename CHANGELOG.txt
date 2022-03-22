@@ -726,3 +726,8 @@ Changed license to GNU GPL v2.
 Housekeeping.
 pup_spitzer.py is running clean.
 
+
+*****  Tue Mar 22 22:30:31 CET 2022  *****
+
+Got Spitzer pipeline running intil badpix.
+
