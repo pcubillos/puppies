@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.com/pcubillos/puppies.svg?branch=aprilis)](https://travis-ci.com/pcubillos/puppies)
 [![Documentation Status](https://readthedocs.org/projects/puppies/badge/?version=latest)](https://puppies.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/exo_puppies.svg)](https://pypi.org/project/exo_puppies)
-[![Conda Version](https://img.shields.io/conda/vn/conda-forge/puppies.svg)](https://anaconda.org/conda-forge/puppies)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/exo_puppies.svg)](https://anaconda.org/conda-forge/exo_puppies)
 [![GitHub](https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue)](https://puppies.readthedocs.io/en/latest/license.html)
 
 ### Install as:
@@ -13,7 +13,7 @@ pip install exo_puppies
 ```
 or:
 ```
-conda install -c conda-forge puppies
+conda install -c conda-forge exo_puppies
 ```
 
 ### Docs at:
@@ -21,7 +21,7 @@ conda install -c conda-forge puppies
 
 ### Cite as:
 ```bibtex
-  @MISC{Cubillos2021arxivPuppies,
+  @MISC{Cubillos2022arxivPuppies,
          author = {{Cubillos}, Patricio E.},
           title = "{puppies: The Public Photometry pipeline for Exoplanets}",
            year = 2021,
@@ -29,7 +29,7 @@ conda install -c conda-forge puppies
         archivePrefix = {arXiv},
        eprint = {0000.00000},
  primaryClass = {astro-ph.EP},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv000....0C},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2022arXiv000....0C},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
   }
 ```
