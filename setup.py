@@ -65,8 +65,8 @@ The Public Photometry Pipeline for Exoplanets
     :target: https://pypi.org/project/exo_puppies/
     :alt: Latest Version
 
-.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/puppies.svg
-    :target: https://anaconda.org/conda-forge/puppies
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/exo_puppies.svg
+    :target: https://anaconda.org/conda-forge/exo_puppies
 
 .. |License| image:: https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue
     :target: https://pcubillos.github.io/puppies.html
@@ -84,7 +84,7 @@ setup(
         'scipy>=1.4.1',
         'matplotlib>=1.3.1',
         'astropy>=3.1',
-        'mc3>=3.0.6',
+        'mc3>=3.0.12',
         ],
     include_package_data=True,
     license = 'MIT',

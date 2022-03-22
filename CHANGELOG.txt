@@ -735,3 +735,7 @@ Got Spitzer pipeline running intil badpix.
 
 Updated README conda links.
 
+*****
+
+Updated mc3 requirement.
+
