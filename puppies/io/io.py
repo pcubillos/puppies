@@ -98,7 +98,7 @@ def update(pup, cfile):
         "expand": "1",
         "psfexpand": "1",
         "otrim": "10",
-        }
+    }
 
     # General:
     if 'ncpu' in args:

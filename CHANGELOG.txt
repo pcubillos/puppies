@@ -739,3 +739,8 @@ Updated README conda links.
 
 Updated mc3 requirement.
 
+
+*****  Wed Mar 23 09:55:19 CET 2022  *****
+
+Got Spitzer pipeline running intil centering.
+
