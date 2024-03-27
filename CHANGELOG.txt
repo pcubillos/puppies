@@ -754,3 +754,7 @@ Updated the pup marker to work with matplotlib v3.4+
 
 Getting the docs back to life.
 
+*****
+
+Replaced travis CI with github workflows for automated testing.
+
