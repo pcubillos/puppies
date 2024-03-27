@@ -3,7 +3,7 @@
 Calling sequence:
   ./pup.py pup.cfg
 
-This seems to be anough.  All required info can be contained into the
+This seems to be enough.  All required info can be contained into the
 pup.cfg file, including what steps to run, and over which folders.
 
 Main steps:
@@ -743,4 +743,10 @@ Updated mc3 requirement.
 *****  Wed Mar 23 09:55:19 CET 2022  *****
 
 Got Spitzer pipeline running intil centering.
+
+
+*****  Wed Mar 27 22:06:12 CET 2024  *****
+
+Updated the pup marker to work with matplotlib v3.4+
+(as well as keeping compatibility with older versions).
 

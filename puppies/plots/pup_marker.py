@@ -1,5 +1,7 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # puppies is open-source software under the MIT license (see LICENSE)
+
+from packaging import version
 
 import numpy as np
 import matplotlib
@@ -8,8 +10,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.path import Path
 
 
-def _set_pup(self):
-    """A puppy marker for matplotlib."""
+def make_pup_path():
     codes = [
         Path.MOVETO, Path.LINETO, Path.LINETO,
         Path.CURVE4, Path.CURVE4, Path.LINETO,
@@ -46,42 +47,52 @@ def _set_pup(self):
     v = verts - np.mean(verts,0)
     v /= np.ptp(v)
     pup_path = Path(4*v, codes, closed=False)
+    return pup_path
 
 
+
+def _set_pup(self):
+    """A puppy marker for matplotlib."""
     # Not totally sure of what's going on here exactly, just following
-    # what's in matplotlib/markers.py
+    # what's in matplotlib/markers.py  for def _set_pentagon()
     self._transform = Affine2D().scale(0.5)
-    self._snap_threshold = 1.0
+    self._snap_threshold = 5.0
     self._filled = False
-    polypath = pup_path
-    fs = self.get_fillstyle()
+    self._path = make_pup_path()
 
-    if not self._half_fill():
-        self._path = polypath
+    if version.parse(matplotlib.__version__) >= version.parse('3.4'):
+        from matplotlib._enums import JoinStyle
+        self._joinstyle = self._user_joinstyle or JoinStyle.miter
     else:
-        verts = polypath.vertices
+        self._joinstyle = 'miter'
 
-        y = (1 + np.sqrt(5)) / 4.
-        top    = Path([verts[0], verts[1], verts[4], verts[0]])
-        bottom = Path([verts[1], verts[2], verts[3], verts[4], verts[1]])
-        left   = Path([verts[0], verts[1], verts[2], [0, -y], verts[0]])
-        right  = Path([verts[0], verts[4], verts[3], [0, -y], verts[0]])
-        if fs == 'top':
-            mpath, mpath_alt = top, bottom
-        elif fs == 'bottom':
-            mpath, mpath_alt = bottom, top
-        elif fs == 'left':
-            mpath, mpath_alt = left, right
-        else:
-            mpath, mpath_alt = right, left
-        self._path = mpath
-        self._alt_path = mpath_alt
-        self._alt_transform = self._transform
 
-    self._joinstyle = 'miter'
+def _set_kitten(self):
+    pass
 
 
 # Add the marker style to the matplotlib list of markers:
 matplotlib.markers.MarkerStyle._set_pup = _set_pup
 matplotlib.markers.MarkerStyle.markers["pup"] = "pup"
+#matplotlib.markers.MarkerStyle._set_kitten = _set_kitten
+#matplotlib.markers.MarkerStyle.markers["kitten"] = "kitten"
+
+
+#def test():
+#    fs = 'full'
+#    ms = 8
+#    mfc = None
+#
+#    plt.figure(0)
+#    plt.clf()
+#    plt.plot([0], [1], marker='kitten', mfc=mfc, ms=ms, fillstyle=fs)
+#    plt.plot([0], [0], marker='kitten', ms=ms, fillstyle=None)
+#    plt.plot([1], [1], marker='s', mfc=mfc, ms=ms, fillstyle=fs)
+#    plt.plot([0.5], [1], marker='*', mfc=mfc, ms=ms, fillstyle=fs)
+#    plt.xlim(-2, 3)
+#    plt.ylim(-2, 2)
+#    #plt.plot([0], [1], marker='pup')
+
+
+
 
