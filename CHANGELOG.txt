@@ -775,3 +775,7 @@ Cleaned up plots code.
 
 Cleaned up badpix.
 
+*****
+
+Cleaned up pup_model.py
+

@@ -1,21 +1,20 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2024 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'setup',
     'lightcurve_fit',
     'mcmc',
     'evalmodel',
-    ]
+]
 
-import time
+import os
 
 import numpy as np
 import mc3
 
 from .. import tools as pt
 from .. import io as io
-from .. import image as im
 from .. import plots as pp
 from .. import stats as ps
 
@@ -214,9 +213,8 @@ def setup(cfile, mode='turtle'):
         clips.append([int(postclip), pup.ndata])
 
         if config[j]['interclip'] is not None:
-            clips = np.concatenate([clips, config[j]['interclip']], axis=0)
-            for k in range(len(config[j]['interclip'])):
-                clips.append(config[j]['interclip'][k])
+            clips = np.vstack([clips, config[j]['interclip']])
+        clips = np.array(clips, int)
 
         # Who is a good mask? (True=good, False=bad):
         pup.mask = np.ones(pup.ndata, bool)
@@ -255,7 +253,7 @@ def setup(cfile, mode='turtle'):
         # BLISS setup variables:
         pup.ystep = config[j]['ystep']
         if pup.ystep is None:
-            pup.ystep = pup.xrms
+            pup.ystep = pup.yrms
         pup.xstep = config[j]['xstep']
         if pup.xstep is None:
             pup.xstep = pup.xrms
@@ -279,7 +277,6 @@ def setup(cfile, mode='turtle'):
             # Dataset index:
             fit.ipup.append(j)
             fit.mask.append(np.copy(laika.pup[j].mask))
-
             # List of lightcurve model names for this fit/dataset:
             mnames = config[j]['model'][i]
             fit.mnames.append(mnames)
@@ -308,7 +305,6 @@ def setup(cfile, mode='turtle'):
             ipup = fit.ipup[j]
             pup = laika.pup[ipup]
             iparams = []
-            print(f"{pup.ID}:  {fit.mnames[j]}")
             priorvars = config[ipup]['priorvars']
             priorvals = config[ipup]['priorvals']
             for k in range(fit.nmodels[j]):
@@ -362,9 +358,11 @@ def setup(cfile, mode='turtle'):
         fit.binferr = [None] * fit.npups
         fit.bintime = [None] * fit.npups
         for j in range(fit.npups):
-            data   = pup.flux[fit.mask[j]]
+            ipup = fit.ipup[j]
+            pup = laika.pup[ipup]
+            data = pup.flux[fit.mask[j]]
             uncert = pup.ferr[fit.mask[j]]
-            time   = pup.time[fit.mask[j]]
+            time = pup.time[fit.mask[j]]
             binsize = int(fit.ndata[j]/pup.nbins)
             fit.bintime[j] = mc3.stats.bin_array(time, binsize)
             fit.binflux[j], fit.binferr[j] = mc3.stats.bin_array(
@@ -404,12 +402,12 @@ def lightcurve_fit(cfile=None, laika=None, summary=False):
     # Run MC3 least-squares fit:
     print("Calculating least-squares fit.")
     for fit in laika.fit:
-        # Optimization:
         output = mc3.fit(
             fit.flux, fit.ferr, evalmodel, fit.params, indparams=[fit],
             pstep=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
             prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
-            leastsq=laika.optimizer)
+            leastsq=laika.optimizer,
+        )
 
         # Evaluate model using current values:
         fit.bestparams = output['bestp'] # bestp
@@ -441,10 +439,11 @@ def lightcurve_fit(cfile=None, laika=None, summary=False):
                 print("Re-calculating least-squares fit with new errors.")
                 output = mc3.fit(
                     fit.flux, fit.cferr, evalmodel, fit.params, indparams=[fit],
-                    stepsize=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
+                    pstep=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
                     prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
-                    lm=laika.optimizer)
-                fit.bestparams = output[1]
+                    leastsq=laika.optimizer,
+                )
+                fit.bestparams = output['bestp']
 
         # Store best-fitting parameters:
         model = evalmodel(fit.bestparams, fit, update=True)
@@ -494,13 +493,17 @@ def mcmc(cfile=None, laika=None):
     if laika.leastsq:
         laika = lightcurve_fit(laika=laika, summary=False)
 
+    if not os.path.exists(laika.folder):
+        os.mkdir(laika.folder)
+
     # Run MCMC:
     for k in range(len(laika.fit)):
         fit = laika.fit[k]
-        pup = laika.pup[fit.ipup[0]] # HARDCODED ZERO (only for non-joint runs)
-        laika.folder = './'
-        savefile = f"MCMC_{pup.centering}{pup.photap:.2f}_fit{k:02d}"
-
+        if laika.joint:
+            savefile = laika.folder
+        else:
+            pup = laika.pup[fit.ipup[0]]
+            savefile = f"{laika.folder}/MCMC_{pup.centering}{pup.photap:.2f}_fit{k:02d}"
         laika.grbreak = 0.0
 
         posterior = mc3.sample(
@@ -510,11 +513,15 @@ def mcmc(cfile=None, laika=None):
             prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
             sampler=laika.walk, nsamples=laika.nsamples, burnin=laika.burnin,
             nchains=laika.nchains, ncpu=laika.ncpu, thinning=laika.thinning,
-            grtest=True, grbreak=laika.grbreak, grnmin=0.5, #laika.grnmin,
-            hsize=10, kickoff='normal', log=f"{savefile}.log",
+            grtest=True, grbreak=laika.grbreak, grnmin=0.5,
+            hsize=10, kickoff='normal',
             plots=laika.plots,
             pnames=fit.pnames, resume=laika.resume, rms=True,
-            savefile=f"{savefile}.npz")
+            log=f"{savefile}.log",
+            savefile=f"{savefile}.npz",
+        )
+        # Need to eval with bestp to ensure that ipflux is correct
+        bestfit = evalmodel(fit.bestparams, fit)
         # Store results into object:
         fit.errorlow = posterior['CRlo']  # Low credible-interval boundary
         fit.errorhigh = posterior['CRhi']  # High credible-interval boundary
@@ -522,14 +529,14 @@ def mcmc(cfile=None, laika=None):
 
         # Light-curve plot:
         if laika.plots:
-            pass
-            #pp.lightcurve(fit)
+            savefile_lc = f'{savefile}_lc_ramp.png'
+            pp.lightcurve(fit, laika.pup, savefile_lc, systematics='ramp')
+            savefile_lc = f'{savefile}_lc_corrected.png'
+            pp.lightcurve(fit, laika.pup, savefile_lc, systematics='corrected')
 
     # Print MCMC results:
     laika.summary(units="percent")
-
-    # Store results into a pickle file:
-    pass
+    # TBD: Store results into a pickle file
 
     return laika
 

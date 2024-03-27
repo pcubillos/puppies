@@ -148,7 +148,7 @@ class Spitzer():
                 inst.masksuf = inst.bdmsksuf2
             else:
                 inst.masksuf = None
-                log.warning(f"No BCD mask files found")
+                log.warning("No BCD mask files found")
 
             first_bcd = inst.bcdfiles[-1][0]
             last_bcd = inst.bcdfiles[-1][-1]
