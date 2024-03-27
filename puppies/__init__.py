@@ -1,34 +1,29 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'init',
+    'center',
     'core',
-    'stats',
-    'tools',
     'image',
     'io',
-    'plots',
-    'center',
-    'photometry',
     'models',
+    'photometry',
+    'plots',
+    'stats',
+    'tools',
 ]
 
-# Import utility sub-packages:
-from . import tools
 from . import center
-from . import photometry
-from . import stats
+from . import core
 from . import image
 from . import io
-from . import plots
 from . import models
+from . import photometry
+from . import plots
+from . import stats
+from . import tools
 from .version import __version__
 
-# Initialization:
-from .driver import init
-# Core reduction modules:
-from . import core
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

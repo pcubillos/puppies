@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2024 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import argparse
 import webbrowser
@@ -14,18 +14,22 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         add_help=True,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "-v", "--version", action="version",
         help="Show puppies's version.",
-        version=f'puppies version {puppies.__version__}.')
+        version=f'puppies version {puppies.__version__}.'
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-d", "--day", dest='day', action='store_true',
-        help="Show the the dog of the day on the browser.")
+        help="Show the the dog of the day on the browser."
+    )
     group.add_argument(
         "-c", dest='cfile', default=None,
-        help="Run puppies with given configuration file.")
+        help="Run puppies with given configuration file.",
+    )
 
     # Parse command-line args:
     args, unknown = parser.parse_known_args()

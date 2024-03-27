@@ -758,3 +758,8 @@ Getting the docs back to life.
 
 Replaced travis CI with github workflows for automated testing.
 
+*****
+
+Cleaning up the code.
+Raise NotImplementedError for PSF optimal photometry routines.
+
