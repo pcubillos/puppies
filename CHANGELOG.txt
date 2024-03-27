@@ -750,3 +750,7 @@ Got Spitzer pipeline running intil centering.
 Updated the pup marker to work with matplotlib v3.4+
 (as well as keeping compatibility with older versions).
 
+*****
+
+Getting the docs back to life.
+
