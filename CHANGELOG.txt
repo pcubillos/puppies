@@ -783,3 +783,6 @@ Cleaned up pup_model.py
 
 Updated workflow versions.
 
+*****
+
+Updated copyright and version to 0.3.0

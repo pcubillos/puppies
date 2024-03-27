@@ -87,7 +87,7 @@ setup(
         'mc3>=3.0.12',
         ],
     include_package_data=True,
-    license = 'MIT',
+    license = 'GPLv2',
     description = 'The Public Photometry Pipeline for Exoplanets',
     include_dirs = inc,
     long_description = long_description,
