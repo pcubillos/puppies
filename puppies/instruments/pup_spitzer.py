@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -119,9 +119,8 @@ class Spitzer():
         self.schunk = int(inputs["schunk"])
         self.sigma = pt.parray(inputs["sigma"], float)
 
-
         # Now do some calculations:
-        inst.nexpid = np.zeros(inst.naor, np.int)
+        inst.nexpid = np.zeros(inst.naor, int)
 
         # compile patterns: lines ending with each suffix
         bcdpattern = re.compile("(.+" + inst.bcdsuf + ")\n")
@@ -148,7 +147,8 @@ class Spitzer():
             elif bdmsk2pattern.findall(framesstring) != []:
                 inst.masksuf = inst.bdmsksuf2
             else:
-                log.error("No mask files found.")
+                inst.masksuf = None
+                log.warning(f"No BCD mask files found")
 
             first_bcd = inst.bcdfiles[-1][0]
             last_bcd = inst.bcdfiles[-1][-1]
@@ -240,7 +240,7 @@ class Spitzer():
         # FP contains values per frame (duh!):
         fp = FrameParameters(inst.nframes)
         telem = fp.telemetry
-        nimpos = np.zeros(inst.npos, np.int)
+        nimpos = np.zeros(inst.npos, int)
         nframes = 0
         # Dictionary to get position in MIPS:
         mirind = {
@@ -284,24 +284,23 @@ class Spitzer():
                     mskfile = re.sub(inst.bcdsuf, inst.masksuf, bcdfile)
                     bdmskf = fits.getdata(mskfile)
                 except:
-                    pass
+                    bdmskf = np.zeros((inst.nz, inst.ny, inst.nx), int)
 
                 try: # Mips
                     brmskfile = re.sub(inst.bcdsuf, inst.brmsksuf, bcdfile)
                     brmskf = fits.getdata(brmskfile)
                 except:
-                    brmskf = -np.ones((inst.nz, inst.ny, inst.nx), np.int)
+                    brmskf = -np.ones((inst.nz, inst.ny, inst.nx), int)
 
                 # Obtain expid and dcenum
                 index = pattern.search(bcd[i])
                 expid = int(index.group(1))
                 dcenum = int(index.group(2))
 
-                # Do I really need this?
                 if np.size(bdmskf) == 1:
-                    bdmskf = -np.ones((inst.nz, inst.ny, inst.nx), np.int)
+                    bdmskf = np.zeros((inst.nz, inst.ny, inst.nx), int)
                 if np.size(brmskf) == 1:
-                    brmskf = -np.ones((inst.nz, inst.ny, inst.nx), np.int)
+                    brmskf = -np.ones((inst.nz, inst.ny, inst.nx), int)
 
                 # Find dither position
                 pos = 0  # No dither position in stare data
@@ -372,7 +371,7 @@ class Spitzer():
                 fp.filename[be:en] = os.path.realpath(bcddir + bcd[i])
 
                 # Store header:
-                head[np.int(nframes//inst.nz)] = str(bcdhead)
+                head[int(nframes//inst.nz)] = str(bcdhead)
 
                 # Header position of the star:
                 bcdhead["NAXIS"] = 2
@@ -572,7 +571,7 @@ class Instrument:
         #   2** 9    Pixel response to light is too high (fast saturation)
         #   2**10    Pixel dark current is too excessive
         #   2**14    Pixel response to light is too low (pixel is dead)
-        self.pcrit = np.long(65535)
+        self.pcrit = 65535
 
         # Individual bad pixel masks:
         if self.chan < 6:
@@ -580,18 +579,18 @@ class Instrument:
             # 4 (decimal 16) since uncerts are high and flux is low in top
             # row, which has this flag
             # irsa.ipac.caltech.edu/data/SPITZER/docs/irac/iracinstrumenthandbook/56
-            self.dcrit = np.long(32560)
-            # 2** 4   saturation corrected in pipeline
-            # 2** 5   muxbleed in ch 1, 2; bandwidth effect in ch 3, 4
-            # 2** 8   crosstalk flag
-            # 2** 9   radhit (single frame radhit detection)
-            # 2**10   latent flag (not functional in IER observations)
-            # 2**11   not flat-field corrected
-            # 2**12   data not very linear
-            # 2**13   saturated (not corrected in pipeline),
-            #          or predicted to be saturated in long HDR frames
-            # 2**14   data bad and/or missing
-
+            self.dcrit = (
+                + 2** 4  #  saturation corrected in pipeline
+                + 2** 5  #  muxbleed in ch 1, 2; bandwidth effect in ch 3, 4
+                + 2** 8  #  crosstalk flag
+                + 2** 9  #  radhit (single frame radhit detection)
+                + 2**10  #  latent flag (not functional in IER observations)
+                + 2**11  #  not flat-field corrected
+                + 2**12  #  data not very linear
+                + 2**13  #  saturated (not corrected in pipeline),
+                         #   or predicted to be saturated in long HDR frames
+                + 2**14  #  data bad and/or missing
+            )
         else:
             # irsa.ipac.caltech.edu/data/SPITZER/docs/mips/mipsinstrumenthandbook/68/
             # FINDME: Check these:
@@ -602,14 +601,14 @@ class Instrument:
             # 2**13   Soft saturated (satmask)
             # 2**14   Data missing in downlink (cvti2r4)
             # 2**15   reserved: sign bit
-            self.dcrit = np.long(65024)
+            self.dcrit = 65024
 
         # Default ancilliary files:
         default_filters = [
             "irac1_filter.dat",
             "irac2_filter.dat",
             "irac3_filter.dat",
-            "irac3_filter.dat",
+            "irac4_filter.dat",
             "irs-blue_filter.dat",
             "mips-24um_filter.dat",
         ]
@@ -617,11 +616,12 @@ class Instrument:
 
         default_psfs = [
             "IRAC.1.PRF.5X.070312.fits",
-            "IRAC.1.PRF.5X.070312.fits",
-            "IRAC.1.PRF.5X.070312.fits",
-            "IRAC.1.PRF.5X.070312.fits",
+            "IRAC.2.PRF.5X.070312.fits",
+            "IRAC.3.PRF.5X.070312.fits",
+            "IRAC.4.PRF.5X.070312.fits",
             "IRS_BPUI_PSF.fits",
-            ""]
+            "",
+        ]
         self.default_psf = default_psfs[self.chan-1]
 
 

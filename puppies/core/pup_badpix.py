@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -51,8 +51,6 @@ def badpix(pup):
     data = io.load(pup.datafile, "data") * pup.fluxunits
     uncert = io.load(pup.uncertfile, "uncert") * pup.fluxunits
     bdmskd = io.load(pup.bdmskdfile, "bdmskd")
-    # If line above fails, use this:
-    #bdmskd = io.load(pup.uncertfile, "bdmskd")
 
     # Mean Background Estimate, from zodi model
     pup.estbg = pup.fluxunits * (

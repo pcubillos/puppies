@@ -771,3 +771,7 @@ Cleaned up centering.
 
 Cleaned up plots code.
 
+*****
+
+Cleaned up badpix.
+
