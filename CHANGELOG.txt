@@ -767,3 +767,7 @@ Raise NotImplementedError for PSF optimal photometry routines.
 
 Cleaned up centering.
 
+*****
+
+Cleaned up plots code.
+
