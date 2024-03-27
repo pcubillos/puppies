@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2024 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'asym',
@@ -17,8 +17,10 @@ sys.path.append(f"{ROOT}puppies/lib")
 import _asymmetry as a
 
 
-def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
-    method='gauss', resize=1.0, weights=None):
+def asym(
+        data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
+        method='gauss', resize=1.0, weights=None,
+    ):
     """
     Calculate the center of an input array by first switching the
     array into asymmetry space and finding the minimum
@@ -138,12 +140,14 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
     # Positions to calculate an asymmetry value
     suby = yind[
         y_guess - asym_size:y_guess + asym_size+1,
-        x_guess - asym_size:x_guess + asym_size+1]
+        x_guess - asym_size:x_guess + asym_size+1,
+    ]
     shape_save = suby.shape
     suby = suby.flatten()
     subx = xind[
         y_guess - asym_size:y_guess + asym_size+1,
-        x_guess - asym_size:x_guess + asym_size+1]
+        x_guess - asym_size:x_guess + asym_size+1,
+    ]
     subx = subx.flatten()
 
     # Range statement, as to not recreate it every loop, same with len
@@ -213,4 +217,5 @@ def asym(data, yxguess, asym_rad=8, asym_size=5, maxcounts=2,
 
     return (
         np.array(yxfit)/resize - asym_size +
-        np.array((suby[middle], subx[middle]), dtype=float))
+        np.array((suby[middle], subx[middle]), dtype=float)
+    )

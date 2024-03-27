@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# puppies is open-source software under the MIT license (see LICENSE)
+# Copyright (c) 2021-2024 Patricio Cubillos
+# puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'center',
-    ]
+]
 
 import numpy as np
 
@@ -11,12 +11,14 @@ from .. import image as im
 from . import col
 from . import gaussian as g
 from . import least_asym as la
-#import psf_fit as pf # TBD
+#TBD: import psf_fit as pf
 
 
-def center(method, data, yxguess, trim, arad=4, asize=3,
-    mask=None, uncert=None, fitbg=True, maskstar=True,
-    expand=1.0, psf=None, psfctr=None):
+def center(
+        method, data, yxguess, trim, arad=4, asize=3,
+        mask=None, uncert=None, fitbg=True, maskstar=True,
+        expand=1.0, psf=None, psfctr=None,
+    ):
     """
     Use the center method to find the center of a star in data, starting
     from position guess.

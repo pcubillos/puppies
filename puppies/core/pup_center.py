@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -48,10 +48,12 @@ def center(pup, cfile=None):
     if "lag" in pup.centering:
         if pup.aradius == 0 or pup.asize == 0:
             raise ValueError(
-                "Missing 'aradius' or 'asize' least-asymmetry inputs")
+                "Missing 'aradius' or 'asize' least-asymmetry inputs"
+            )
         if os.path.isfile(pup.psf) and (pup.psfarad == 0 or pup.psfasize == 0):
             raise ValueError(
-                "Missing 'psfaradius' or 'psfasize' least-asymmetry inputs")
+                "Missing 'psfaradius' or 'psfasize' least-asymmetry inputs"
+            )
 
     if "psffit" in pup.centering:
         if pup.psfscale == 0:
@@ -93,7 +95,8 @@ def centering(pup, data, uncert, mask):
     log = pup.log = pt.Log(pup.logfile, append=True)
     log.msg(
         f"\n\n{log.sep}\n"
-        f"Starting {pup.centering} centering ({time.ctime()})\n\n")
+        f"Starting {pup.centering} centering ({time.ctime()})\n\n"
+    )
 
     # Check least asym parameters work:
     if pup.centering in ['lac', 'lag']:
@@ -118,7 +121,7 @@ def centering(pup, data, uncert, mask):
     else:
         pup.psfim = None
         pup.psfctr = None
-        log.msg('No PSF supplied.')
+        log.msg('No PSF supplied')
 
     # Find center of the mean Image:
     pup.targpos = np.zeros((2, pup.inst.npos))
@@ -187,7 +190,7 @@ def centering(pup, data, uncert, mask):
     fp.x = np.array(x)
     fp.y = np.array(y)
     fp.goodcen = np.array(good, bool)
-    # Flag out out of boundaries y,x frames:
+    # Flag out out if boundaries y,x frames:
     fp.goodcen[
         (fp.y<0) | (fp.y>pup.inst.ny) |
         (fp.x<0) | (fp.x>pup.inst.nx) ] = False
@@ -196,8 +199,7 @@ def centering(pup, data, uncert, mask):
 
     # If PSF fit:
     if pup.centering in ["ipf", "bpf"]:
-        # FINDME: This line will break
-        fp.aplev  = np.array(aplev)
+        fp.aplev = np.array(flux)
         fp.skylev = np.array(sky)
 
     fp.r = np.zeros(pup.inst.nframes)
@@ -225,7 +227,8 @@ def centering(pup, data, uncert, mask):
             f"std dev.      {std_y:10.5f}  {std_x:10.5f}\n"
             f"RMS(delta)    {pup.yrms:10.5f}  {pup.xrms:10.5f}\n"
             f"mean(delta)   {mean_dy:10.5f}  {mean_dx:10.5f}\n"
-            f"median(delta) {med_dy:10.5f}  {med_dx:10.5f}")
+            f"median(delta) {med_dy:10.5f}  {med_dx:10.5f}"
+        )
 
     # Plots:
     pp.yx(fp.y, fp.x, fp.phase, fp.good, fp.pos, str(pup.folder))
@@ -233,39 +236,35 @@ def centering(pup, data, uncert, mask):
     # Print time stamp, save, and close:
     log.msg(
         f"\nFinished {pup.centering} centering ({time.ctime()})."
-        f"\nOutput folder: '{pup.folder}'.\n")
+        f"\nOutput folder: '{pup.folder}'.\n"
+    )
     io.save(pup)
 
 
-def calc_center(pup_centering_data, data, uncert, mask, start, end,
-    x, y, flux, sky, good):
+def calc_center(
+        pup_centering_data, data, uncert, mask, start, end,
+        x, y, flux, sky, good,
+    ):
     """
     Multiprocessing child routine to compute centering on a set of
     frames.
     """
-    # Initialize a Timer to report progress:
-    if start == 0:  # Only for the fisrt chunk
-        #clock = t.Timer(pup.npos*end,
-        #                progress=np.array([0.05, 0.1, 0.2, 0.3, 0.4,  0.5,
-        #                                   0.6,  0.7, 0.8, 0.9, 0.99, 1.1]))
-        pass
-
     centering, nframes, fp, cweights, targpos, ctrim, aradius, \
-    asize, fitbg, psfscale, psfim, psfctr = pup_centering_data
+        asize, fitbg, psfscale, psfim, psfctr = pup_centering_data
 
-    unc = None
+    uncertainty = None
     # Recalculate end, care not to go out of bounds:
     end = np.amin([end, nframes])
-    # Compute the centering in each frame:
     for i in range(start, end):
         pos = fp.pos[i]
         try:
-            if cweights:   # weight by uncertainties in fitting?
-                unc = uncert[i]
+            if cweights:
+                # weight by uncertainties in fitting
+                uncertainty = uncert[i]
             # Do the centering:
             position, extra = pc.center(
                 centering, data[i], targpos[:,pos], ctrim,
-                aradius, asize, mask[i], unc, fitbg=fitbg,
+                aradius, asize, mask[i], uncertainty, fitbg=fitbg,
                 expand=psfscale, psf=psfim, psfctr=psfctr,
             )
             y[i], x[i] = position
@@ -280,9 +279,3 @@ def calc_center(pup_centering_data, data, uncert, mask, start, end,
             flux[i], sky[i] = 0.0, 0.0
             good[i] = False
             print(f"Centering failed in frame {i}.")
-
-        if start == 0:
-            #print(f"{i}/{end}")
-            # Report progress:
-            #clock.check(pos*end + i, name=pup.folder)
-            pass
