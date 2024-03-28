@@ -797,3 +797,8 @@ Updated setup.py and pyproject.toml.
 
 Updated README and docs' index and license.
 
+*****
+
+Split getstarted.rst into install.rst and pup_marker.rst.
+Also added top-level section for Dog of the day.
+ 

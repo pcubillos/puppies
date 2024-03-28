@@ -44,7 +44,8 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   getstarted
+   install
+   pup_marker
    wasp43b_eclipse
    contributing
    license
