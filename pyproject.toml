@@ -40,7 +40,7 @@ test = [
 
 #https://setuptools.pypa.io/en/stable/userguide/entry_point.html#console-scripts
 [project.scripts]
-pbay = "pyratbay.__main__:main"
+pup = "puppies.__main__:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "puppies.version.__version__"}

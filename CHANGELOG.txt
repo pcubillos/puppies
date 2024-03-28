@@ -802,3 +802,7 @@ Updated README and docs' index and license.
 Split getstarted.rst into install.rst and pup_marker.rst.
 Also added top-level section for Dog of the day.
  
+*****
+
+Fixed pup entry point in pyproject.toml.
+
