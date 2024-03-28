@@ -786,3 +786,9 @@ Updated workflow versions.
 *****
 
 Updated copyright and version to 0.3.0
+
+
+*****  Do 28 Mär 2024 11:12:26 CET  *****
+
+Updated setup.py and pyproject.toml.
+(Moving most of the configuration options to the latter)

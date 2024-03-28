@@ -6,3 +6,46 @@ requires = [
 ]
 
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "exo_puppies"
+description = "The Public Photometry Pipeline for Exoplanets"
+readme = "README.md"
+license = { file = "LICENSE" }
+
+#https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
+dynamic = ["version"]
+
+requires-python = ">=3.7"
+authors = [
+  {name = "Patricio Cubillos", email = "pcubillos@fulbrightmail.org"},
+]
+
+dependencies = [
+    'numpy>=1.13.3',
+    'scipy>=1.4.1',
+    'matplotlib>=1.3.1',
+    'astropy>=3.1',
+    'mc3>=3.0.12',
+]
+
+[project.optional-dependencies]
+test = [
+    'pytest>=3.9',
+]
+
+[project.urls]
+"Homepage" = "https://github.com/pcubillos/puppies"
+
+#https://setuptools.pypa.io/en/stable/userguide/entry_point.html#console-scripts
+[project.scripts]
+pbay = "pyratbay.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "puppies.version.__version__"}
+
+#https://setuptools.pypa.io/en/stable/userguide/package_discovery.html
+[tool.setuptools.packages]
+find = {namespaces = false}  # Take only folders with a __init__.py file
+
