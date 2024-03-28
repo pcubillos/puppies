@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 Please send feedback or inquiries to:
 
-Patricio Cubillos <patricio.cubillos@oeaw.ac.at>
+Patricio Cubillos <pcubillos@fulbrightmail.org>
 
 ----------------------------------------------------------------------
 
