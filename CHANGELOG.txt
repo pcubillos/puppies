@@ -835,3 +835,12 @@ Updated version to 0.4.0
 
 Updated version to 0.4.0b1 for pypi testing.
 
+*****
+
+Renamed puppies.core.Model() to Laika().
+Turned into a proper class, moving the lightcurve_fit() and mcmc()
+functions into methods of the class.
+Fixed a couple of typos.
+Made Laika.summary() method also save the screen output to file.
+
+
