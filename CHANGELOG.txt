@@ -848,3 +848,7 @@ Made Laika.summary() method also save the screen output to file.
 Renamed Laika.lightcurve_fit() to Laika.bestfit().
 Renamed Laika.mcmc() to Laika.retrieval().
 
+*****
+
+Updated logo. Goes into docs and README.md.
+
