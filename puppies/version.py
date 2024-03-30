@@ -2,4 +2,4 @@
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 # puppies Version:
-__version__ = '0.3.0'
+__version__ = '0.4.0'
