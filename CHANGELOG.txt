@@ -843,4 +843,8 @@ functions into methods of the class.
 Fixed a couple of typos.
 Made Laika.summary() method also save the screen output to file.
 
+*****
+
+Renamed Laika.lightcurve_fit() to Laika.bestfit().
+Renamed Laika.mcmc() to Laika.retrieval().
 

@@ -310,21 +310,21 @@ class Laika():
             #print("Fitted light-curve points:  {:7d}".format(fit[j].nobj))
 
 
-    def lightcurve_fit(self, summary=True):
+    def bestfit(self, summary=True):
         """
-        Run the optimization for the lightcurves and models specified in the
-        input configuration file.
+        Run light-curve optimization to obtain the best-fitting parameters.
 
-        - Do Least-square fitting with initial parameters.
-        - Scale data uncertainties to get reduced chisq == 1.0
-        - FINDME: Do another sigrej on residuals?
-        - Re-do least-squares fitting with new uncertainties.
-        - Save best-fitting parameters to initvals file.
-
+        Parameters
+        ----------
+        summary: Bool
+            If True, calculate, display, and store summary of statistics.
         """
         # Some stats:
         sdr = [[] for n in range(self.npups)]
         bic = [[] for n in range(self.npups)]
+
+        if summary and not os.path.exists(self.folder):
+            os.mkdir(self.folder)
 
         # Run MC3 least-squares fit:
         print("Calculating least-squares fit.")
@@ -341,14 +341,16 @@ class Laika():
             model = evalmodel(fit.bestparams, fit)
             for j in range(fit.npups):
                 idata = fit.idata[j]
-                fit.bestfit[j] = model[idata]
                 # Reduced chi-square for each pup:
-                fit.rchisq[j] = np.sum(
-                    (fit.bestfit[j]-fit.flux[idata])**2/fit.ferr[idata]**2) \
-                    / (fit.ndata[j]-fit.nfree[j])
+                bestfit = fit.bestfit[j] = model[idata]
+                flux = fit.flux[idata]
+                uncert = fit.ferr[idata]
+                dof = fit.ndata[j] - fit.nfree[j]
+                fit.rchisq[j] = np.sum(((bestfit-flux)/uncert)**2) / dof
                 print(f"Reduced chi-square: {fit.rchisq[j]:.6f}")
                 # Standard deviation of the residuals:
-                sdr[fit.ipup[j]].append(np.std(fit.bestfit[j]-fit.flux[idata]))
+                residuals_std = np.std(fit.bestfit[j]-fit.flux[idata])
+                sdr[fit.ipup[j]].append(residuals_std)
 
         for fit in self.fit:
             # Chi-square corrected flux error:
@@ -365,7 +367,8 @@ class Laika():
                 if self.joint:
                     print("Re-calculating least-squares fit with new errors.")
                     output = mc3.fit(
-                        fit.flux, fit.cferr, evalmodel, fit.params, indparams=[fit],
+                        fit.flux, fit.cferr, evalmodel,
+                        fit.params, indparams=[fit],
                         pstep=fit.pstep, pmin=fit.pmin, pmax=fit.pmax,
                         prior=fit.prior, priorlow=fit.prilo, priorup=fit.priup,
                         leastsq=self.optimizer,
@@ -378,15 +381,16 @@ class Laika():
             for j in range(fit.npups):
                 idata = fit.idata[j]
                 fit.bestfit[j] = model[idata]
-                chisq = np.sum(
-                    ((fit.bestfit[j]-fit.flux[idata])/fit.cferr[idata])**2)
+                uncert = fit.cferr[idata]
+                chisq = np.sum(((fit.bestfit[j]-fit.flux[idata])/uncert)**2)
                 fit.chisq += chisq
-                bic[fit.ipup[j]].append(chisq + fit.nfree[j]*np.log(fit.ndata[j]))
+                bic_value = chisq + fit.nfree[j]*np.log(fit.ndata[j])
+                bic[fit.ipup[j]].append(bic_value)
 
             # Save best-fitting paramters to file:
             for j in range(fit.npups):
                 pt.saveparams(fit)
-        # TBD: Store results into a pickle file:
+        # TBD: Store results into a pickle file
 
         self.sdr = sdr
         self.bic = bic
@@ -394,19 +398,19 @@ class Laika():
             self.summary("percent")
 
 
-    def lightcurve_mcmc(self, summary=True):
+    def retrieval(self, summary=True):
         """
-        Run MCMC for the lightcurves and models specified in the input
-        configuration file.
+        Run light-curve retrieval to obtain the best-fitting parameters
+        and their uncertainties.
 
         Parameters
         ----------
-        fit: String
-           A PUPPIES model-fit pickle file (if not None, overrides cfile).
+        summary: Bool
+            If True, calculate, display, and store summary of statistics.
         """
         # Run optimization if requested:
         if self.leastsq:
-            self.lightcurve_fit(summary=False)
+            self.bestfit(summary=False)
 
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
