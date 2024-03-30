@@ -9,6 +9,9 @@ include docs/conf.py
 include docs/Makefile
 include docs/make.bat
 include docs/figures/*
+include puppies/data/*
+include puppies/data/spitzer_filters/*
+include puppies/data/spitzer_psf/*
 include src_c/*
 include src_c/include/*.h
 include tests/test_*.py

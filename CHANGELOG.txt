@@ -806,3 +806,11 @@ Also added top-level section for Dog of the day.
 
 Fixed pup entry point in pyproject.toml.
 
+
+*****  Sat Mar 30 16:14:00 CET 2024  *****
+
+Moved inputs folder to puppies/data.
+Renamed data/spitzer/filter to data/spitzer_filters
+Renamed data/spitzer/psf to data/spitzer_psf
+
+

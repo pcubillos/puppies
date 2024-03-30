@@ -49,3 +49,6 @@ version = {attr = "puppies.version.__version__"}
 [tool.setuptools.packages]
 find = {namespaces = false}  # Take only folders with a __init__.py file
 
+#https://setuptools.pypa.io/en/stable/userguide/datafiles.html
+[tool.setuptools.package-data]
+"puppies.data" = ["*"]

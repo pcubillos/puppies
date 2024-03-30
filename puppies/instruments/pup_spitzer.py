@@ -100,11 +100,11 @@ class Spitzer():
         # Ancilliary files:
         self.kurucz = inputs["kurucz"]
 
-        self.filter = f"{ROOT}/inputs/spitzer/filter/{inst.default_filter}"
+        self.filter = f"{ROOT}puppies/data/spitzer_filters/{inst.default_filter}"
         if inputs["filter"] != "default":
             self.filter = inputs["filter"]
 
-        self.psf = f"{ROOT}/inputs/spitzer/psf/{inst.default_psf}"
+        self.psf = f"{ROOT}puppies/data/spitzer_psf/{inst.default_psf}"
         if inputs["psf"] != "default":
             self.psf = inputs["psf"]
 
