@@ -817,3 +817,13 @@ Renamed data/spitzer/psf to data/spitzer_psf
 
 Fixed bug reinstating puppies.input() from puppies/laika.py file.
 
+*****
+
+Revamped 'pup --day' entry point since the dogperday.com does not
+update as frequent as it used to do. Now this command will bring up
+a random dog of the day.
+If on wants the most recent dog, it should call 'pup --today'.
+Added puppies/tools/pup_scrapper.py file, which collects the
+dogs of the day and save to a file.
+Added puppies/data/dogs_of_the_day.txt file with the dogs of the day.
+

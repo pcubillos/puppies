@@ -3,8 +3,10 @@
 
 import argparse
 import webbrowser
+import random
 
 import puppies
+from puppies.tools import ROOT
 
 
 def main():
@@ -24,6 +26,10 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-d", "--day", dest='day', action='store_true',
+        help="Pick a random dog of the day, open it on the browser."
+    )
+    group.add_argument(
+        "--today", dest='today', action='store_true',
         help="Show the the dog of the day on the browser."
     )
     group.add_argument(
@@ -34,9 +40,16 @@ def main():
     # Parse command-line args:
     args, unknown = parser.parse_known_args()
 
-    # Parse configuration file to a dictionary:
-    if args.day is True:
+    if args.today is True:
         webbrowser.open('https://dogperday.com/category/dog-of-the-day', new=2)
+        return
+
+    elif args.day is True:
+        with open(f'{ROOT}puppies/data/dogs_of_the_day.txt', 'r') as f:
+            dog_urls = f.readlines()
+        ndogs = len(dog_urls)
+        i = random.randint(1,ndogs)
+        webbrowser.open(dog_urls[i], new=2)
         return
 
 
