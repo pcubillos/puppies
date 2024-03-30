@@ -813,4 +813,7 @@ Moved inputs folder to puppies/data.
 Renamed data/spitzer/filter to data/spitzer_filters
 Renamed data/spitzer/psf to data/spitzer_psf
 
+*****
+
+Fixed bug reinstating puppies.input() from puppies/laika.py file.
 

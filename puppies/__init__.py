@@ -2,6 +2,7 @@
 # puppies is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
+    'init',
     'center',
     'core',
     'image',
@@ -24,6 +25,7 @@ from . import stats
 from . import tools
 from .version import __version__
 
+from .laika import init
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__
