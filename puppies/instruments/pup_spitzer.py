@@ -45,7 +45,6 @@ class Spitzer():
         self.folder = root_path / self.ID
         if not os.path.exists(self.folder):
             self.folder.mkdir()
-        os.chdir(self.folder)
 
         # Make file to store running log:
         self.logfile = f"{self.folder}/{self.ID}.log"
@@ -440,24 +439,40 @@ class Spitzer():
             self.srcest[0,p] = np.mean(self.fp.heady[self.fp.pos==p])
             self.srcest[1,p] = np.mean(self.fp.headx[self.fp.pos==p])
 
+        # TBD: Move to plots
         # Plot a reference image:
         for pos in range(inst.npos):
-            i = np.where(self.fp.pos==pos)[0][0]
+            iframes = np.where(self.fp.pos==pos)[0]
+            iframe = iframes[len(iframes) // 2]
+            print(iframes, iframe)
             plt.figure(101, (8,6))
             plt.clf()
             plt.imshow(
-                self.data[i], interpolation='nearest', origin='lower',
-                cmap=plt.cm.viridis)
+                self.data[iframe], interpolation='nearest', origin='lower',
+                cmap=plt.cm.viridis,
+            )
             plt.plot(self.srcest[1,pos], self.srcest[0,pos],'k+', ms=12, mew=2)
             plt.xlim(-0.5, inst.nx-0.5)
             plt.ylim(-0.5, inst.ny-0.5)
             plt.colorbar()
+            savefile = f"{self.folder}/{self.ID}_sample_frame.png"
             if inst.npos > 1:
                 plt.title(f"{self.ID} reference image pos {pos}")
-                plt.savefig(f"{self.ID}_sample-frame_pos{pos:02d}.png")
+                savefile = savefile.replace(".png", "_pos{pos:02d}.png")
             else:
                 plt.title(f"{self.ID} reference image")
-                plt.savefig(f"{self.ID}_sample-frame.png")
+            plt.savefig(savefile, dpi=300)
+            if inst.nx > 50 or inst.ny > 50:
+                radius = 25
+                xmin = np.amax([int(self.srcest[1,pos])-radius, 0])
+                xmax = np.amin([int(self.srcest[1,pos])+radius, inst.nx])
+                ymin = np.amax([int(self.srcest[0,pos])-radius, 0])
+                ymax = np.amin([int(self.srcest[0,pos])+radius, inst.ny])
+                plt.xlim(xmin-0.5, xmax-0.5)
+                plt.ylim(ymin-0.5, ymax-0.5)
+                savefile = f"{self.folder}/{self.ID}_sample_frame_zoom.png"
+                plt.savefig(savefile, dpi=300)
+
 
         # Throw a warning if the source estimate position lies outside of
         # the image.

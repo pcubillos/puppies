@@ -23,11 +23,10 @@ def badpix(pup):
     Bad pixel masking (so far for Spitzer pup).
     """
     # Move to output folder:
-    os.chdir(pup.folder)
-    pup.folder /= 'badpix'
-    if not os.path.exists(pup.folder):
-        os.mkdir(pup.folder)
-    os.chdir(pup.folder)
+    with pt.cd(pup.folder):
+        pup.folder /= 'badpix'
+        if not os.path.exists(pup.folder):
+            os.mkdir(pup.folder)
 
     # Copy, update, and reopen logfile:
     shutil.copy(pup.logfile, pup.folder)

@@ -3,6 +3,7 @@
 
 __all__ = [
     'ROOT',
+    'cd',
     'msg',
     'warning',
     'error',
@@ -15,6 +16,7 @@ import os
 from pathlib import Path
 import sys
 import textwrap
+from contextlib import contextmanager
 
 import numpy as np
 from mc3.utils import Log
@@ -27,6 +29,20 @@ ROOT = str(Path(__file__).parents[2]) + os.path.sep
 
 # Warning/error banner:
 sep = 70 * ":"
+
+
+@contextmanager
+def cd(newdir):
+    """
+    Context manager for changing the current working directory.
+    Taken from here: https://stackoverflow.com/questions/431684/
+    """
+    olddir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(olddir)
 
 
 def log_error(self, message):

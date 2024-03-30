@@ -27,11 +27,6 @@ def center(pup, cfile=None):
     This routine takes and parses the input pup and config file,
     and launches a loop for each requested centering method.
     """
-    # Current folder:
-    here = os.getcwd()
-    # Current pup folder:
-    cwd = pup.folder
-
     # Load data:
     data = io.load(pup.datafile, "data") * pup.fluxunits
     uncert = io.load(pup.uncertfile, "uncert") * pup.fluxunits
@@ -67,17 +62,14 @@ def center(pup, cfile=None):
         puppy.centering = pup.centering[i]
 
         # Move into centering folder:
-        puppy.folder = cwd / puppy.centering
-        os.chdir(cwd)
-        if not os.path.exists(puppy.folder):
-            os.mkdir(puppy.folder)
-        os.chdir(puppy.folder)
+        puppy.folder = pup.folder / puppy.centering
+        with pt.cd(pup.folder):
+            if not os.path.exists(puppy.folder):
+                os.mkdir(puppy.folder)
 
         # Launch the thread:
         centering(puppy, data, uncert, mask)
 
-    # Return to original location:
-    os.chdir(here)
     #return list_of_puppies_for_next_step
 
 

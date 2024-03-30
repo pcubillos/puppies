@@ -852,3 +852,10 @@ Renamed Laika.mcmc() to Laika.retrieval().
 
 Updated logo. Goes into docs and README.md.
 
+*****
+
+Implemented tools.cd() context manager.
+Ensured user always end on the current folder.
+Added zoomed plot of frame when the data [nx,ny] is too large.
+Also, avoid using the first frame in case the telescope is not on point.
+

@@ -26,11 +26,6 @@ def photom(pup, cfile=None):
     Read config file.
     Launch a thread for each centering run.
     """
-    # Current folder:
-    here = os.getcwd()
-    # Current pup folder:
-    cwd = pup.folder
-
     # Load the event data:
     data = io.load(pup.datafile, "data")
     uncert = io.load(pup.uncertfile, "uncert")
@@ -86,16 +81,13 @@ def photom(pup, cfile=None):
 
         # Move into photometry folder:
         puppy.folder = f'{puppy.folder}/{folder}'
-        os.chdir(cwd)
-        if not os.path.exists(puppy.folder):
-            os.mkdir(puppy.folder)
-        os.chdir(puppy.folder)
+        with pt.cd(pup.folder):
+            if not os.path.exists(puppy.folder):
+                os.mkdir(puppy.folder)
 
         # Launch the thread:
         photometry(puppy, data, uncert, mask)
 
-    # Return to original location:
-    os.chdir(here)
     #return list_of_puppies_for_next_step
 
 
