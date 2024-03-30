@@ -830,3 +830,8 @@ Added puppies/data/dogs_of_the_day.txt file with the dogs of the day.
 *****
 
 Updated version to 0.4.0
+
+*****
+
+Updated version to 0.4.0b1 for pypi testing.
+
