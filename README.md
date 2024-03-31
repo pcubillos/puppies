@@ -1,4 +1,4 @@
-# <img alt="puppies" src="https://raw.githubusercontent.com/pcubillos/puppies/aprilis/docs/figures/logo_puppies_texted.png" height="250">
+# <img alt="puppies" src="https://github.com/pcubillos/puppies/blob/master/docs/figures/logo_puppies_texted.png" height="250">
 > The **Pu**blic **P**hotometry **Pi**peline for **E**xoplanet**s**
 
 [![Tests](https://github.com/pcubillos/puppies/actions/workflows/python-package.yml/badge.svg)](https://github.com/pcubillos/puppies/actions/workflows/python-package.yml)
