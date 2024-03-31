@@ -485,7 +485,7 @@ class Laika():
             jmin = np.argmin(self.bic[i])
             obs = "/".join(["Spitzer", pup.inst.name])
             red = pup.folder[1+len(pup.root)+len(pup.ID):]
-            text = f"{pup.ID:20s} {obs:16s}{red}"
+            text = f"\n{pup.ID:20s} {obs:16s}{red}"
             text_output += text + '\n'
             print(text)
 

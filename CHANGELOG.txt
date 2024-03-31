@@ -859,3 +859,8 @@ Ensured user always end on the current folder.
 Added zoomed plot of frame when the data [nx,ny] is too large.
 Also, avoid using the first frame in case the telescope is not on point.
 
+
+*****  Sun Mar 31 10:16:05 CEST 2024  *****
+
+Updated docs, Spitzer tutorial for WASP-18b.
+

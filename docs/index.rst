@@ -46,7 +46,7 @@ Documentation
 
    install
    pup_marker
-   wasp43b_eclipse
+   WASP18b_eclipse
    contributing
    license
 
