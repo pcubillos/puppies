@@ -867,3 +867,8 @@ Updated docs, Spitzer tutorial for WASP-18b.
 *****
 
 Updated version to 0.5.0
+
+*****
+
+Some docs little fixes.
+

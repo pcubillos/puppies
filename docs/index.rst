@@ -54,7 +54,7 @@ Be Kind
 =======
 
 Please reference this paper if you found ``puppies`` useful for your research:
-  `Cubillos et al. (2024): The Public Photometry Pipeline for Exoplanets <https://www.youtube.com/watch?v=dQw4w9WgXcQ>`_, Prima Aprilis.
+  `Cubillos et al. (2024): The Public Photometry Pipeline for Exoplanets <https://www.youtube.com/watch?v=dQw4w9WgXcQ?autoplay=1>`_, Prima Aprilis.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
@@ -64,10 +64,6 @@ Please send feedback or inquiries to:
 ``puppies`` is open-source open-development software under the GNU GPL v2 :ref:`license`.
 
 Thank you for using ``puppies``!
-
-.. Documentation for Previous Releases
-   ===================================
-   - `Pyrat Bay version 0.0.50 <http://geco.oeaw.ac.at/patricio/PB_v0.0.50.pdf>`_ (and earlier versions).
 
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
@@ -90,5 +86,5 @@ Thank you for using ``puppies``!
     :target: https://anaconda.org/conda-forge/exo_puppies
 
 .. |License| image:: https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue
-    :target: https://pcubillos.github.io/puppies.html
+    :target: https://puppies.readthedocs.io/en/latest/license.html
 

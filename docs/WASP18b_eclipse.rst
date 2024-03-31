@@ -48,7 +48,7 @@ Choose a directory where you will work and fetch the config files into there (e.
 
 .. code-block:: shell
 
-    w18_path=https://raw.githubusercontent.com/pcubillos/puppies/master/puppies/data/tutorial_spitzer
+    w18_path=https://github.com/pcubillos/puppies/tree/aprilis/puppies/data/tutorial_spitzer
     wget $w18_path/*.cfg
     wget $w18_path/fit_values_WASP18b_irac1.txt
 
