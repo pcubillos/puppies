@@ -1,0 +1,54 @@
+# This file lists the models and their parameters.  The parameters are
+# presented in a table headed by the name of each model. Column headers
+# are unique to each model, but rows follow a standard format:
+#   Row 1: Parameter value
+#   Row 2: Lower bound
+#   Row 3: Upper bound
+#   Row 4: Step size
+# NOTE1: To set one parameter equal to another, set its stepsize to the
+# negative value of the index of the paramter you wish it to be equal to,
+# starting from -1. For example: to set t12 = t34, set stepsize[3] = -5
+# NOTE2: Zero stepsize results in a fixed value.
+
+mandelecl
+midpt           width           depth           ting            tegr            flux            
+ 5.015841e-01    9.496060e-02    2.893358e-03    9.176087e-03    9.176087e-03    4.606949e+03   
+ 4.800000e-01    1.000000e-04    0.000000e+00    5.000000e-03    1.000000e-03    0.000000e+00   
+ 5.200000e-01    2.000000e-01    inf             3.000000e-02    inf             inf            
+ 1.000000e-04    1.000000e-03    1.000000e-05    1.000000e-05   -4.000000e+00    5.000000e+00   
+eclipse
+midpt           width           idepth          edepth          ting            tegr            flux            slope           quad            
+ 5.016573e-01    9.569591e-02    3.009072e-03    3.009072e-03    9.473689e-03    9.473689e-03    4.606753e+03    1.158550e-02    3.438531e-03   
+ 4.800000e-01    2.000000e-02    0.000000e+00    0.000000e+00    5.000000e-03    0.000000e+00    0.000000e+00   -inf            -inf            
+ 5.200000e-01    2.000000e-01    inf             inf             inf             inf             inf             inf             inf            
+ 1.000000e-04    1.000000e-03    1.000000e-05   -3.000000e+00    1.000000e-05   -5.000000e+00    5.000000e+00    1.000000e-05    1.000000e-05   
+mandeltr
+epoch           rprs            cosi            ars             flux            per             c1              c2              c3              c4              
+ 3.720700e-01    5.200100e-02    9.497700e-02    6.010000e+00    1.172300e+05    2.875900e+00    5.147700e-01   -8.052500e-01    7.568300e-01   -2.616800e-01   
+ 2.000000e-01    0.000000e+00    0.000000e+00    0.000000e+00    0.000000e+00    0.000000e+00   -1.000000e+00   -1.000000e+00   -1.000000e+00   -1.000000e+00   
+ 5.000000e-01    1.000000e+00    2.000000e-01    1.000000e+02    1.000000e+07    5.000000e+00    1.000000e+00    1.000000e+00    1.000000e+00    1.000000e+00   
+ 1.000000e-04    1.000000e-04    0.000000e+00    0.000000e+00    3.000000e+00    0.000000e+00    0.000000e+00    0.000000e+00    0.000000e+00    0.000000e+00   
+expramp
+goal            r1              r0              pm              
+ 1.000000e+00   -3.631329e+01   -4.343675e+01    1.000000e+00   
+ 0.000000e+00   -1.000000e+02   -1.000000e+02   -1.000000e+00   
+ 1.000000e+00    1.000000e+02    1.000000e+02    1.000000e+00   
+ 0.000000e+00    5.000000e-02    2.000000e-02    0.000000e+00   
+linramp
+r1              r0              t0              
+ 4.661961e-03    1.000000e+00    5.000000e-01   
+-1.000000e+02   -1.000000e+02    0.000000e+00   
+ 1.000000e+02    1.000000e+02    1.000000e+00   
+ 1.000000e-04    0.000000e+00    0.000000e+00   
+quadramp
+r2              r1              r0              t0              
+-5.847787e-10    3.218366e-10    1.000000e+00    5.000000e-01   
+-1.000000e+05   -1.000000e+03   -1.000000e+03    0.000000e+00   
+ 1.000000e+05    1.000000e+03    1.000000e+03    1.000000e+00   
+ 1.000000e-04    1.000000e-04    0.000000e+00    0.000000e+00   
+bliss
+CanIHazParz?
+ 0.000000e+00   
+ 0.000000e+00   
+ 0.000000e+00   
+ 0.000000e+00   

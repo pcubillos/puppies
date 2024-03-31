@@ -1,0 +1,869 @@
+*****  Sun May 28 23:48:48 CEST 2017  *****
+
+Calling sequence:
+  ./pup.py pup.cfg
+
+This seems to be enough.  All required info can be contained into the
+pup.cfg file, including what steps to run, and over which folders.
+
+Main steps:
++ load
++ badpixel
+- centering
+- photometry
+- modeling
+- mcmc
+
+
+centering:
+- run_centering
+    driver: load files, launch runs (series)
+- centering
+    main: 
+- do_center
+    low level centering
+- centerdriver
+
+TBD centering:
+- read in data, mask, uncert
+
+
+*****  Sat Aug 19 20:19:37 CEST 2017  *****
+
+Let's make puppies work.
+puppies must work from the command line or from an interactive session:
+
+## Interactive:
+import puppies as p
+
+# New puppy:
+pup = p.init("cfile.cfg")
+
+# New step:
+pup.badpix()
+pup.center()
+
+# Load:
+pup = p.io.load(path + "wa043b.p")
+
+## Command line:
+  TBD
+
+On now puppy, take the location of the config file as the root where
+to place the outputs.
+
+*****
+
+repository structure (so far):
+puppies
+|--puppies
+|  |--tools
+|  |--stats
+|  |--lib
+|  |--image
+|  `--io
+|--examples
+|--inputs
+|--src_c
+|--modules
+`--docs
+
+*****
+
+Got a basic package import working, and interactive init() running.
+Added required files.
+Need to find a solution for all_spitzer.vec (file too large),
+download during 'make'?
+
+
+*****  Sun Aug 20 22:26:40 CEST 2017  *****
+
+Moved getpar() from spitzer.py to tools.
+
+*****
+
+Got badpix working.
+Added pup_badpix.py and stats module.
+
+
+*****  Sun Sep  3 20:09:46 CEST 2017  *****
+
+Implemented disk routine for Python and C.
+
+*****
+
+Implemented imedit.py, tied together with disk.py into image
+module.
+
+
+*****  Sun Sep 24 18:51:34 CEST 2017  *****
+
+Implemented gaussian functions into center module.
+TBD: give them their own submodule inside the center module.
+
+
+*****  Mon Sep 25 23:09:32 CEST 2017  *****
+
+Implemented least-asymetry routines into center module.
+
+
+*****  Tue Sep 26 21:01:11 CEST 2017  *****
+
+Cleaned up the disk.py and cdisk.c functions.
+
+
+*****  Sun Oct  1 15:04:01 CEST 2017  *****
+
+Sorted up gaussian, made it its own module inside the center module.
+
+*****
+
+Implemented center-of-light calculation into center module.
+
+*****
+
+Implemented center driver.py routine.
+
+
+*****  Sun Oct  8 22:55:49 CEST 2017  *****
+
+Got pup_center running (yay!).
+Added temporary calling sequence to pup_center.
+Fixed minor bug in center/driver.py for least-asym calls.
+Tweaked main driver (removed parse() def).
+Put user-input dict (from config files) into pup.inputs.
+
+
+*****  Sat Oct 21 18:56:15 CEST 2017  *****
+
+Rewrote disk C extension, moving most of the work into the cdisk.h
+header, such it can be called from other C extentions.
+
+
+*****  Fr 27. Okt 17:23:32 CEST 2017  *****
+
+Implemented and documented the low-level aperture photometry routine
+in aphot.c (a C extension).
+
+*****
+
+Incorporated aperture photometry in the puppies.photometry submodule.
+
+
+*****  Sun Oct 29 17:05:52 CET 2017  *****
+
+Implemented aperture photometry module.
+Optimal photometry is TBI.
+
+*****
+
+Renamed centering's expand input to psfscale (pixel scale ratio
+between the PSF and data images) to avoid conflict with photometry's
+expand interpolating factor.
+
+
+*****  Sat Nov  4 11:59:41 CET 2017  *****
+
+Added some extra information about the Spitzer bad-pixel-mask bits,
+still not completely sure it's the right one.
+
+
+*****  Sun Nov 12 20:47:00 CET 2017  *****
+
+Revampled spitzer.py to handle time stamps with astropy.time objects
+for the ephtime and fp.time values.  This simplifies the light
+travel time corrections, bjd-utc corrections, phase calculation.
+The pipeline now takes the spacecraft location from the headers
+instead of the horizons file.
+All of these calculation are now in Spitzer.py rather than after
+the photometry step.
+
+Also, revamped the main object's FrameParameter from 2D into 1D.
+This commit breaks all further steps of the pipeline.
+
+
+*****  Sat Nov 18 22:09:59 CET 2017  *****
+
+Adapted pup_badpix.py to the new data shape.
+
+*****
+
+Adapted pup_centering.py to the new data shape.
+
+
+*****  Sun Nov 26 11:29:16 CET 2017  *****
+
+Moved telemetry frame parameters into its own subclass.
+
+*****
+
+Adapted pup_photom.py to the new data shape.
+
+*****
+
+Added new plots module, to make plots (duh!).
+Implemented YX plot vs. phase for centering.
+
+*****
+
+Added stats calculations at the end of pup_centering.py to print
+means, median, std, and RMS.  Also make yx plots.
+
+
+*****  Sun Dec 10 16:29:52 CET 2017  *****
+
+Added MC3 submodule.
+
+*****
+
+Added background() and rawflux() to plots module.
+Generate raw flux and background plots at the end of pup_photom.py.
+
+
+*****  Sun Jan 28 17:56:23 CET 2018  *****
+
+Added models module with lightcurve models.
+Added linramp(), mandelecl(), and bliss() light-curve models.
+TBD: Need to doublecheck bliss model works.
+
+
+*****  So 18. Feb 18:21:45 CET 2018  *****
+
+Implemented linramp, quadramp, expramp, mandelecl, mandeltr, and bliss
+light-curve models.
+
+*****
+
+Added tools.cat(), a shorthand for numpy concatenate.
+Removed tools.parray().
+
+*****
+
+Added parse.py file which implements tools.parse_model() to handle the
+light-cruve modeling configuration files.
+It also implements tools.parray().
+
+*****
+
+Added paramedit.py which implements tools.loadparams() to read-in
+light-curve model parameters, bounds, and stepsizes.
+
+*****
+
+Added pup_model.py which implements the Model() and Fit() clasess
+(for light-curve modeling).  It also implements the puppies.setup()
+method, which prepares the code for a light-curve fitting/posterior
+sampling.
+
+TBI in this file: the fit() and mcmc() methods, which do the
+least-square optimization and posterior sampling of the light-curve
+modeling.
+
+
+*****  So 25. Feb 18:54:17 CET 2018  *****
+
+Implemented pup_model.fit(). Need to tie some loose ends (write file,
+output, pickle file).
+Sorted out variables in pup_model.setup().
+Cleaned up pup_model.evalmodel().
+Enabled chiscale and optimizer arguments for light-curve modeling.
+
+*****
+
+Implemented sigrej at the begining of pup_model.setup().
+Need to think what to do if the data veries significantly from stat to
+end, messing up the sigma rejection (do piecewise?, what's a good
+recipe for this).
+Also could do a sigrej from the residuals, after an initial fit
+(consider if fit fails, it may mess up things as well).
+
+
+*****  Sun Apr  8 20:01:23 CEST 2018  *****
+
+Implemented newparams() and saveparams() in puppies.tool submodule.
+This let's the user create a new modelparams file with default values
+and to update an existing file with values from a Fit() object,
+respectively.
+
+*****
+
+Minor corrections in _quadramp.c, _mandeltr.c, and _mandelecl.c
+light-curve models.
+
+*****
+
+Updated fit() in pup_model.py to return the Model() object and store
+best-fitting values into modelparams file(s).
+Added update argument in evalmdel to update the models' parameters.
+
+
+*****  Di 17. Apr 16:27:31 CEST 2018  *****
+
+Combined all ramp models into ramps.py, where the specific models
+inherit from the Ramp() superclass.
+Files need to be properly documented.
+
+*****
+
+Updated bliss and ramp light-curve classes, renamed the pup argument
+to obj in the settup() method.
+
+*****
+
+Added eclipse submodule, which implements mandelecl() and eclipse()
+light-curve models.
+
+*****
+
+Adapted puppies.models' init to new ramps.py file and eclipse module.  
+Removed mandelecl.py file (replaced with eclipse submodule).
+
+*****
+
+Updated Makefile to include submodules
+and make it less verbose.
+
+*****
+
+Adapted pup_model.py to latest changes in puppies.models.
+
+
+*****  Sun May 27 22:57:36 CEST 2018  *****
+
+Renamed pup.model.fit() to lcfit() to avoid variable name conflict.
+Added SDR and BIC calculations to laika object during lcfit().
+For multiple model fits per pup requesting chiscale, scale according
+to fit with lowest SDR.
+
+
+*****  Mon Jun 11 01:06:49 CEST 2018  *****
+
+Updated MC3 submodule.
+
+*****
+
+Got Light-curve MCMC up and running.
+Wrote a basic screen summary output.
+TBD: LC plot.
+TBD: Put LC modeling into output folder.
+TBD: Setup LC log.
+TBD: Store LC output into pickle file.
+
+
+*****  Sat Jun 16 10:57:25 CEST 2018  *****
+
+Renamed spitzer.py to pup_spitzer.py
+
+
+*****  Sun Jun 17 12:48:05 CEST 2018  *****
+
+Reorganized the project, adding the core and inst modules that
+contain the main reduction steps and the dataset initialization
+routines, respectively.
+
+*****
+
+Renamed uncd variable to uncert.
+
+*****
+
+Return to original location after running core.center() and
+core.photom().
+
+
+*****  Sun Oct 14 17:00:00 CEST 2018  *****
+
+Use datafile variable for the filepath to data, rather than using the
+data variable itself (same for uncert and bdmskd).
+Revamped io.save() accordingly.
+
+
+*****  Di 5. Feb 15:43:13 CET 2019  *****
+
+Some cosmetics.
+
+*****
+
+Added fitting and retrieval fixes from Bell's run.
+
+
+*****  Sun Mar 7 22:37:09 CET 2021  *****
+
+Synced with WASP-12b version.
+
+
+*****  Mon Mar 8 21:39:18 CET 2021  *****
+
+Sorted out files in stats module.
+
+*****
+
+Added __version__ variable into VERSION.py
+
+*****
+
+Added ophase.py into models module with orbital-phase lightcurve
+model.
+Fixed a few other bugs to get the pupppies package to import without
+breaking.
+
+*****
+
+Got setup.py up to speed, puppies is now installable.
+
+*****
+
+Removed MCcubed submodule.
+Added mc3 requirement.
+
+*****
+
+Added .readthedocs.yml file.
+Updated docs conf.py and other docs.
+Removed CONTRIBUTING.md
+
+*****
+
+Added pyproject.toml file.
+
+*****
+
+Updated mc3 required version to 3.0.6.
+
+
+*****  Thu Mar 11 11:53:47 CET 2021  *****
+
+Removed eclipse submodule, replaced with source files.
+Fixed some bugs related to mc3 dependency.
+
+*****
+
+Updated LICENSE.
+
+*****
+
+PEP8ed puppies/driver.py.
+
+*****
+
+Added ROOT constant into tools module with puppies root location.
+
+*****
+
+PEP8ed pup_spitzer.py
+
+*****
+
+Renamed io/loadsave.py to io/io.py
+
+*****
+
+PEP8ed io.py.
+
+*****
+
+Renamed inst module to instruments.
+
+*****
+
+PEP8ed pup_badpix.py.
+
+*****
+
+PEP8ed stats.py.
+
+*****
+
+Moved update() from pup_center.py to io.py.
+
+*****
+
+PEP8ed pup_center.py.
+
+
+*****  Sun Mar 14 20:17:18 CET 2021  *****
+
+Updated logo and README files.
+
+*****
+
+Added pup entry point.
+
+
+*****  Sun Mar 21 16:40:37 CET 2021  *****
+
+Refactored io.update to process whatever is passed on in the config
+file, regardless of the step.  Do not set defaults.  Moved checks
+into the respective steps.
+
+*****
+
+PEP8ed pup_photom.py and got it working.
+
+*****
+
+Tweaked README file.
+
+
+*****  Do 25. Mär 11:46:27 CET 2021  *****
+
+PEP8ed image module.
+Added image module into main package.
+
+*****
+
+PEP8ed pup_model.py.
+Got light-curve fitting and retrieval running.
+
+*****
+
+Updated docs adding getting started and draft of WASP43b eclipse
+worked example.
+
+*****
+
+Added pup_marker.py with code to enable pup matplotlib markers.
+Updated getting started with pup-marker example.
+Moved all figures to puppies/docs/figures/ folder.
+
+*****
+
+PEP8ed a bunch of files.
+Updated copyright headers.
+
+*****
+
+Updated Makefile (do I even need this file anymore [question mark])
+
+*****
+
+Bumped puppies version to 0.2.0.
+
+
+*****  Fr 26. Mär 10:22:20 CET 2021  *****
+
+Updated MANIFEST.in file.
+
+*****
+
+Updated setup.py, set lon_description text, set name to exo_puppies
+(since puppies is already taken on PyPI), and updated email.
+
+*****
+
+Retracted puppies version to 0.2.0a1 (to align with PyPI release).
+
+*****
+
+Updated pyproject.toml file to consider python>3.7 versions.
+
+
+*****  Do 24. Feb 14:05:15 CET 2022  *****
+
+Updated requirements.
+
+*****
+
+Updated pyproject.toml to use oldest-supported-numpy dependency.
+
+*****
+
+Added .travis.yml file.
+
+*****
+
+Added .gitignore in puppies/lib/
+Removed Makefile.
+
+*****
+
+Updated version.py file and setup.py.
+
+*****
+
+Fixed bug with version.py filename.
+
+*****
+
+Renamed gauss.c to _gauss.c
+
+*****
+
+Prevented deprecation warning with
+scipy.ndimage.interpolation.map_coordinates
+
+*****
+
+Corrected includes in C source files.
+
+*****
+
+Debugging edits to figure out problem with C code.
+
+*****
+
+Bringing (renamed) _asymmetry.c back.
+
+*****
+
+Bringing _expramp.c back.
+
+*****
+
+Bringing _linramp.c back.
+
+*****
+
+Bringing _eclipse.c back.
+
+*****
+
+Bringing _mandeltr.c back.
+This one shoulf break because there no preceeding underscore
+in PyModuleDef of the file.
+
+*****
+
+Bringing _bilinint.c back.
+Previous commit did not break...
+
+*****
+
+Bringing _disk.c back.
+
+*****
+
+Bringing _aphot.c back.
+
+*****
+
+Bringing _gauss.c back. The final one, will it break...
+
+*****
+
+Attempt number one at approaching a passing gauss test.
+Replaced gauss2D code with exponential ramp.
+Work in progress.
+
+*****
+
+One step closed, get names of functions as they should be.
+
+*****
+
+Getting closer.
+
+*****
+
+OK, it's either the name of PyMethodDef gauss_methods
+or something inside the gauss2D function.
+
+*****
+
+It seems that the problem is the content of the function.
+Reverting edits.
+
+*****
+
+Not breaking once again.
+Try changing stuff in the PyArg_ParseTuple().
+
+*****
+
+So far so good. Updated the rest of the PyArg_ParseTuple variables.
+
+*****
+
+Broken again. Reverted PyArg_ParseTuple edits.
+Updated for loops.
+
+*****
+
+Updated everything except the PyArg_ParseTuple.
+
+*****
+
+Removed height calculation.
+
+*****
+
+Added y_sigma and x_sigma into the PyArg_ParseTuple.
+
+*****
+
+Added height and backgroun into optional PyArg_ParseTuple.
+
+*****
+
+Try now changing the input arguments, receive array, edit in place.
+
+*****
+
+What if, packing the inputs in an array.
+
+
+*****  Tue Mar 15 23:55:10 CET 2022  *****
+
+There is absolutely no reason why this keeps failing.
+I'm giving up. Wrote code in the python module.
+Removed src_c/_gauss.c entirely.
+
+*****
+
+Fixed bug with relative import.
+
+*****
+
+Updated puppies version to 0.2.0a2.
+
+*****
+
+Changed license to GNU GPL v2.
+
+
+*****  Fri Mar 18 21:35:35 CET 2022  *****
+
+Housekeeping.
+pup_spitzer.py is running clean.
+
+
+*****  Tue Mar 22 22:30:31 CET 2022  *****
+
+Got Spitzer pipeline running intil badpix.
+
+*****
+
+Updated README conda links.
+
+*****
+
+Updated mc3 requirement.
+
+
+*****  Wed Mar 23 09:55:19 CET 2022  *****
+
+Got Spitzer pipeline running intil centering.
+
+
+*****  Wed Mar 27 22:06:12 CET 2024  *****
+
+Updated the pup marker to work with matplotlib v3.4+
+(as well as keeping compatibility with older versions).
+
+*****
+
+Getting the docs back to life.
+
+*****
+
+Replaced travis CI with github workflows for automated testing.
+
+*****
+
+Cleaning up the code.
+Raise NotImplementedError for PSF optimal photometry routines.
+
+*****
+
+Cleaned up centering.
+
+*****
+
+Cleaned up plots code.
+
+*****
+
+Cleaned up badpix.
+
+*****
+
+Cleaned up pup_model.py
+
+*****
+
+Updated workflow versions.
+
+*****
+
+Updated copyright and version to 0.3.0
+
+
+*****  Do 28 Mär 2024 11:12:26 CET  *****
+
+Updated setup.py and pyproject.toml.
+(Moving most of the configuration options to the latter)
+
+*****
+
+Updated README and docs' index and license.
+
+*****
+
+Split getstarted.rst into install.rst and pup_marker.rst.
+Also added top-level section for Dog of the day.
+ 
+*****
+
+Fixed pup entry point in pyproject.toml.
+
+
+*****  Sat Mar 30 16:14:00 CET 2024  *****
+
+Moved inputs folder to puppies/data.
+Renamed data/spitzer/filter to data/spitzer_filters
+Renamed data/spitzer/psf to data/spitzer_psf
+
+*****
+
+Fixed bug reinstating puppies.input() from puppies/laika.py file.
+
+*****
+
+Revamped 'pup --day' entry point since the dogperday.com does not
+update as frequent as it used to do. Now this command will bring up
+a random dog of the day.
+If on wants the most recent dog, it should call 'pup --today'.
+Added puppies/tools/pup_scrapper.py file, which collects the
+dogs of the day and save to a file.
+Added puppies/data/dogs_of_the_day.txt file with the dogs of the day.
+
+*****
+
+Updated version to 0.4.0
+
+*****
+
+Updated version to 0.4.0b1 for pypi testing.
+
+*****
+
+Renamed puppies.core.Model() to Laika().
+Turned into a proper class, moving the lightcurve_fit() and mcmc()
+functions into methods of the class.
+Fixed a couple of typos.
+Made Laika.summary() method also save the screen output to file.
+
+*****
+
+Renamed Laika.lightcurve_fit() to Laika.bestfit().
+Renamed Laika.mcmc() to Laika.retrieval().
+
+*****
+
+Updated logo. Goes into docs and README.md.
+
+*****
+
+Implemented tools.cd() context manager.
+Ensured user always end on the current folder.
+Added zoomed plot of frame when the data [nx,ny] is too large.
+Also, avoid using the first frame in case the telescope is not on point.
+
+
+*****  Sun Mar 31 10:16:05 CEST 2024  *****
+
+Updated docs, Spitzer tutorial for WASP-18b.
+
+*****
+
+Updated version to 0.5.0
