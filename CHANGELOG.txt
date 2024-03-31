@@ -864,3 +864,6 @@ Also, avoid using the first frame in case the telescope is not on point.
 
 Updated docs, Spitzer tutorial for WASP-18b.
 
+*****
+
+Updated version to 0.5.0
