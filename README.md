@@ -5,7 +5,8 @@
 [![Documentation Status](https://readthedocs.org/projects/puppies/badge/?version=latest)](https://puppies.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/exo_puppies.svg)](https://pypi.org/project/exo_puppies)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/exo_puppies.svg)](https://anaconda.org/conda-forge/exo_puppies)
-[![GitHub](https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue)](https://puppies.readthedocs.io/en/latest/license.html)
+[![GitHub License](https://img.shields.io/github/license/pcubillos/puppies?color=blue)](https://puppies.readthedocs.io/en/latest/license.html)
+
 
 ### Install as:
 ```

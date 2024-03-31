@@ -85,6 +85,7 @@ Thank you for using ``puppies``!
 .. |conda| image:: https://img.shields.io/conda/vn/conda-forge/exo_puppies.svg
     :target: https://anaconda.org/conda-forge/exo_puppies
 
-.. |License| image:: https://img.shields.io/github/license/pcubillos/puppies.svg?color=blue
+.. |License| image:: https://img.shields.io/github/license/pcubillos/puppies?color=blue
+   :alt: GitHub License
     :target: https://puppies.readthedocs.io/en/latest/license.html
 
