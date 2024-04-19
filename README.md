@@ -22,14 +22,20 @@ conda install -c conda-forge exo_puppies
 
 ### Cite as:
 ```bibtex
-  @MISC{Cubillos2024arxivPuppies,
-         author = {{Cubillos}, Patricio E.},
-          title = "{puppies: The Public Photometry pipeline for Exoplanets}",
-           year = 2024,
-          month = Apr,
-        journal = {Aprilis Prima},
-        archivePrefix = {arXiv},
-       eprint = {0000.00000},
- primaryClass = {astro-ph.EP},
-  }
+    @ARTICLE{Cubillos2024arxivPuppies,
+           author = {{Cubillos}, Patricio E.},
+            title = "{The Public Photometry Pipeline for Exoplanets}",
+          journal = {arXiv e-prints},
+         keywords = {Astrophysics - Earth and Planetary Astrophysics},
+             year = 2024,
+            month = mar,
+              eid = {arXiv:2403.20223},
+            pages = {arXiv:2403.20223},
+              doi = {10.48550/arXiv.2403.20223},
+    archivePrefix = {arXiv},
+           eprint = {2403.20223},
+     primaryClass = {astro-ph.EP},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/2024arXiv240320223C},
+          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 ```

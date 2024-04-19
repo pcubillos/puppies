@@ -54,7 +54,7 @@ Be Kind
 =======
 
 Please reference this paper if you found ``puppies`` useful for your research:
-  `Cubillos et al. (2024): The Public Photometry Pipeline for Exoplanets <https://www.youtube.com/watch?v=dQw4w9WgXcQ?autoplay=1>`_, Prima Aprilis.
+  `Cubillos (2024): The Public Photometry Pipeline for Exoplanets <https://ui.adsabs.harvard.edu/abs/2024arXiv240320223C>`_, Prima Aprilis.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
@@ -71,8 +71,8 @@ Thank you for using ``puppies``!
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
 
 
-.. |Build Status| image:: https://github.com/pcubillos/bibmanager/actions/workflows/python-package.yml/badge.svg
-   :target: https://github.com/pcubillos/bibmanager/actions/workflows/python-package.yml
+.. |Build Status| image:: https://github.com/pcubillos/puppies/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/pcubillos/puppies/actions/workflows/python-package.yml
 
 .. |docs| image:: https://readthedocs.org/projects/puppies/badge/?version=latest
     :target: https://puppies.readthedocs.io/en/latest/?badge=latest
